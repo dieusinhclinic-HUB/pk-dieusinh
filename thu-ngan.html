@@ -161,7 +161,7 @@
 <div class="ovl" id="profOvl"><div class="modal">
   <div class="mh"><h3 id="profTitle">Hồ sơ</h3><button class="mclose" onclick="hide('profOvl')">✕</button></div>
   <div class="mb" id="profBody"></div>
-  <div class="mf"><button class="btn btn-soft" id="profQueueBtn">➕ Thêm vào hàng chờ hôm nay</button></div>
+  <div class="mf"><button class="btn btn-ghost" id="profSvcBtn">➕ Thêm dịch vụ</button><button class="btn btn-soft" id="profQueueBtn">➕ Thêm vào hàng chờ hôm nay</button></div>
 </div></div>
 
 <!-- ===== modal: BN mới ===== -->
@@ -176,6 +176,23 @@
     <div class="full" style="font-size:12px;color:var(--ink2);">☑ Sau khi lưu sẽ tự thêm vào hàng chờ hôm nay.</div>
   </div></div>
   <div class="mf"><button class="btn btn-brand" onclick="saveNewBN()">✓ Lưu & thêm vào hàng chờ</button></div>
+</div></div>
+
+<!-- ===== modal: thêm dịch vụ ===== -->
+<div class="ovl" id="svcOvl"><div class="modal" style="width:min(560px,100%);">
+  <div class="mh"><h3 id="svcTitle">➕ Thêm dịch vụ</h3><button class="mclose" onclick="hide('svcOvl')">✕</button></div>
+  <div class="mb">
+    <div class="fgrid">
+      <div class="full"><label>Dịch vụ *</label><select id="svcSel" onchange="updSvc()" style="width:100%;"></select></div>
+      <div><label>Số lượng</label><input type="number" id="svcQty" value="1" min="1" oninput="updSvc()"></div>
+      <div><label>Thành tiền (tự tính)</label><input id="svcTotal" readonly style="background:#f4f4f1;font-weight:700;"></div>
+      <div><label>BS thực hiện</label><select id="svcBsTh" style="width:100%;"></select></div>
+      <div><label>BS chỉ định</label><select id="svcBsCd" style="width:100%;"></select></div>
+      <div class="full"><label>Ghi chú</label><input id="svcNote" placeholder="tùy chọn"></div>
+    </div>
+    <div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Giá lấy từ bảng dịch vụ chuẩn — không sửa tay. Dòng này ghi vào Sổ khám và cộng ngay vào hóa đơn của BN.</div>
+  </div>
+  <div class="mf"><button class="btn btn-brand" onclick="saveSvc()">✓ Thêm vào Sổ khám</button></div>
 </div></div>
 
 <!-- ===== modal: chốt ca ===== -->
@@ -304,10 +321,11 @@ function renderQueue(){
     html += `<div class="sect-label">${g.icon} ${g.label} (${rows.length})</div>`;
     if(!rows.length){ html += '<div class="empty">— trống —</div>'; return; }
     rows.forEach(r => {
-      const acts =
+      const svcBtn = g.key!=='Đã thu' ? `<button class="qbtn" title="Thêm dịch vụ" onclick="openSvc('${r.MA_BN}')">➕ DV</button>` : '';
+      const acts = (
         g.key==='Chờ khám'  ? `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')">📢 Gọi</button><button class="qbtn" onclick="setStatus('${r.MA_CHO}','Đang khám')">▶ Vào khám</button>` :
         g.key==='Đang khám' ? `<button class="qbtn" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Xong khám</button>` :
-        g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')">💳 Thu tiền</button>` : '';
+        g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')">💳 Thu tiền</button>` : '') + svcBtn;
       html += `<div class="qrow ${g.cls}">
         <div class="stt num">${r.STT||'–'}</div>
         <div style="flex:1;cursor:pointer;" onclick="openProfile('${r.MA_BN}')">
@@ -370,6 +388,7 @@ function openProfile(maBN){
     <div class="sect-label">💳 Thanh toán gần đây</div>
     ${pays.length?pays.map(p=>`<div class="histrow"><span class="num">${String(p.NGAY).slice(0,10)}</span><span style="flex:1;padding:0 8px;">${p.HINH_THUC||''}</span><span class="num">${fmtD(p.DA_THU)}</span></div>`).join(''):'<div class="empty">Chưa có</div>'}`;
   $('profQueueBtn').onclick = () => { hide('profOvl'); addToQueue(maBN); };
+  $('profSvcBtn').onclick = () => { hide('profOvl'); openSvc(maBN); };
   show('profOvl');
 }
 
@@ -398,7 +417,7 @@ function renderPay(){
   const total = payTotal();
   $('payBox').innerHTML = `
     <div style="font-weight:800;font-size:15px;margin-bottom:2px;">${bnName(selPay.maBN)} <span class="num" style="color:var(--ink3);font-weight:600;font-size:12px;">${selPay.maBN}</span></div>
-    <div class="sect-label">Dịch vụ hôm nay</div>
+    <div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ hôm nay <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)">➕ Thêm DV</button></div>
     ${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠️ Chưa có dịch vụ nào ghi trong Sổ khám hôm nay cho BN này.</div>'}
     <div class="totline"><span>Tổng hóa đơn</span><span class="num" id="payTot">${fmtD(total)}</span></div>
     <div class="fieldrow">
@@ -473,6 +492,43 @@ function printReceipt(final, row){
     <p class="c" style="margin-top:14px;">Cảm ơn quý khách!</p>
     <script>window.print();<\/script></body></html>`);
   w.document.close();
+}
+
+/* ================== THÊM DỊCH VỤ ================== */
+let svcBN = null;
+function openSvc(maBN){
+  svcBN = maBN;
+  $('svcTitle').textContent = '➕ Thêm dịch vụ — ' + bnName(maBN) + ' (' + maBN + ')';
+  const dvs = rowsToObj('DICH_VU').filter(d => String(d.CON_AP_DUNG||'').trim() !== 'Không');
+  $('svcSel').innerHTML = '<option value="">— chọn dịch vụ —</option>' + dvs.map(d =>
+    `<option value="${d.MA_DV}">${d.TEN_DV} — ${fmtD(d.DON_GIA)}${d.NHOM?' ('+d.NHOM+')':''}</option>`).join('');
+  const bss = rowsToObj('BAC_SI').filter(b => String(b.DANG_LAM_VIEC||'').trim() === 'Có');
+  const opts = '<option value="">—</option>' + bss.map(b => `<option>${b.TEN_BS}</option>`).join('');
+  $('svcBsTh').innerHTML = opts; $('svcBsCd').innerHTML = opts;
+  $('svcQty').value = 1; $('svcNote').value = ''; updSvc();
+  show('svcOvl');
+}
+function svcPrice(){
+  const d = rowsToObj('DICH_VU').find(x => x.MA_DV === $('svcSel').value);
+  return d ? (Number(d.DON_GIA)||0) : 0;
+}
+function updSvc(){
+  const qty = Math.max(1, Number($('svcQty').value)||1);
+  $('svcTotal').value = fmtD(svcPrice() * qty);
+}
+async function saveSvc(){
+  const d = rowsToObj('DICH_VU').find(x => x.MA_DV === $('svcSel').value);
+  if (!d){ toast('⚠️ Chọn dịch vụ trước'); return; }
+  const qty = Math.max(1, Number($('svcQty').value)||1);
+  const gia = Number(d.DON_GIA)||0;
+  let note = $('svcNote').value.trim();
+  note = ('Thêm tại quầy bởi ' + (me?me.email.split('@')[0]:'') + (note?'. '+note:'')).trim();
+  const row = { MA_LUOT: nextId('L',5,'SO_KHAM','MA_LUOT'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: d.TEN_DV,
+    BS_THUC_HIEN: $('svcBsTh').value, BS_CHI_DINH: $('svcBsCd').value, DON_GIA: gia, SO_LUONG: qty,
+    THANH_TIEN: gia*qty, GHI_CHU: note, ANH_KET_QUA: '' };
+  const j = await api('append', {table:'SO_KHAM', row});
+  if (j.ok){ ver=j.v; hide('svcOvl'); toast('✓ Đã thêm <b>'+d.TEN_DV+'</b> ('+fmtD(gia*qty)+') cho '+bnName(svcBN)); loadAll(true); }
+  else toast('⚠️ ' + (j.error||'lỗi'));
 }
 
 /* ================== CHỐT CA ================== */
