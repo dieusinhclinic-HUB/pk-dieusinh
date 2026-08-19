@@ -265,6 +265,7 @@ async function loadAll(silent){
 function startPoll(){
   clearInterval(pollTimer);
   pollTimer = setInterval(async () => {
+    if (document.hidden) return;
     try{
       const j = await api('version');
       if (j.ok){ setSync(true); if (j.v !== ver){ ver = j.v; loadAll(true); } }
