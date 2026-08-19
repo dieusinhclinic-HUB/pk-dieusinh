@@ -391,6 +391,9 @@ function callBN(maCho){
 }
 async function addToQueue(maBN, bs){
   const q = queueToday();
+  // chặn trùng: BN đang có mặt trong hàng chờ (chưa khám xong) thì không thêm nữa
+  const dup = q.find(x => x.MA_BN === maBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
+  if (dup){ toast('⚠️ <b>'+bnName(maBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); return; }
   const stt = q.reduce((m,r)=>Math.max(m, Number(r.STT)||0), 0) + 1;
   const row = { MA_CHO: nextId('C',5,'HANG_CHO','MA_CHO'), NGAY: todayStr(), STT: stt, MA_BN: maBN, TRANG_THAI:'Chờ khám', BS_KHAM: bs||'', GHI_CHU:'' };
   const j = await api('append', {table:'HANG_CHO', row});

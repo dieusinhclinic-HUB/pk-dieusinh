@@ -508,6 +508,14 @@ function renderLh(){
 }
 async function lhArrive(maHen, maBN, bs){
   const q = rowsToObj('HANG_CHO').filter(r=>sameDay(r.NGAY));
+  // chặn trùng: BN đang có mặt trong hàng chờ (chưa khám xong) thì không thêm nữa
+  const dup = q.find(x => x.MA_BN === maBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
+  if (dup){
+    toast('⚠️ <b>'+bn(maBN).HO_TEN+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')');
+    const j0 = await api('update', {table:'LICH_HEN', keyCol:'MA_HEN', keyVal:maHen, row:{TRANG_THAI:'Đã đến'}});
+    if (j0.ok){ ver=j0.v; loadAll(true); }
+    return;
+  }
   const stt = q.reduce((m,r)=>Math.max(m, Number(r.STT)||0), 0) + 1;
   const j1 = await api('append', {table:'HANG_CHO', row:{ MA_CHO:'C'+String(nextNum('C','HANG_CHO','MA_CHO')).padStart(5,'0'), NGAY:todayStr(), STT:stt, MA_BN:maBN, TRANG_THAI:'Chờ khám', BS_KHAM:bs||'', GHI_CHU:'Theo hẹn' }});
   if (!j1.ok){ toast('⚠️ '+(j1.error||'lỗi')); return; }
