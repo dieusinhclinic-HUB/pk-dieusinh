@@ -100,6 +100,17 @@
   #loading{position:fixed;inset:0;background:rgba(252,252,251,.75);display:none;place-items:center;z-index:150;font-weight:700;color:var(--brand);}
   #loading.on{display:grid;}
   @media (max-width:1000px){.wrap{grid-template-columns:1fr;}}
+
+  /* ===== chuyển động mượt ===== */
+  @media (prefers-reduced-motion: no-preference){
+    .btn,.qbtn,button{transition:background .15s ease,color .15s ease,border-color .15s ease,box-shadow .18s ease,transform .1s ease;}
+    .btn:active,.qbtn:active,button:active{transform:scale(.96);}
+    .card{transition:box-shadow .2s ease;}
+    .qrow{animation:rowIn .18s ease both;}
+    #toast{transition:transform .28s cubic-bezier(.2,.8,.3,1),opacity .28s ease;opacity:0;}
+    #toast.on{opacity:1;}
+  }
+  @keyframes rowIn{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>

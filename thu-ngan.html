@@ -111,6 +111,27 @@
   #loading{position:fixed;inset:0;background:rgba(252,252,251,.75);display:none;place-items:center;z-index:150;font-weight:700;color:var(--brand);}
   #loading.on{display:grid;}
   @media (max-width:1000px){.wrap{grid-template-columns:1fr;}}
+
+  /* ===== chuyển động mượt ===== */
+  @media (prefers-reduced-motion: no-preference){
+    .btn,.qbtn,button{transition:background .15s ease,color .15s ease,border-color .15s ease,box-shadow .18s ease,transform .1s ease;}
+    .btn:active,.qbtn:active,button:active{transform:scale(.96);}
+    .card{transition:box-shadow .2s ease;}
+    .qrow{animation:rowIn .18s ease both;}
+    #toast{transition:transform .28s cubic-bezier(.2,.8,.3,1),opacity .28s ease;opacity:0;}
+    #toast.on{opacity:1;}
+  }
+  @keyframes rowIn{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: no-preference){
+    .ovl.on{animation:ovlIn .16s ease;}
+    .ovl.on .modal{animation:popIn .2s cubic-bezier(.2,.8,.3,1);}
+    .ovl.closing{animation:ovlOut .14s ease forwards;}
+    .ovl.closing .modal{animation:popOut .14s ease forwards;}
+  }
+  @keyframes ovlIn{from{opacity:0}to{opacity:1}}
+  @keyframes ovlOut{to{opacity:0}}
+  @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes popOut{to{opacity:0;transform:translateY(8px) scale(.98)}}
 </style>
 </head>
 <body>
@@ -219,7 +240,13 @@ const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
 const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const sameDay = v => String(v).slice(0,10) === todayStr();
 function toast(m){const t=$('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3600);}
-function show(id){$(id).classList.add('on');} function hide(id){$(id).classList.remove('on');}
+function show(id){const el=$(id);el.classList.remove('closing');el.classList.add('on');}
+function hide(id){const el=$(id);
+  if (el.classList.contains('ovl') && el.classList.contains('on')){
+    el.classList.add('closing');
+    setTimeout(()=>{ el.classList.remove('on','closing'); }, 140);
+  } else el.classList.remove('on');
+}
 function chime(){try{const c=new (window.AudioContext||window.webkitAudioContext)();[[880,0],[1174,.18]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;g.gain.setValueAtTime(.2,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.35);o.start(c.currentTime+d);o.stop(c.currentTime+d+.4);});}catch(e){}}
 
 /* ================== API ================== */
