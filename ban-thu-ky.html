@@ -226,7 +226,7 @@
 /* ================== CẤU HÌNH ================== */
 const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
-const POLL_MS   = 4000;
+const POLL_MS   = 3000;
 const TABLES    = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null;
@@ -242,6 +242,9 @@ function stripVN(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,''
 function chime(){try{const c=new (window.AudioContext||window.webkitAudioContext)();[[880,0],[1174,.18]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;g.gain.setValueAtTime(.2,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.35);o.start(c.currentTime+d);o.stop(c.currentTime+d+.4);});}catch(e){}}
 
 /* ================== API ================== */
+const SESS_KEY='pk_sess', SNAP_KEY='pk_db_tk';
+function saveSnap(){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({DB:DB, ver:ver, t:Date.now()})); }catch(e){} }
+function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
 async function api(action, extra){
   const body = Object.assign({action, token}, extra||{});
   const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
@@ -257,7 +260,7 @@ async function loadAll(silent){
   if(!silent) $('loading').classList.add('on');
   try{
     const j = await api('readAll', {tables: TABLES});
-    if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); }
+    if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); saveSnap(); }
     else { toast('⚠️ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
   }catch(e){ setSync(false); }
   $('loading').classList.remove('on');
@@ -285,6 +288,7 @@ window.addEventListener('load', () => {
   const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
   setTimeout(()=>clearInterval(t), 10000);
   $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+  tryResume();
   document.querySelectorAll('.ttab').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
     document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
@@ -292,13 +296,25 @@ window.addEventListener('load', () => {
   }));
   document.addEventListener('click', e => { if (!e.target.closest('.pk')) document.querySelectorAll('.pkResults').forEach(x=>x.style.display='none'); });
 });
+function tryResume(){
+  const s = loadSess(); if (!s) return false;
+  token = s.sess; me = {email:s.email, role:s.role};
+  $('userChip').textContent = '\ud83d\udc64 ' + me.email.split('@')[0] + ' \u00b7 ' + me.role;
+  $('loginView').style.display='none'; $('app').style.display='block';
+  let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
+  const warm = !!(snap && snap.DB);
+  if (warm){ DB = snap.DB; ver = snap.ver; renderAll(); fillSelects(); }
+  loadAll(warm).then(()=>{ fillSelects(); }); startPoll();
+  return true;
+}
 async function onCredential(resp){
   token = resp.credential;
   $('loginMsg').className=''; $('loginMsg').textContent='Đang kiểm tra quyền…';
   try{
-    const w = await api('whoami');
+    const w = await api('login');
     if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền.' : ('Lỗi: '+w.error); token=null; return; }
     me = w;
+    if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
     $('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
     $('loginView').style.display='none'; $('app').style.display='block';
     await loadAll(); fillSelects(); startPoll();
@@ -306,6 +322,7 @@ async function onCredential(resp){
   }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
 }
 function sessionExpired(){
+  try{ localStorage.removeItem(SESS_KEY); }catch(e){}
   clearInterval(pollTimer); token=null;
   $('app').style.display='none'; $('loginView').style.display='grid';
   $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';

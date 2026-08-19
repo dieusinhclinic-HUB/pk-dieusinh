@@ -157,7 +157,7 @@
 /* ================== CẤU HÌNH ================== */
 const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
-const POLL_MS   = 5000;
+const POLL_MS   = 4000;
 const TABLES    = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO'];
 const ALLOWED   = ['Quản lý','Kế toán'];
 
@@ -171,6 +171,9 @@ const dstr = v => String(v).slice(0,10);
 const dayOffset = k => { const d=new Date(); d.setDate(d.getDate()-k); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 function toast(m){const t=$('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3600);}
 
+const SESS_KEY='pk_sess', SNAP_KEY='pk_db_tq';
+function saveSnap(){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({DB:DB, ver:ver, t:Date.now()})); }catch(e){} }
+function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
 async function api(action, extra){
   const body = Object.assign({action, token}, extra||{});
   const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
@@ -186,7 +189,7 @@ async function loadAll(silent){
   if(!silent) $('loading').classList.add('on');
   try{
     const j = await api('readAll', {tables: TABLES});
-    if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); }
+    if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); saveSnap(); }
     else setSync(false);
   }catch(e){ setSync(false); }
   $('loading').classList.remove('on');
@@ -210,21 +213,36 @@ window.addEventListener('load', () => {
   const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
   setTimeout(()=>clearInterval(t), 10000);
   $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+  tryResume();
 });
+function tryResume(){
+  const s = loadSess(); if (!s) return false;
+  if (!ALLOWED.includes(s.role)) return false;
+  token = s.sess; me = {email:s.email, role:s.role};
+  $('userChip').textContent = '\ud83d\udc64 ' + me.email.split('@')[0] + ' \u00b7 ' + me.role;
+  $('loginView').style.display='none'; $('app').style.display='block';
+  let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
+  const warm = !!(snap && snap.DB);
+  if (warm){ DB = snap.DB; ver = snap.ver; renderAll();  }
+  loadAll(warm); startPoll();
+  return true;
+}
 async function onCredential(resp){
   token = resp.credential;
   $('loginMsg').className=''; $('loginMsg').textContent='Đang kiểm tra quyền…';
   try{
-    const w = await api('whoami');
+    const w = await api('login');
     if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền.' : ('Lỗi: '+w.error); token=null; return; }
     if (!ALLOWED.includes(w.role)){ $('loginMsg').className='err'; $('loginMsg').textContent='Vai trò "'+w.role+'" không được xem Tổng quan (chỉ Quản lý & Kế toán).'; token=null; return; }
     me = w;
+    if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
     $('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
     $('loginView').style.display='none'; $('app').style.display='block';
     await loadAll(); startPoll();
   }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ.'; }
 }
 function sessionExpired(){
+  try{ localStorage.removeItem(SESS_KEY); }catch(e){}
   clearInterval(pollTimer); token=null;
   $('app').style.display='none'; $('loginView').style.display='grid';
   $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';
