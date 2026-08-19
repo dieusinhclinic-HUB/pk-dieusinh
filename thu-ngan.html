@@ -179,20 +179,17 @@
 </div></div>
 
 <!-- ===== modal: thêm dịch vụ ===== -->
-<div class="ovl" id="svcOvl"><div class="modal" style="width:min(560px,100%);">
+<div class="ovl" id="svcOvl"><div class="modal" style="width:min(680px,100%);">
   <div class="mh"><h3 id="svcTitle">➕ Thêm dịch vụ</h3><button class="mclose" onclick="hide('svcOvl')">✕</button></div>
-  <div class="mb">
-    <div class="fgrid">
-      <div class="full"><label>Dịch vụ *</label><select id="svcSel" onchange="updSvc()" style="width:100%;"></select></div>
-      <div><label>Số lượng</label><input type="number" id="svcQty" value="1" min="1" oninput="updSvc()"></div>
-      <div><label>Thành tiền (tự tính)</label><input id="svcTotal" readonly style="background:#f4f4f1;font-weight:700;"></div>
-      <div><label>BS thực hiện</label><select id="svcBsTh" style="width:100%;"></select></div>
-      <div><label>BS chỉ định</label><select id="svcBsCd" style="width:100%;"></select></div>
-      <div class="full"><label>Ghi chú</label><input id="svcNote" placeholder="tùy chọn"></div>
-    </div>
-    <div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Giá lấy từ bảng dịch vụ chuẩn — không sửa tay. Dòng này ghi vào Sổ khám và cộng ngay vào hóa đơn của BN.</div>
+  <div class="mb" style="max-height:62vh;overflow-y:auto;">
+    <div id="svcRows"></div>
+    <button class="btn btn-ghost" style="margin-top:10px;" onclick="addSvcRow()">➕ Thêm dòng dịch vụ</button>
+    <div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Giá lấy từ bảng dịch vụ chuẩn — không sửa tay. Mỗi dòng ghi vào Sổ khám và cộng ngay vào hóa đơn của BN.</div>
   </div>
-  <div class="mf"><button class="btn btn-brand" onclick="saveSvc()">✓ Thêm vào Sổ khám</button></div>
+  <div class="mf" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+    <div style="font-weight:800;">Tổng: <span id="svcSum">0 đ</span></div>
+    <button class="btn btn-brand" id="svcSaveBtn" onclick="saveSvc()">✓ Thêm vào Sổ khám</button>
+  </div>
 </div></div>
 
 <!-- ===== modal: chốt ca ===== -->
@@ -496,40 +493,96 @@ function printReceipt(final, row){
 }
 
 /* ================== THÊM DỊCH VỤ ================== */
-let svcBN = null;
+let svcBN = null, svcOptHtml = '', svcBsHtml = '';
 function openSvc(maBN){
   svcBN = maBN;
   $('svcTitle').textContent = '➕ Thêm dịch vụ — ' + bnName(maBN) + ' (' + maBN + ')';
   const dvs = rowsToObj('DICH_VU').filter(d => String(d.CON_AP_DUNG||'').trim() !== 'Không');
-  $('svcSel').innerHTML = '<option value="">— chọn dịch vụ —</option>' + dvs.map(d =>
+  svcOptHtml = '<option value="">— chọn dịch vụ —</option>' + dvs.map(d =>
     `<option value="${d.MA_DV}">${d.TEN_DV} — ${fmtD(d.DON_GIA)}${d.NHOM?' ('+d.NHOM+')':''}</option>`).join('');
   const bss = rowsToObj('BAC_SI').filter(b => String(b.DANG_LAM_VIEC||'').trim() === 'Có');
-  const opts = '<option value="">—</option>' + bss.map(b => `<option>${b.TEN_BS}</option>`).join('');
-  $('svcBsTh').innerHTML = opts; $('svcBsCd').innerHTML = opts;
-  $('svcQty').value = 1; $('svcNote').value = ''; updSvc();
+  svcBsHtml = '<option value="">—</option>' + bss.map(b => `<option>${b.TEN_BS}</option>`).join('');
+  $('svcRows').innerHTML = '';
+  addSvcRow();
   show('svcOvl');
 }
-function svcPrice(){
-  const d = rowsToObj('DICH_VU').find(x => x.MA_DV === $('svcSel').value);
-  return d ? (Number(d.DON_GIA)||0) : 0;
+function addSvcRow(){
+  const div = document.createElement('div');
+  div.className = 'svcRow';
+  div.style.cssText = 'border:1px solid #e2e2da;border-radius:12px;padding:12px;margin-top:10px;position:relative;';
+  div.innerHTML = `
+    <button class="qbtn" title="Xóa dòng" onclick="delSvcRow(this)" style="position:absolute;top:8px;right:8px;">🗑</button>
+    <div class="fgrid">
+      <div class="full" style="padding-right:36px;"><label>Dịch vụ *</label><select class="sSel" onchange="updSvcRows()" style="width:100%;"></select></div>
+      <div><label>Số lượng</label><input type="number" class="sQty" value="1" min="1" oninput="updSvcRows()"></div>
+      <div><label>Thành tiền (tự tính)</label><input class="sTot" readonly style="background:#f4f4f1;font-weight:700;"></div>
+      <div><label>BS thực hiện</label><select class="sBsTh" style="width:100%;"></select></div>
+      <div><label>BS chỉ định</label><select class="sBsCd" style="width:100%;"></select></div>
+      <div class="full"><label>Ghi chú</label><input class="sNote" placeholder="tùy chọn"></div>
+    </div>`;
+  div.querySelector('.sSel').innerHTML = svcOptHtml;
+  div.querySelector('.sBsTh').innerHTML = svcBsHtml;
+  div.querySelector('.sBsCd').innerHTML = svcBsHtml;
+  // dòng mới lấy sẵn BS của dòng trước cho đỡ chọn lại
+  const prev = $('svcRows').querySelectorAll('.svcRow');
+  if (prev.length){
+    const last = prev[prev.length-1];
+    div.querySelector('.sBsTh').value = last.querySelector('.sBsTh').value;
+    div.querySelector('.sBsCd').value = last.querySelector('.sBsCd').value;
+  }
+  $('svcRows').appendChild(div);
+  updSvcRows();
 }
-function updSvc(){
-  const qty = Math.max(1, Number($('svcQty').value)||1);
-  $('svcTotal').value = fmtD(svcPrice() * qty);
+function delSvcRow(btn){
+  const rows = $('svcRows').querySelectorAll('.svcRow');
+  if (rows.length <= 1){ // dòng cuối: chỉ xóa trắng, không bỏ hẳn
+    const r = btn.closest('.svcRow');
+    r.querySelector('.sSel').value = ''; r.querySelector('.sQty').value = 1; r.querySelector('.sNote').value = '';
+  } else btn.closest('.svcRow').remove();
+  updSvcRows();
+}
+function svcRowData(r){
+  const d = rowsToObj('DICH_VU').find(x => x.MA_DV === r.querySelector('.sSel').value);
+  const qty = Math.max(1, Number(r.querySelector('.sQty').value)||1);
+  const gia = d ? (Number(d.DON_GIA)||0) : 0;
+  return { d, qty, gia, tien: gia*qty,
+    bsTh: r.querySelector('.sBsTh').value, bsCd: r.querySelector('.sBsCd').value,
+    note: r.querySelector('.sNote').value.trim() };
+}
+function updSvcRows(){
+  let sum = 0;
+  $('svcRows').querySelectorAll('.svcRow').forEach(r => {
+    const x = svcRowData(r);
+    r.querySelector('.sTot').value = x.d ? fmtD(x.tien) : '';
+    sum += x.tien;
+  });
+  $('svcSum').textContent = fmtD(sum);
 }
 async function saveSvc(){
-  const d = rowsToObj('DICH_VU').find(x => x.MA_DV === $('svcSel').value);
-  if (!d){ toast('⚠️ Chọn dịch vụ trước'); return; }
-  const qty = Math.max(1, Number($('svcQty').value)||1);
-  const gia = Number(d.DON_GIA)||0;
-  let note = $('svcNote').value.trim();
-  note = ('Thêm tại quầy bởi ' + (me?me.email.split('@')[0]:'') + (note?'. '+note:'')).trim();
-  const row = { MA_LUOT: nextId('L',5,'SO_KHAM','MA_LUOT'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: d.TEN_DV,
-    BS_THUC_HIEN: $('svcBsTh').value, BS_CHI_DINH: $('svcBsCd').value, DON_GIA: gia, SO_LUONG: qty,
-    THANH_TIEN: gia*qty, GHI_CHU: note, ANH_KET_QUA: '' };
-  const j = await api('append', {table:'SO_KHAM', row});
-  if (j.ok){ ver=j.v; hide('svcOvl'); toast('✓ Đã thêm <b>'+d.TEN_DV+'</b> ('+fmtD(gia*qty)+') cho '+bnName(svcBN)); loadAll(true); }
-  else toast('⚠️ ' + (j.error||'lỗi'));
+  const items = [...$('svcRows').querySelectorAll('.svcRow')].map(svcRowData).filter(x => x.d);
+  if (!items.length){ toast('⚠️ Chọn dịch vụ trước'); return; }
+  const btn = $('svcSaveBtn');
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Đang lưu…';
+  const who = 'Thêm tại quầy bởi ' + (me?me.email.split('@')[0]:'');
+  const base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1), 10);
+  let okCount = 0, sum = 0;
+  try{
+    for (let i=0; i<items.length; i++){
+      const x = items[i];
+      const row = { MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
+        BS_THUC_HIEN: x.bsTh, BS_CHI_DINH: x.bsCd, DON_GIA: x.gia, SO_LUONG: x.qty,
+        THANH_TIEN: x.tien, GHI_CHU: (who + (x.note?'. '+x.note:'')).trim(), ANH_KET_QUA: '' };
+      const j = await api('append', {table:'SO_KHAM', row});
+      if (j.ok){ ver=j.v; okCount++; sum += x.tien; }
+      else { toast('⚠️ Dòng '+(i+1)+': '+(j.error||'lỗi')+' — đã lưu '+okCount+'/'+items.length); break; }
+    }
+  } finally { btn.disabled = false; btn.textContent = '✓ Thêm vào Sổ khám'; }
+  if (okCount === items.length){
+    hide('svcOvl');
+    toast('✓ Đã thêm <b>'+okCount+' dịch vụ</b> ('+fmtD(sum)+') cho '+bnName(svcBN));
+  }
+  if (okCount) loadAll(true);
 }
 
 /* ================== CHỐT CA ================== */
