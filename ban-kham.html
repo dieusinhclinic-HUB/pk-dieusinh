@@ -478,7 +478,7 @@ ${ds.map(d=>`<button class="dvchip" onclick="addLine('${d.MA_DV}')">${d.TEN_DV} 
 <div class="sect-label">💊 Toa thuốc của lượt khám</div>
 ${(rowsToObj('TOA_THUOC').filter(t=>String(t.MA_CHO||'')===cur.maCho && t.TRANG_THAI!=='Hủy')).map(t=>{
 const n = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===t.MA_TOA).length;
-return `<div class="toaline"><b>💊 ${t.MA_TOA}</b><span>${n} thuốc · BS ${t.BS_KE}${t.GIO_KE?(' · '+fmtT(t.GIO_KE)):''}</span><span style="font-weight:700;">${t.TRANG_THAI}</span><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')" style="margin-left:auto;">🖨 In toa</button></div>`;
+return `<div class="toaline"><b>💊 ${t.MA_TOA}</b><span>${n} thuốc · ${t.BS_KE}${t.GIO_KE?(' · '+fmtT(t.GIO_KE)):''}</span><span style="font-weight:700;">${t.TRANG_THAI}</span><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')" style="margin-left:auto;">🖨 In toa</button></div>`;
 }).join('')||'<div class="empty">Chưa kê toa cho lượt khám này.</div>'}
 <button class="btn btn-soft" style="margin-top:4px;" onclick="keToa()">💊 Kê toa thuốc</button>
 

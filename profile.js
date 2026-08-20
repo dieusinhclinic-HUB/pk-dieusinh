@@ -108,7 +108,7 @@ var lastData = null;
 function toaHtml(t, ctList){
   var lines = ctList.filter(function(c){ return c.MA_TOA===t.MA_TOA; });
   return '<div class="pkpToa"><div class="th">💊 Toa ' + esc(t.MA_TOA) +
-    ' <span class="pkpMut" style="font-weight:400;">BS ' + esc(t.BS_KE||'') + (t.GIO_KE?(' · '+hhmm(t.GIO_KE)):'') + '</span>' +
+    ' <span class="pkpMut" style="font-weight:400;">' + esc(t.BS_KE||'') + (t.GIO_KE?(' · '+hhmm(t.GIO_KE)):'') + '</span>' +
     ' <span class="tst">' + esc(t.TRANG_THAI||'') + '</span>' +
     ' <button class="pkpBtn" onclick="PKProfile._inToa(\'' + esc(t.MA_TOA) + '\')" style="margin-left:auto;">🖨 In</button></div>' +
     '<ul>' + lines.map(function(l){

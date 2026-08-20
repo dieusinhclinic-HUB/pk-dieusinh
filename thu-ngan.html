@@ -648,7 +648,7 @@ return `<div class="henrow${arrived?' arrived':''}">
 <span class="gio num">${fmtT(h.GIO_HEN)||'—'}</span>
 <div style="flex:1;">
 <div class="nm" onclick="openProfile('${h.MA_BN}')">${bnName(h.MA_BN)}</div>
-<div class="meta">${h.LY_DO||''}${h.BS_PHU_TRACH?(' · BS '+h.BS_PHU_TRACH):''}</div>
+<div class="meta">${h.LY_DO||''}${h.BS_PHU_TRACH?(' · '+h.BS_PHU_TRACH):''}</div>
 </div>
 ${arrived ? '<span style="font-size:12px;color:var(--good);font-weight:700;">✓ đã đến</span>'
 : `<button class="qbtn call" onclick="henCheckin('${h.MA_HEN}')">✓ Check-in</button>`}
@@ -662,7 +662,7 @@ $('henBox').innerHTML += '<div class="sect-label">Sắp tới</div>' + upcoming.
 const d = String(h.NGAY_HEN).slice(0,10);
 return `<div class="henrow"><span class="gio num">${d.slice(8,10)}/${d.slice(5,7)}</span>
 <div style="flex:1;"><div class="nm" onclick="openProfile('${h.MA_BN}')">${bnName(h.MA_BN)}</div>
-<div class="meta">${fmtT(h.GIO_HEN)?fmtT(h.GIO_HEN)+' · ':''}${h.LY_DO||''}${h.BS_PHU_TRACH?(' · BS '+h.BS_PHU_TRACH):''}</div></div>
+<div class="meta">${fmtT(h.GIO_HEN)?fmtT(h.GIO_HEN)+' · ':''}${h.LY_DO||''}${h.BS_PHU_TRACH?(' · '+h.BS_PHU_TRACH):''}</div></div>
 <button class="qbtn crit" onclick="dhCancel('${h.MA_HEN}')">Hủy</button></div>`;
 }).join('');
 }
