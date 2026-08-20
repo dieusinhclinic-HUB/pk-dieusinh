@@ -152,7 +152,8 @@ function enterApp(){
 const frames = {};   // id -> iframe
 
 function pausePoll(ifr){
-  try{ const w = ifr.contentWindow; if (w && w.pollTimer) w.clearInterval(w.pollTimer); }catch(e){}
+  // pollTimer là biến let trong trang con → phải dừng qua eval trong ngữ cảnh của nó
+  try{ ifr.contentWindow.eval('if (typeof pollTimer!=="undefined" && pollTimer){ clearInterval(pollTimer); pollTimer=null; }'); }catch(e){}
 }
 function resumePoll(ifr){
   try{
