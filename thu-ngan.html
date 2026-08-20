@@ -624,7 +624,7 @@ function announce(stt, ten, phong){
 const ph = String(phong||'').replace(/^BS\.?\s*/i,'bác sĩ ');
 const msg = 'Mời số '+(stt||'')+', '+ten+', vào phòng khám '+ph;
 try{
-const a = new Audio('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=vi&ttsspeed=1&q='+encodeURIComponent(msg));
+const a = new Audio('https://bhixwqpyvspmtumbvbhc.supabase.co/functions/v1/loa?q='+encodeURIComponent(msg));
 a.onerror = function(){ annFallback(msg); };
 const p = a.play();
 if (p && p.catch) p.catch(function(){ annFallback(msg); });
