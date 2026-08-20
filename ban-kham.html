@@ -157,7 +157,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div id="app">
 <header class="bar">
 <div><h1>🩺 Bàn khám</h1><div class="sub" id="hdDate"></div></div>
-<select id="bsSel" onchange="renderAll()"></select>
+<select id="bsSel" onchange="bsSwitch()" title="Chọn bác sĩ đang ngồi bàn này"></select>
 <div class="spacer"></div>
 <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
 <span class="userchip" id="userChip">…</span>
@@ -265,7 +265,7 @@ $('loginView').style.display='none'; $('app').style.display='block';
 let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
 const warm = !!(snap && snap.DB);
 if (warm){ DB = snap.DB; ver = snap.ver; renderAll(); fillBsSel(); }
-loadAll(warm).then(()=>{ fillBsSel(); }); startPoll();
+loadAll(warm).then(()=>{ fillBsSel(); if (!cur){ openMine(); renderAll(); } }); startPoll();
 return true;
 }
 async function onCredential(resp){
@@ -280,6 +280,7 @@ $('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 await loadAll();
 fillBsSel();
+if (!cur){ openMine(); renderAll(); }
 startPoll();
 toast('✓ Xin chào — vai trò: ' + me.role);
 }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
@@ -293,9 +294,35 @@ $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập h
 function logout(){ try{ SB_API('logout'); }catch(e){} try{ localStorage.removeItem(SESS_KEY); }catch(e){} clearInterval(pollTimer); location.reload(); }
 function fillBsSel(){
 const bss = rowsToObj('BAC_SI').filter(b => String(b.DANG_LAM_VIEC||'').trim()==='Có');
+const keep = $('bsSel').value || localStorage.getItem('pk_bs_bk') || '';
 $('bsSel').innerHTML = bss.map(b => `<option>${b.TEN_BS}</option>`).join('');
+if (keep && bss.some(b=>String(b.TEN_BS).trim()===keep)) $('bsSel').value = keep;
 }
 const myBS = () => $('bsSel').value;
+/* chuyển bàn bác sĩ: nhớ lựa chọn của máy này + mở ngay BN đang khám của bác sĩ đó */
+function bsSwitch(){
+if (lines.length && !confirm('Đang có dịch vụ mới thêm CHƯA lưu — chuyển bàn sẽ bỏ các dòng này. Tiếp tục?')){ $('bsSel').value = localStorage.getItem('pk_bs_bk') || $('bsSel').value; return; }
+try{ localStorage.setItem('pk_bs_bk', $('bsSel').value); }catch(e){}
+openMine();
+renderAll();
+toast('🩺 Đang làm việc tại bàn: <b>'+myBS()+'</b>');
+}
+function openMine(){
+const mine = queueToday().find(r=>r.TRANG_THAI==='Đang khám' && String(r.BS_KHAM||'').trim()===myBS());
+cur = mine ? {maCho:mine.MA_CHO, maBN:mine.MA_BN} : null;
+lines=[]; examNote='';
+}
+/* đọc loa mời bệnh nhân */
+function announce(stt, ten, phong){
+try{
+const ph = String(phong||'').replace(/^BS\.?\s*/i,'bác sĩ ');
+const u = new SpeechSynthesisUtterance('Mời số '+(stt||'')+', '+ten+', vào phòng khám '+ph);
+u.lang='vi-VN'; u.rate=0.95;
+const vs = speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
+if (vs.length) u.voice = vs[0];
+speechSynthesis.cancel(); speechSynthesis.speak(u);
+}catch(e){}
+}
 
 /* ================== ID MỚI ================== */
 function nextNum(prefix, table, col){
@@ -388,6 +415,7 @@ if (!r){ r = waits[0]; note = ' <span style="font-size:11px;">(BN này yêu cầ
 const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:r.MA_CHO, row:{TRANG_THAI:'Đang khám', BS_KHAM: myBS(), GIO_GOI: nowTime()}});
 if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
 ver = j.v; chime();
+announce(r.STT, bn(r.MA_BN).HO_TEN, myBS());
 toast('📢 Mời số <b>'+(r.STT||'')+'</b> — <b>'+bn(r.MA_BN).HO_TEN+'</b> vào phòng '+myBS()+note);
 cur = {maCho:r.MA_CHO, maBN:r.MA_BN}; lines=[]; examNote='';
 await loadAll(true);
@@ -695,7 +723,7 @@ var board = document.createElement("div"); board.id = "docBoard";
 var hd = document.querySelector("header");
 if (hd) hd.insertAdjacentElement("afterend", board);
 function nm(ma){ var b = rowsToObj("BENH_NHAN").find(function(x){return x.MA_BN===ma;}); return b?b.HO_TEN:ma; }
-function pn(ma){ return "<b onclick=\"PKProfile.open('"+ma+"')\">"+nm(ma)+"</b>"; }
+function pn(ma){ return "<b onclick=\"event.stopPropagation();PKProfile.open('"+ma+"')\">"+nm(ma)+"</b>"; }
 window.renderDocBoard = function(){
 try{
 if (!DB || !DB.BAC_SI || !DB.HANG_CHO){ board.innerHTML=""; return; }
@@ -706,7 +734,7 @@ var ten = String(b.TEN_BS).trim();
 var cur = q.filter(function(r){ return r.TRANG_THAI==="Đang khám" && String(r.BS_KHAM||"").trim()===ten; });
 var done = q.filter(function(r){ return (r.TRANG_THAI==="Xong khám"||r.TRANG_THAI==="Đã thu") && String(r.BS_KHAM||"").trim()===ten; }).length;
 var inner = cur.length ? cur.map(function(r){ return "<div class=\"dst\">🔵 "+pn(r.MA_BN)+" (số "+r.STT+")</div>"; }).join("") : "<div class=\"dst free\">— trống —</div>";
-return "<div class=\"dcard "+(cur.length?"busy":"")+"\"><div class=\"dname\">👨‍⚕️ "+ten+"</div>"+inner+"<div class=\"dst\" style=\"font-size:11px;color:var(--ink3);\">xong hôm nay: "+done+"</div></div>";
+return "<div class=\"dcard "+(cur.length?"busy":"")+"\" style=\"cursor:pointer;\" title=\"Bấm để chuyển sang bàn "+ten+"\" onclick=\"document.getElementById('bsSel').value='"+ten+"';bsSwitch();\"><div class=\"dname\">👨‍⚕️ "+ten+"</div>"+inner+"<div class=\"dst\" style=\"font-size:11px;color:var(--ink3);\">xong hôm nay: "+done+"</div></div>";
 }).join("");
 var wait = q.filter(function(r){ return r.TRANG_THAI==="Chờ khám"; }).sort(function(a,b){ return (Number(a.STT)||0)-(Number(b.STT)||0); });
 var pay = q.filter(function(r){ return r.TRANG_THAI==="Xong khám"; }).length;

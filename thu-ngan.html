@@ -309,6 +309,16 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div class="mf"><button class="btn btn-brand" onclick="dhSave()">✓ Đặt hẹn</button></div>
 </div></div>
 
+<!-- ===== modal: gọi vào phòng khám ===== -->
+<div class="ovl" id="gcOvl"><div class="modal" style="width:min(520px,100%);">
+<div class="mh"><h3>📢 Gọi vào phòng khám</h3><button class="mclose" onclick="hide('gcOvl')">✕</button></div>
+<div class="mb">
+<div id="gcInfo" style="font-size:13.5px;margin-bottom:12px;"></div>
+<div class="sect-label" style="margin-top:0;">Bấm chọn phòng bác sĩ — máy sẽ đọc loa mời bệnh nhân</div>
+<div id="gcBs" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+</div>
+</div></div>
+
 <!-- ===== modal: hủy đơn ===== -->
 <div class="ovl" id="ccOvl"><div class="modal" style="width:min(460px,100%);">
 <div class="mh"><h3>✕ Hủy tiếp nhận</h3><button class="mclose" onclick="hide('ccOvl')">✕</button></div>
@@ -555,10 +565,41 @@ const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:maCho, 
 if (j.ok){ ver=j.v; toast('✓ Đã chuyển: ' + (st==='Xong khám'?'Hoàn tất khám':st)); loadAll(true); }
 else toast('⚠️ ' + (j.error||'lỗi'));
 }
+let gcCho = null;
 function callBN(maCho){
 const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
-chime();
-toast('📢 Mời số <b>' + (r.STT||'') + '</b> — <b>' + bnName(r.MA_BN) + '</b>' + (r.BS_KHAM?' vào phòng '+r.BS_KHAM:''));
+gcCho = maCho;
+const yc = String(r.BS_YEU_CAU||'').trim();
+$('gcInfo').innerHTML = 'Mời số <b>'+(r.STT||'?')+'</b> — <b>'+bnName(r.MA_BN)+'</b> vào phòng khám.'
++ (yc?(' <div style="color:#2456a8;margin-top:4px;">BN yêu cầu: <b>'+yc+'</b> (đã chọn sẵn)</div>'):'');
+const bss = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
+$('gcBs').innerHTML = bss.map(b=>{
+const ten = String(b.TEN_BS).trim();
+const busy = queueToday().some(q=>q.TRANG_THAI==='Đang khám' && String(q.BS_KHAM||'').trim()===ten);
+return `<button class="btn ${ten===yc?'btn-brand':'btn-ghost'}" onclick="gcGo(this.dataset.bs)" data-bs="${ten.replace(/"/g,'&quot;')}" style="flex:1 1 150px;">${ten}${busy?' <span style="font-size:10.5px;opacity:.75;">· đang khám</span>':''}</button>`;
+}).join('') || '<div class="empty">Chưa có bác sĩ đang làm việc.</div>';
+show('gcOvl');
+}
+async function gcGo(tenBS){
+const r = queueToday().find(x=>x.MA_CHO===gcCho); if(!r) return;
+hide('gcOvl');
+const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:gcCho, row:{TRANG_THAI:'Đang khám', BS_KHAM:tenBS, GIO_GOI: nowTime()}});
+if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
+ver = j.v; chime();
+announce(r.STT, bnName(r.MA_BN), tenBS);
+toast('📢 Mời số <b>'+(r.STT||'')+'</b> — <b>'+bnName(r.MA_BN)+'</b> vào phòng '+tenBS);
+loadAll(true);
+}
+/* đọc loa: "Mời số …, …, vào phòng khám bác sĩ …" */
+function announce(stt, ten, phong){
+try{
+const ph = String(phong||'').replace(/^BS\.?\s*/i,'bác sĩ ');
+const u = new SpeechSynthesisUtterance('Mời số '+(stt||'')+', '+ten+', vào phòng khám '+ph);
+u.lang='vi-VN'; u.rate=0.95;
+const vs = speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
+if (vs.length) u.voice = vs[0];
+speechSynthesis.cancel(); speechSynthesis.speak(u);
+}catch(e){}
 }
 async function togglePriority(maCho){
 const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
