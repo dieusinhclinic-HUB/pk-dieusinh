@@ -441,3 +441,46 @@ function renderAll(){ renderQueue(); renderWorkspace(); }
 </script>
 </body>
 </html>
+<script>
+/* ===== TOÀN PHÒNG KHÁM (bảng trực tiếp mọi bác sĩ — thêm 19/8) ===== */
+(function(){
+  var css = document.createElement("style");
+  css.textContent = "#docBoard{max-width:1180px;margin:12px auto 0;padding:0 16px;}"+
+    "#docBoard .dbwrap{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:12px 14px;}"+
+    "#docBoard .dbtitle{font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--ink3);text-transform:uppercase;margin-bottom:9px;}"+
+    "#docBoard .dbrow{display:flex;gap:10px;flex-wrap:wrap;}"+
+    "#docBoard .dcard{flex:1 1 150px;min-width:150px;border:1px solid var(--hair);border-radius:12px;padding:9px 11px;background:var(--surface);}"+
+    "#docBoard .dcard.busy{border-color:var(--brand3);background:var(--brand-soft);}"+
+    "#docBoard .dname{font-weight:800;font-size:12.5px;color:var(--brand);}"+
+    "#docBoard .dst{font-size:12px;margin-top:3px;color:var(--ink2);}"+
+    "#docBoard .dst b{color:var(--ink);}"+
+    "#docBoard .free{color:var(--ink3);}"+
+    "#docBoard .pool{margin-top:9px;font-size:12px;color:var(--ink2);}"+
+    "#docBoard .pool b{color:var(--ink);}";
+  document.head.appendChild(css);
+  var board = document.createElement("div"); board.id = "docBoard";
+  var hd = document.querySelector("header");
+  if (hd) hd.insertAdjacentElement("afterend", board);
+  function nm(ma){ var b = rowsToObj("BENH_NHAN").find(function(x){return x.MA_BN===ma;}); return b?b.HO_TEN:ma; }
+  window.renderDocBoard = function(){
+    try{
+      if (!DB || !DB.BAC_SI || !DB.HANG_CHO){ board.innerHTML=""; return; }
+      var q = rowsToObj("HANG_CHO").filter(function(r){ return sameDay(r.NGAY); });
+      var bss = rowsToObj("BAC_SI").filter(function(b){ return String(b.DANG_LAM_VIEC||"").trim()==="Có"; });
+      var cards = bss.map(function(b){
+        var ten = String(b.TEN_BS).trim();
+        var cur = q.filter(function(r){ return r.TRANG_THAI==="Đang khám" && String(r.BS_KHAM||"").trim()===ten; });
+        var done = q.filter(function(r){ return (r.TRANG_THAI==="Xong khám"||r.TRANG_THAI==="Đã thu") && String(r.BS_KHAM||"").trim()===ten; }).length;
+        var inner = cur.length ? cur.map(function(r){ return "<div class=\"dst\">🔵 <b>"+nm(r.MA_BN)+"</b> (số "+r.STT+")</div>"; }).join("") : "<div class=\"dst free\">— trống —</div>";
+        return "<div class=\"dcard "+(cur.length?"busy":"")+"\"><div class=\"dname\">👨‍⚕️ "+ten+"</div>"+inner+"<div class=\"dst\" style=\"font-size:11px;color:var(--ink3);\">xong hôm nay: "+done+"</div></div>";
+      }).join("");
+      var wait = q.filter(function(r){ return r.TRANG_THAI==="Chờ khám"; }).sort(function(a,b){ return (Number(a.STT)||0)-(Number(b.STT)||0); });
+      var pay = q.filter(function(r){ return r.TRANG_THAI==="Xong khám"; }).length;
+      var wtxt = wait.slice(0,8).map(function(r){ return "số "+r.STT+" "+nm(r.MA_BN); }).join(" · ");
+      board.innerHTML = "<div class=\"dbwrap\"><div class=\"dbtitle\">🏥 Toàn phòng khám — trực tiếp</div><div class=\"dbrow\">"+(cards||"<div class=\"dst free\">Chưa có bác sĩ đang làm việc.</div>")+"</div><div class=\"pool\">⏳ Đang chờ: <b>"+wait.length+"</b>"+(wait.length?" — "+wtxt+(wait.length>8?" …":""):"")+" &nbsp;·&nbsp; 💳 Chờ thu tiền: <b>"+pay+"</b></div></div>";
+    }catch(e){}
+  };
+  var ra = window.renderAll;
+  if (typeof ra === "function"){ window.renderAll = function(){ ra.apply(this, arguments); window.renderDocBoard(); }; }
+})();
+</script>
