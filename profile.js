@@ -193,10 +193,15 @@ function render(maBN, D){
         : st==='Chỉ định' ? '<span class="lpend">⏳ chưa thực hiện</span>'
         : '<span class="lok">✓' + (l.GIO_XAC_NHAN?(' '+hhmm(l.GIO_XAC_NHAN)):'') + (l.NGUOI_XAC_NHAN?(' · '+esc(String(l.NGUOI_XAC_NHAN).split('@')[0])):'') + '</span>';
       var kq = String(l.KET_QUA||'').trim();
+      var files = String(l.ANH_KET_QUA||'').split('|').filter(Boolean);
+      var chips = files.length ? ('<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' + files.map(function(p){
+        var nm = p.split('/').pop().split('_').slice(2).join('_') || 'tệp';
+        return '<span onclick="PKProfile._file(\'' + esc(p) + '\')" title="Mở tệp kết quả" style="cursor:pointer;background:#fff;border:1px solid #b8d2f5;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">📎 ' + esc(nm) + '</span>';
+      }).join('') + '</div>') : '';
       return '<div class="pkpLine"><div class="lh"><span class="ldv">' + esc(l.TEN_DV) + (Number(l.SO_LUONG)>1?(' ×'+l.SO_LUONG):'') + '</span>' +
         (l.BS_THUC_HIEN?('<span class="lmut">' + esc(l.BS_THUC_HIEN) + '</span>'):'') + stH +
         '<span class="pkpNum" style="margin-left:auto;">' + fmtD(l.THANH_TIEN) + '</span></div>' +
-        (st!=='Hủy' ? (kq ? ('<div class="pkpKq">🧾 Kết quả: ' + esc(kq) + '</div>') : '<div class="pkpKq empty">— chưa nhập kết quả —</div>') : '') +
+        (st!=='Hủy' ? ((kq||files.length) ? ('<div class="pkpKq">' + (kq?('🧾 Kết quả: ' + esc(kq)):'📎 Tệp kết quả đính kèm') + chips + '</div>') : '<div class="pkpKq empty">— chưa nhập kết quả —</div>') : '') +
         (l.GHI_CHU?('<div class="pkpNote">📝 ' + esc(l.GHI_CHU) + '</div>'):'') + '</div>';
     }).join('');
     if (!v.lines.length) body += '<div class="pkpEmpty">Không có dịch vụ ghi nhận.</div>';
@@ -277,6 +282,7 @@ window.PKProfile = {
     this.close();
     if (typeof hk[name] === 'function') hk[name](maBN);
   },
+  _file: function(p){ if (window.SB_FILES) SB_FILES.open(p); else alert('Trang này chưa hỗ trợ mở tệp.'); },
   _inToa: function(maToa){
     if (window.PKToa && lastData){
       var toa = obj(lastData,'TOA_THUOC').find(function(t){ return t.MA_TOA===maToa; });

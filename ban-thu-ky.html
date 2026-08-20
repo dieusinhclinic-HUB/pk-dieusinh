@@ -431,7 +431,7 @@ skList=[]; $('skNote').value=''; renderSkLines(); loadAll(true);
 }
 function renderSkToday(){
 const rows = rowsToObj('SO_KHAM').filter(x=>sameDay(x.NGAY)).reverse();
-$('skToday').innerHTML = rows.length ? rows.map(r=>`<div class="histrow"><span class="num" style="color:var(--ink3);">${r.MA_LUOT}</span><span style="flex:1;padding:0 8px;">${pname(r.MA_BN)} — ${r.TEN_DV}${r.BS_THUC_HIEN?(' · '+r.BS_THUC_HIEN):''}${String(r.KET_QUA||'').trim()?('<div style="margin-top:3px;background:#eef4fd;border-left:3px solid #2456a8;border-radius:0 8px 8px 0;padding:4px 8px;font-size:12px;color:#1c3f7a;">🧾 '+r.KET_QUA+'</div>'):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${r.MA_LUOT}')">✎ KQ</button><span class="num">${fmtD(r.THANH_TIEN)}</span></div><div id="kq_${r.MA_LUOT}"></div>`).join('') : '<div class="empty">Chưa có dòng nào hôm nay.</div>';
+$('skToday').innerHTML = rows.length ? rows.map(r=>`<div class="histrow"><span class="num" style="color:var(--ink3);">${r.MA_LUOT}</span><span style="flex:1;padding:0 8px;">${pname(r.MA_BN)} — ${r.TEN_DV}${r.BS_THUC_HIEN?(' · '+r.BS_THUC_HIEN):''}${(String(r.KET_QUA||'').trim()||String(r.ANH_KET_QUA||'').trim())?('<div style="margin-top:3px;background:#eef4fd;border-left:3px solid #2456a8;border-radius:0 8px 8px 0;padding:4px 8px;font-size:12px;color:#1c3f7a;">'+(String(r.KET_QUA||'').trim()?('🧾 '+r.KET_QUA):'📎 Tệp kết quả')+kqFileChips(r)+'</div>'):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${r.MA_LUOT}')">✎ KQ</button><span class="num">${fmtD(r.THANH_TIEN)}</span></div><div id="kq_${r.MA_LUOT}"></div>`).join('') : '<div class="empty">Chưa có dòng nào hôm nay.</div>';
 }
 
 /* ================== TAB: HỒ SƠ ================== */
@@ -588,17 +588,48 @@ return `<div class="histrow"><span class="num" style="color:#5b2fa0;font-weight:
 }
 
 /* ================== KẾT QUẢ DỊCH VỤ ================== */
+function kqFileChips(l){
+const files = String(l.ANH_KET_QUA||'').split('|').filter(Boolean);
+if (!files.length) return '';
+return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' + files.map(p=>{
+const nm = p.split('/').pop().split('_').slice(2).join('_') || 'tệp';
+return `<span onclick="SB_FILES.open('${p}')" title="Mở tệp kết quả" style="cursor:pointer;background:#fff;border:1px solid #b8d2f5;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">📎 ${nm}</span>`;
+}).join('') + '</div>';
+}
 function kqEdit(maLuot){
 const host = document.getElementById('kq_'+maLuot); if (!host) return;
 const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
-host.innerHTML = `<div style="display:flex;gap:7px;align-items:center;padding:7px 2px;background:#fffdf3;border-radius:9px;margin:4px 0;"><input id="kqi_${maLuot}" style="flex:1;font-size:12.5px;" placeholder="Kết quả dịch vụ…" value="${String(l.KET_QUA||'').replace(/"/g,'&quot;')}"><button class="qbtn" onclick="kqSave('${maLuot}')">💾 Lưu kết quả</button><button class="qbtn" onclick="document.getElementById('kq_${maLuot}').innerHTML=''">Đóng</button></div>`;
+host.innerHTML = `<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:8px;background:#fffdf3;border-radius:9px;margin:4px 0;">
+<input id="kqi_${maLuot}" style="flex:1;min-width:180px;font-size:12.5px;" placeholder="Kết quả dịch vụ — vd: thai 12 tuần, tim thai (+)…" value="${String(l.KET_QUA||'').replace(/"/g,'&quot;')}">
+<input type="file" id="kqf_${maLuot}" multiple accept="image/*,.pdf" style="font-size:11px;max-width:230px;">
+<button class="qbtn" id="kqb_${maLuot}" onclick="kqSave('${maLuot}')" style="background:var(--good-soft);color:#0a7a0a;">💾 Lưu kết quả</button>
+<button class="qbtn" onclick="document.getElementById('kq_${maLuot}').innerHTML=''">Đóng</button>
+${kqFileChips(l)}
+<div style="width:100%;font-size:10.5px;color:var(--ink3);">📎 Đính kèm ảnh siêu âm / phiếu xét nghiệm (ảnh hoặc PDF, tối đa 15MB/tệp) — lưu vĩnh viễn vào bệnh án.</div>
+</div>`;
 document.getElementById('kqi_'+maLuot).focus();
 }
 async function kqSave(maLuot){
 const el = document.getElementById('kqi_'+maLuot); if(!el) return;
-const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{KET_QUA: el.value.trim()}});
-if (j.ok){ ver=j.v; toast('✓ Đã lưu kết quả vào bệnh án'); loadAll(true); }
+const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
+const btn = document.getElementById('kqb_'+maLuot); if(btn){ btn.disabled=true; btn.textContent='Đang lưu…'; }
+try{
+const fEl = document.getElementById('kqf_'+maLuot);
+const paths = String(l.ANH_KET_QUA||'').split('|').filter(Boolean);
+let newFiles = 0;
+if (fEl && fEl.files && fEl.files.length){
+for (const f of fEl.files){
+const safe = String(f.name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9._-]/g,'-').slice(-60);
+const p = `${l.MA_BN}/${maLuot}_${Date.now()}_${safe}`;
+const up = await SB_FILES.upload(p, f);
+if (up.ok){ paths.push(up.path); newFiles++; }
+else toast('⚠️ Không tải được tệp '+f.name+' — '+(up.error||''));
+}
+}
+const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{KET_QUA: el.value.trim(), ANH_KET_QUA: paths.join('|')}});
+if (j.ok){ ver=j.v; toast('✓ Đã lưu kết quả'+(newFiles?(' + '+newFiles+' tệp đính kèm'):'')+' vào bệnh án'); loadAll(true); }
 else toast('⚠️ ' + (j.error||'lỗi'));
+} finally { if(btn){ btn.disabled=false; btn.textContent='💾 Lưu kết quả'; } }
 }
 
 /* ================== RENDER ================== */

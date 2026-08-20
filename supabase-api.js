@@ -66,6 +66,29 @@ function pick(table, row){
 }
 
 /* ==== API ==== */
+/* ==== FILE KẾT QUẢ (bucket riêng tư 'ketqua') ==== */
+window.SB_FILES = {
+  upload: async function(path, file){
+    try{
+      var r = await sb.storage.from('ketqua').upload(path, file, { upsert:false });
+      if (r.error) return { ok:false, error: r.error.message };
+      return { ok:true, path: r.data.path };
+    }catch(e){ return { ok:false, error: String(e&&e.message||e) }; }
+  },
+  url: async function(path){
+    try{
+      var r = await sb.storage.from('ketqua').createSignedUrl(path, 3600);
+      if (r.error) return { ok:false, error: r.error.message };
+      return { ok:true, url: r.data.signedUrl };
+    }catch(e){ return { ok:false, error: String(e&&e.message||e) }; }
+  },
+  open: async function(path){
+    var r = await window.SB_FILES.url(path);
+    if (r.ok) window.open(r.url, '_blank');
+    else alert('Không mở được tệp: ' + (r.error||''));
+  }
+};
+
 window.SB_API = async function(action, extra){
   extra = extra || {};
   try{
