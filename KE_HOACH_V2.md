@@ -202,6 +202,34 @@ Việc còn chờ chị: **BANK_INFO** (ô chuyển khoản) · **email nhân vi
 ## 4c. NHẬT KÝ XÂY DỰNG
 - **Đợt A — ĐÃ XÂY (20/8/2026):** API v0.5 (seedDotA thêm cột HANG_CHO/SO_KHAM/LICH_HEN) · thu-ngan: panel Hẹn hôm nay + check-in 1 chạm, modal Tiếp nhận (chọn DV + BS kèm trạng thái 🟢/🟡), nhãn 🗓/🚶 + ⬆ Ưu tiên, Hủy tiếp nhận bắt buộc lý do (hủy kèm DV Chỉ định), hóa đơn CHỈ tính dòng Hoàn thành (dòng cũ không có TRANG_THAI_DV vẫn tính — tương thích ngược), GIO_THU, Phiếu thanh toán A5 · ban-kham: checklist DV của đơn với ✓ Hoàn thành / ✕ Không làm từng dòng (ghi NGUOI_XAC_NHAN + GIO_XAC_NHAN), gọi ưu tiên + đúng BS yêu cầu, GIO_GOI/GIO_XONG, DV bác sĩ tự thêm = Hoàn thành ngay · ban-thu-ky: check-in từ hẹn tạo ĐƠN đầy đủ, nhập sổ khám = dòng Hoàn thành có người xác nhận · tong-quan: bỏ nút 30 ngày, panel Dòng chảy bệnh nhân hôm nay (funnel + thời gian chờ trung bình, khâu chậm nhất 🔴), panel Doanh thu theo nhóm dịch vụ, doanh thu bỏ dòng Hủy/Chỉ định · **profile.js MỚI**: Hồ sơ BN 360° dùng chung — bấm tên BN ở mọi màn hình (hàng chờ, tìm kiếm, lịch hẹn, sổ khám, board BS) mở hồ sơ đầy đủ (hành chính, tiền sử, thai kỳ, lịch sử khám theo ngày, thanh toán, lịch hẹn + nút hành động theo vai trò).
 
+## 6. ĐỢT DB — CHUYỂN SANG DATABASE THẬT (SUPABASE) — chốt 20/8/2026
+**Quyết định của anh Khang (20/8):** chuyển NGAY (trước Đợt B) · frontend GIỮ trên GitHub Pages (URL không đổi) · tên miền riêng: để sau.
+
+### Kiến trúc mới
+- **Database:** Supabase (PostgreSQL, gói miễn phí 500MB — dữ liệu phòng khám ~vài MB). Bảng + cột giữ NGUYÊN TÊN như Google Sheet (quoted identifiers) → code màn hình gần như không đổi.
+- **Đăng nhập:** giữ nút Google hiện tại (GIS) → `supabase.auth.signInWithIdToken({provider:'google', token})`. Supabase Dashboard: bật Google provider, thêm CLIENT_ID hiện có vào "Authorized Client IDs", bật "Skip nonce checks". KHÔNG cần client secret.
+- **Phân quyền:** Row Level Security ngay trong database — hàm `pk_role()` tra email đăng nhập trong bảng NGUOI_DUNG; chỉ email có trong bảng mới ĐỌC được; 'Kế toán' bị chặn GHI ở tầng database (chặt hơn cả bản Apps Script).
+- **Realtime:** subscribe postgres_changes → biến đếm version LOCAL trong adapter; các màn hình giữ nguyên vòng poll `api('version')` nhưng giờ trả lời tức thì 0ms không tốn mạng; có thay đổi thật thì loadAll. Màn hình khác thấy thay đổi sau ~100ms thay vì 3-4s.
+- **Adapter (supabase-api.js MỚI):** định nghĩa `SB_API(action, extra)` mô phỏng đúng hợp đồng cũ: login/logout/version/readAll/append/update, trả `{ok, v, tables:{T:{header, rows}}}` y hệt — mỗi trang chỉ sửa 1 dòng: thân hàm `api()` gọi `SB_API`. AUTH_REQUIRED khi hết phiên Supabase (tự refresh, thực tế đăng nhập 1 lần dùng rất lâu).
+- **Chống trùng mã:** PRIMARY KEY trong Postgres → mã trùng (vd 2 C00002) bị TỪ CHỐI thay vì ghi đè im lặng như Sheet. (Nâng cấp sau: RPC next_id cấp mã nguyên tử phía server.)
+- **Nhật ký:** trigger Postgres tự ghi NHAT_KY mọi insert/update kèm email người thao tác.
+- **Google Sheet cũ = GƯƠNG + SAO LƯU:** Apps Script thêm hàm `mirrorFromSupabase()` chạy trigger mỗi đêm — kéo toàn bộ bảng từ Supabase ghi đè vào một file Sheet "PK_MIRROR" để chị chủ vẫn mở xem quen thuộc + backup. Khóa service_role chỉ nằm trong Script Properties (server-side, không bao giờ ra frontend).
+- **Di chuyển dữ liệu:** hàm Apps Script `migrateToSupabase()` chạy 1 lần — đọc từng sheet, đẩy lên Supabase qua REST (chỉ copy các cột có trong schema). Chạy xong đối chiếu số dòng từng bảng.
+- **Cắt chuyển an toàn:** làm bản mới ở các file `*-sb` thử trước (hoặc cờ USE_SB trong trang) → test song song với bản Sheets đang chạy → khớp thì đổi hẳn, bản Apps Script API giữ nguyên làm phương án lùi trong 2 tuần.
+
+### Việc của anh Khang (một lần, ~15 phút — tài khoản & khóa luôn là việc của anh)
+1. Tạo tài khoản supabase.com (đăng nhập bằng GitHub hoặc Google) → New project (tên `pk-dieusinh`, region Singapore, đặt database password và CẤT KỸ).
+2. Gửi em: **Project URL** (`https://xxxx.supabase.co`) và **anon key** (Settings → API — khóa này thiết kế để công khai trong frontend).
+3. Authentication → Providers → Google: bật, dán CLIENT_ID hiện có vào "Authorized Client IDs", bật "Skip nonce checks", Save.
+4. Tự dán **service_role key** vào Apps Script: Project Settings → Script Properties → thêm `SB_URL` và `SB_SERVICE_KEY` (em không đụng vào khóa bí mật này).
+
+### Thứ tự thi công (em làm sau khi có URL + anon key)
+1. Dán `supabase_schema.sql` vào SQL Editor (tạo bảng, RLS, trigger, realtime) — em dán, anh chỉ cần đã đăng nhập.
+2. Dán khối `migrateToSupabase()` vào Apps Script → Run → đối chiếu số dòng.
+3. Commit `supabase-api.js` + sửa 6 trang trỏ sang adapter (1 commit) → test end-to-end.
+4. Bật trigger đêm `mirrorFromSupabase()`.
+5. Theo dõi 2 tuần → gỡ đường lùi. Các Đợt B–E xây thẳng trên Supabase.
+
 ## 5. QUY TRÌNH LÀM VIỆC (chống mất thông tin & tiết kiệm)
 1. File này (KE_HOACH_V2.md) nằm trong repo GitHub — máy làm việc có reset cũng không mất.
 2. Mọi thay đổi thiết kế: sửa file này trước → rồi mới code.

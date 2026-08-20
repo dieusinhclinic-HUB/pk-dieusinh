@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiểm tra Supabase — PK Diệu Sinh</title>
+<link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f0f8f5;color:#20241f;max-width:680px;margin:0 auto;padding:30px 16px;font-size:14px;}
+h1{color:#0a5240;font-size:20px;}
+.card{background:#fff;border:1px solid #e1e0d9;border-radius:14px;padding:18px;margin-top:14px;}
+.row{padding:8px 2px;border-bottom:1px dashed #eee;display:flex;justify-content:space-between;gap:10px;}
+.ok{color:#0ca30c;font-weight:700;}
+.bad{color:#d03b3b;font-weight:700;}
+button{border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:#0f6e56;color:#fff;font-size:13px;}
+#gbtn{margin:10px 0;}
+.mut{color:#8a9187;font-size:12px;}
+</style>
+</head>
+<body>
+<h1>🧪 Kiểm tra kết nối database mới (Supabase)</h1>
+<div class="mut">Trang thử nghiệm — không đụng dữ liệu thật. Đăng nhập bằng đúng Gmail phòng khám.</div>
+<div class="card">
+<div id="gbtn"></div>
+<div id="out">Đang tải nút đăng nhập Google…</div>
+</div>
+<script>
+const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
+let token = null;
+const out = m => document.getElementById('out').innerHTML = m;
+function line(l, v, good){ return `<div class="row"><span>${l}</span><span class="${good?'ok':'bad'}">${v}</span></div>`; }
+window.addEventListener('load', () => {
+const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t);
+google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCred });
+google.accounts.id.renderButton(document.getElementById('gbtn'), { theme:'filled_blue', size:'large', shape:'pill', width:280 });
+out('Bấm nút Google phía trên để chạy kiểm tra.');
+} }, 200);
+});
+async function onCred(resp){
+token = resp.credential;
+out('⏳ Đang kiểm tra…');
+let html = '';
+try{
+// 1. Đăng nhập Supabase bằng token Google
+const w = await SB_API('login', {token});
+html += line('1. Đăng nhập Google → Supabase', w.ok ? ('✓ ' + w.email + ' — ' + w.role) : ('✕ ' + (w.error||'')), w.ok);
+if (!w.ok){ out(html); return; }
+// 2. Đọc dữ liệu (RLS cho phép vì email có trong NGUOI_DUNG)
+const r = await SB_API('readAll', {tables:['NGUOI_DUNG','DICH_VU','BENH_NHAN','THUOC']});
+html += line('2. Đọc dữ liệu qua RLS', r.ok ? ('✓ NGUOI_DUNG: '+r.tables.NGUOI_DUNG.rows.length+' · DICH_VU: '+r.tables.DICH_VU.rows.length+' · BENH_NHAN: '+r.tables.BENH_NHAN.rows.length+' · THUOC: '+r.tables.THUOC.rows.length) : ('✕ '+(r.error||'')), r.ok);
+// 3. RPC cấp mã nguyên tử (chỉ ghi vào bộ đếm — vô hại)
+const n = await SB_API('nextId', {prefix:'TEST', pad:3});
+html += line('3. Ghi thử (RPC cấp mã)', n.ok ? ('✓ nhận mã ' + n.id) : ('✕ ' + (n.error||'')), n.ok);
+// 4. Realtime
+await new Promise(res=>setTimeout(res, 2500));
+const v1 = await SB_API('version');
+html += line('4. Kênh realtime + version', v1.ok ? ('✓ v=' + v1.v) : ('✕ ' + (v1.error||'')), v1.ok);
+html += '<div class="mut" style="margin-top:10px;">Nếu cả 4 dòng ✓ — nền tảng mới sẵn sàng, bước tiếp theo là di chuyển dữ liệu.</div>';
+}catch(e){ html += line('Lỗi', String(e && e.message || e), false); }
+out(html);
+}
+</script>
+<script src="supabase-api.js"></script>
+</body>
+</html>
