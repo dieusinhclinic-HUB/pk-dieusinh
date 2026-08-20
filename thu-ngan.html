@@ -6,6 +6,9 @@
 <title>Quầy thu ngân — PK Diệu Sinh</title>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-api.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -281,7 +284,7 @@ const BANK_INFO = ''; // ← 'VCB · 0123456789 · PHONG KHAM DIEU SINH' (hiện
 const CLINIC_NAME = 'PHÒNG KHÁM CHUYÊN KHOA DIỆU SINH';
 const CLINIC_ADDR = '28 Tăng Bạt Hổ, TP. Quy Nhơn, Gia Lai';
 const CLINIC_PHONE = ''; // ← số điện thoại phòng khám (hiện trên phiếu in)
-const POLL_MS = 3000;
+const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
 const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','LICH_HEN'];
 
 /* ================== TRẠNG THÁI ================== */
@@ -316,9 +319,7 @@ const SESS_KEY='pk_sess', SNAP_KEY='pk_db_tn';
 function saveSnap(){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({DB:DB, ver:ver, t:Date.now()})); }catch(e){} }
 function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
 async function api(action, extra){
-const body = Object.assign({action, token}, extra||{});
-const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
-const j = await r.json();
+const j = await SB_API(action, Object.assign({token}, extra||{}));
 if (j && j.error === 'AUTH_REQUIRED'){ sessionExpired(); throw new Error('AUTH_REQUIRED'); }
 return j;
 }
@@ -396,7 +397,7 @@ clearInterval(pollTimer); token=null;
 $('app').style.display='none'; $('loginView').style.display='grid';
 $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';
 }
-function logout(){ try{ navigator.sendBeacon(API_URL, JSON.stringify({action:'logout', token:token})); }catch(e){} try{ localStorage.removeItem(SESS_KEY); }catch(e){} clearInterval(pollTimer); token=null; me=null; location.reload(); }
+function logout(){ try{ SB_API('logout'); }catch(e){} try{ localStorage.removeItem(SESS_KEY); }catch(e){} clearInterval(pollTimer); token=null; me=null; location.reload(); }
 
 /* ================== ID MỚI ================== */
 function nextId(prefix, pad, table, col){

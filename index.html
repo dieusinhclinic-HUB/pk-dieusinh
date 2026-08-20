@@ -6,6 +6,9 @@
 <title>PK Diệu Sinh — Hệ thống phòng khám</title>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-api.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root{
@@ -114,9 +117,7 @@ const $ = id => document.getElementById(id);
 
 /* ================== API ================== */
 async function api(action, extra){
-  const body = Object.assign({action, token}, extra||{});
-  const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
-  return r.json();
+  return SB_API(action, Object.assign({token}, extra||{}));
 }
 function loadSess(){
   try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null');
@@ -244,7 +245,7 @@ function tryResume(){
   return !!$('nav').children.length;
 }
 function logout(){
-  try{ navigator.sendBeacon(API_URL, JSON.stringify({action:'logout', token:token})); }catch(e){}
+  try{ SB_API('logout'); }catch(e){}
   try{ localStorage.removeItem(SESS_KEY); }catch(e){}
   clearInterval(watchTimer); token=null; me=null;
   location.reload();

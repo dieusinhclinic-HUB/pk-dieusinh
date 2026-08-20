@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bàn dược sỹ — PK Diệu Sinh</title>
+<link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-api.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root{
@@ -183,7 +186,7 @@
 /* ================== CẤU HÌNH ================== */
 const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
-const POLL_MS   = 3000;
+const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
 const TABLES    = ['THUOC','KHO_GD'];
 const ALLOWED   = ['Quản lý','Dược sỹ'];
 
@@ -200,9 +203,7 @@ const SESS_KEY='pk_sess', SNAP_KEY='pk_db_ds';
 function saveSnap(){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({DB:DB, ver:ver, t:Date.now()})); }catch(e){} }
 function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
 async function api(action, extra){
-  const body = Object.assign({action, token}, extra||{});
-  const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
-  const j = await r.json();
+  const j = await SB_API(action, Object.assign({token}, extra||{}));
   if (j && j.error === 'AUTH_REQUIRED'){ sessionExpired(); throw new Error('AUTH_REQUIRED'); }
   return j;
 }
@@ -283,7 +284,7 @@ function sessionExpired(){
   $('app').style.display='none'; $('loginView').style.display='grid';
   $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';
 }
-function logout(){ try{ navigator.sendBeacon(API_URL, JSON.stringify({action:'logout', token:token})); }catch(e){} try{ localStorage.removeItem(SESS_KEY); }catch(e){} clearInterval(pollTimer); token=null; me=null; location.reload(); }
+function logout(){ try{ SB_API('logout'); }catch(e){} try{ localStorage.removeItem(SESS_KEY); }catch(e){} clearInterval(pollTimer); token=null; me=null; location.reload(); }
 
 /* ================== TÍNH TỒN ================== */
 function stockMap(){

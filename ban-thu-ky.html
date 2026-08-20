@@ -6,6 +6,9 @@
 <title>Bàn thư ký — PK Diệu Sinh</title>
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-api.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -243,7 +246,7 @@ Quy trình đã chốt: kê toa từng dòng (thuốc · liều/lần · lần/n
 /* ================== CẤU HÌNH ================== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
-const POLL_MS = 3000;
+const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
 const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null;
@@ -264,9 +267,7 @@ const SESS_KEY='pk_sess', SNAP_KEY='pk_db_tk';
 function saveSnap(){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({DB:DB, ver:ver, t:Date.now()})); }catch(e){} }
 function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
 async function api(action, extra){
-const body = Object.assign({action, token}, extra||{});
-const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
-const j = await r.json();
+const j = await SB_API(action, Object.assign({token}, extra||{}));
 if (j && j.error === 'AUTH_REQUIRED'){ sessionExpired(); throw new Error('AUTH_REQUIRED'); }
 return j;
 }
