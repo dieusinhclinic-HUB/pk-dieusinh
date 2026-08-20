@@ -619,18 +619,25 @@ announce(r.STT, bnName(r.MA_BN), tenBS);
 toast('📢 Mời số <b>'+(r.STT||'')+'</b> — <b>'+bnName(r.MA_BN)+'</b> vào phòng '+tenBS);
 loadAll(true);
 }
-/* đọc loa: "Mời số …, …, vào phòng khám bác sĩ …" */
+/* đọc loa: "Mời số …, …, vào phòng khám bác sĩ …" — giọng NỮ tiếng Việt của Google (online, chạy trên mọi máy) */
 function announce(stt, ten, phong){
-try{
 const ph = String(phong||'').replace(/^BS\.?\s*/i,'bác sĩ ');
-const u = new SpeechSynthesisUtterance('Mời số '+(stt||'')+', '+ten+', vào phòng khám '+ph);
-u.lang='vi-VN'; u.rate=0.95;
-const all = speechSynthesis.getVoices();
-const vi = all.filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
-// uu tien giong NU tu nhien: HoaiMy (Microsoft) > Google Tieng Viet (nu) > bat ky giong vi
+const msg = 'Mời số '+(stt||'')+', '+ten+', vào phòng khám '+ph;
+try{
+const a = new Audio('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=vi&ttsspeed=1&q='+encodeURIComponent(msg));
+a.onerror = function(){ annFallback(msg); };
+const p = a.play();
+if (p && p.catch) p.catch(function(){ annFallback(msg); });
+}catch(e){ annFallback(msg); }
+}
+/* dự phòng khi mất mạng: giọng máy cài sẵn (nếu có) */
+function annFallback(msg){
+try{
+const u = new SpeechSynthesisUtterance(msg);
+u.lang='vi-VN'; u.rate=0.95; u.pitch=1.05;
+const vi = speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
 const pick = vi.find(v=>/hoaimy|female|n\u1eef/i.test(v.name)) || vi.find(v=>/google/i.test(v.name)) || vi[0];
 if (pick) u.voice = pick;
-u.pitch = 1.05;
 speechSynthesis.cancel(); speechSynthesis.speak(u);
 }catch(e){}
 }
