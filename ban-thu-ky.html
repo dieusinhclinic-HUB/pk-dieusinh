@@ -553,9 +553,11 @@ function renderRail(){
 const q = rowsToObj('HANG_CHO').filter(r=>sameDay(r.NGAY)).sort((a,b)=>(Number(a.STT)||0)-(Number(b.STT)||0));
 const cls = {'Chờ khám':'wait','Đang khám':'exam','Xong khám':'done'};
 const qv = q.filter(r=>!['Đã thu','Hủy'].includes(String(r.TRANG_THAI).trim()));
-$('queueBox').innerHTML = qv.length ? qv.map(r=>`
+const qPaid = q.filter(r=>String(r.TRANG_THAI).trim()==='Đã thu');
+$('queueBox').innerHTML = (qv.length ? qv.map(r=>`
 <div class="qrow ${cls[r.TRANG_THAI]||''}"><div class="stt num">${r.STT||'–'}</div>
-<div style="flex:1;">${pname(r.MA_BN)}<div style="font-size:11px;color:var(--ink2);">${r.TRANG_THAI==='Xong khám'?'Hoàn tất khám':r.TRANG_THAI}${r.BS_KHAM?(' · '+r.BS_KHAM):''}</div></div></div>`).join('') : '<div class="empty">— trống —</div>';
+<div style="flex:1;">${pname(r.MA_BN)}<div style="font-size:11px;color:var(--ink2);">${r.TRANG_THAI==='Xong khám'?'Hoàn tất khám':r.TRANG_THAI}${r.BS_KHAM?(' · '+r.BS_KHAM):''}</div></div></div>`).join('') : '<div class="empty">— trống —</div>')
++ (qPaid.length ? ('<div class="sect-label">✅ Đã thanh toán ('+qPaid.length+')</div><div class="empty" style="color:var(--ink2);">'+qPaid.map(r=>pname(r.MA_BN)).join(' · ')+'</div>') : '');
 $('qCount').textContent = q.length + ' lượt';
 
 const m = missingList().length;

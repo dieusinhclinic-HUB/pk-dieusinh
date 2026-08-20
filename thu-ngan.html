@@ -198,7 +198,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div style="display:flex;flex-direction:column;gap:14px;">
 <!-- ==== HẸN HÔM NAY ==== -->
 <div class="card">
-<div class="hd"><h2>🗓 Hẹn hôm nay</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="henCount"></span></div>
+<div class="hd"><h2>🗓 Lịch hẹn</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="henCount"></span><button class="qbtn call" onclick="openDatHen()">📅 Đặt hẹn</button></div>
 <div class="bd" id="henBox"></div>
 </div>
 <!-- ==== QUEUE ==== -->
@@ -238,6 +238,25 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#8a6205;font-weight:700;margin-right:auto;cursor:pointer;"><input type="checkbox" id="rcUuTien" style="width:15px;height:15px;accent-color:var(--warn);">⬆ Ưu tiên khám trước</label>
 <button class="btn btn-brand" id="rcSaveBtn" onclick="rcSave()">✓ Tiếp nhận vào hàng chờ</button>
 </div>
+</div></div>
+
+<!-- ===== modal: đặt hẹn ===== -->
+<div class="ovl" id="dhOvl"><div class="modal" style="width:min(560px,100%);">
+<div class="mh"><h3>📅 Đặt lịch hẹn</h3><button class="mclose" onclick="hide('dhOvl')">✕</button></div>
+<div class="mb">
+<div style="position:relative;">
+<label style="font-size:10.5px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;">Bệnh nhân *</label>
+<input id="dhPk" placeholder="🔍 Tìm bệnh nhân — tên, SĐT hoặc mã…" oninput="dhSearch()" autocomplete="off" style="width:100%;">
+<div id="dhPkR" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--hair);border-radius:11px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:60;max-height:220px;overflow:auto;display:none;"></div>
+</div>
+<div class="fgrid" style="margin-top:11px;">
+<div><label>Ngày hẹn *</label><input type="date" id="dhNgay"></div>
+<div><label>Giờ hẹn</label><input type="time" id="dhGio"></div>
+<div class="full"><label>Lý do</label><input id="dhLydo" placeholder="Tái khám, siêu âm, xét nghiệm…"></div>
+<div class="full"><label>Bác sĩ phụ trách</label><select id="dhBs" style="width:100%;"></select></div>
+</div>
+</div>
+<div class="mf"><button class="btn btn-brand" onclick="dhSave()">✓ Đặt hẹn</button></div>
 </div></div>
 
 <!-- ===== modal: hủy đơn ===== -->
@@ -635,6 +654,49 @@ ${arrived ? '<span style="font-size:12px;color:var(--good);font-weight:700;">✓
 : `<button class="qbtn call" onclick="henCheckin('${h.MA_HEN}')">✓ Check-in</button>`}
 </div>`;
 }).join('') : '<div class="empty">Không có lịch hẹn hôm nay.</div>';
+// sắp tới (14 ngày)
+const upcoming = rowsToObj('LICH_HEN').filter(h=>String(h.TRANG_THAI||'')==='Đã hẹn' && String(h.NGAY_HEN).slice(0,10)>todayStr())
+.sort((a,b)=>String(a.NGAY_HEN).localeCompare(String(b.NGAY_HEN))).slice(0,8);
+if (upcoming.length){
+$('henBox').innerHTML += '<div class="sect-label">Sắp tới</div>' + upcoming.map(h=>{
+const d = String(h.NGAY_HEN).slice(0,10);
+return `<div class="henrow"><span class="gio num">${d.slice(8,10)}/${d.slice(5,7)}</span>
+<div style="flex:1;"><div class="nm" onclick="openProfile('${h.MA_BN}')">${bnName(h.MA_BN)}</div>
+<div class="meta">${fmtT(h.GIO_HEN)?fmtT(h.GIO_HEN)+' · ':''}${h.LY_DO||''}${h.BS_PHU_TRACH?(' · BS '+h.BS_PHU_TRACH):''}</div></div>
+<button class="qbtn crit" onclick="dhCancel('${h.MA_HEN}')">Hủy</button></div>`;
+}).join('');
+}
+}
+/* ---- đặt hẹn tại quầy ---- */
+let dhBN = null;
+function openDatHen(maBN){
+dhBN = maBN||null;
+$('dhPk').value = dhBN ? (bnName(dhBN)+' ('+dhBN+')') : '';
+$('dhNgay').value=''; $('dhGio').value=''; $('dhLydo').value='';
+$('dhBs').innerHTML = '<option value="">—</option>' + rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có').map(b=>`<option>${b.TEN_BS}</option>`).join('');
+show('dhOvl');
+}
+function dhSearch(){
+const q = stripVN($('dhPk').value.trim()); const box = $('dhPkR');
+dhBN = null;
+if (q.length<2){ box.style.display='none'; return; }
+const hits = rowsToObj('BENH_NHAN').filter(b=>stripVN(b.HO_TEN).includes(q)||String(b.SDT||'').includes(q)||stripVN(b.MA_BN).includes(q)).slice(0,8);
+box.innerHTML = hits.length ? hits.map(b=>`<div class="gsRow" onclick="dhBN='${b.MA_BN}';$('dhPk').value='${String(b.HO_TEN).replace(/'/g,'')} (${b.MA_BN})';$('dhPkR').style.display='none';"><div><span class="nm">${b.HO_TEN}</span> <span class="meta num">${b.MA_BN}</span> · <span class="meta">${b.SDT||'—'}</span></div></div>`).join('') : '<div class="gsRow"><div class="meta">Không tìm thấy.</div></div>';
+box.style.display='block';
+}
+async function dhSave(){
+if (!dhBN){ toast('⚠️ Chọn bệnh nhân trong danh sách gợi ý'); return; }
+if (!$('dhNgay').value){ toast('⚠️ Chọn ngày hẹn'); return; }
+const row = { MA_HEN: nextId('H',5,'LICH_HEN','MA_HEN'), NGAY_HEN:$('dhNgay').value, GIO_HEN:$('dhGio').value, MA_BN:dhBN,
+LY_DO:$('dhLydo').value.trim(), BS_PHU_TRACH:$('dhBs').value, TRANG_THAI:'Đã hẹn', GHI_CHU:'', LOAI:'', TU_DONG:'' };
+const j = await api('append', {table:'LICH_HEN', row});
+if (j.ok){ ver=j.v; hide('dhOvl'); toast('✓ Đã đặt hẹn — <b>'+bnName(dhBN)+'</b> ngày '+$('dhNgay').value.split('-').reverse().join('/')); loadAll(true); }
+else toast('⚠️ ' + (j.error||'lỗi'));
+}
+async function dhCancel(maHen){
+if (!confirm('Hủy lịch hẹn này?')) return;
+const j = await api('update', {table:'LICH_HEN', keyCol:'MA_HEN', keyVal:maHen, row:{TRANG_THAI:'Hủy'}});
+if (j.ok){ ver=j.v; toast('✓ Đã hủy hẹn'); loadAll(true); }
 }
 function henCheckin(maHen){
 const h = rowsToObj('LICH_HEN').find(x=>x.MA_HEN===maHen); if(!h) return;
@@ -972,7 +1034,7 @@ show('shiftOvl');
 function renderAll(){ renderHen(); renderQueue(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
 
 /* hồ sơ 360°: nút hành động của trang này */
-window.PKHooks = { reception: openReception, addSvc: openSvc };
+window.PKHooks = { reception: openReception, addSvc: openSvc, datHen: openDatHen };
 </script>
 <script src="profile.js"></script>
 <script src="toa.js"></script>

@@ -358,6 +358,17 @@ return `
 <div class="meta num">${r.MA_BN}${r.BS_YEU_CAU?' · YC: '+r.BS_YEU_CAU:''}${dv?' · '+dv:''}</div></div>
 </div>`;
 }).join('') : '<div class="empty">— trống —</div>';
+const dones = q.filter(r=>r.TRANG_THAI==='Xong khám');
+const paids = q.filter(r=>r.TRANG_THAI==='Đã thu');
+html += '<div class="sect-label">💜 Hoàn tất khám — chờ thanh toán ('+dones.length+')</div>';
+html += dones.length ? dones.map(r=>`
+<div class="qrow" style="border-left:4px solid #7c4dbe;">
+<div class="stt num">${r.STT||'–'}</div>
+<div style="flex:1;"><div class="nm"><span class="pn" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span></div>
+<div class="meta num">${r.MA_BN}${r.BS_KHAM?' · '+r.BS_KHAM:''}${r.GIO_XONG?' · xong '+fmtT(r.GIO_XONG):''}</div></div>
+</div>`).join('') : '<div class="empty">— trống —</div>';
+html += '<div class="sect-label">✅ Đã thanh toán ('+paids.length+')</div>';
+html += paids.length ? ('<div class="empty" style="color:var(--ink2);">'+paids.map(r=>`<span class="pn" style="cursor:pointer;font-weight:700;" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span>${r.GIO_THU?' ('+fmtT(r.GIO_THU)+')':''}`).join(' · ')+'</div>') : '<div class="empty">— trống —</div>';
 $('queueBox').innerHTML = html;
 $('qCount').textContent = q.filter(r=>r.TRANG_THAI!=='Hủy').length + ' lượt';
 }
