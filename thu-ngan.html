@@ -285,7 +285,7 @@ const CLINIC_NAME = 'PHÒNG KHÁM CHUYÊN KHOA DIỆU SINH';
 const CLINIC_ADDR = '28 Tăng Bạt Hổ, TP. Quy Nhơn, Gia Lai';
 const CLINIC_PHONE = ''; // ← số điện thoại phòng khám (hiện trên phiếu in)
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','LICH_HEN'];
+const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','LICH_HEN','THUOC','TOA_THUOC','TOA_CT'];
 
 /* ================== TRẠNG THÁI ================== */
 let token=null, me=null, DB={}, ver=-1, pollTimer=null, selPay=null;
@@ -673,13 +673,35 @@ else toast('⚠️ ' + (j.error||'lỗi'));
 }
 
 /* ================== THANH TOÁN ================== */
+function drugBill(maCho){
+// tiền thuốc: toa của đơn này, ĐÃ SOẠN và chưa gắn phiếu thu
+const toas = rowsToObj('TOA_THUOC').filter(t=>String(t.MA_CHO||'')===maCho && t.TRANG_THAI!=='Hủy');
+const billable = toas.filter(t=>t.TRANG_THAI==='Đã soạn' && !String(t.MA_TT||'').trim());
+const waiting = toas.filter(t=>t.TRANG_THAI==='Chờ soạn');
+const cts = rowsToObj('TOA_CT');
+const thuoc = rowsToObj('THUOC');
+const drugs = [];
+billable.forEach(t=>{
+cts.filter(c=>c.MA_TOA===t.MA_TOA).forEach(c=>{
+const th = thuoc.find(x=>String(x.MA_THUOC)===String(c.MA_THUOC));
+const gia = th ? (Number(th.GIA_BAN)||0) : 0;
+drugs.push({ maToa:t.MA_TOA, ten:c.TEN_THUOC, sl:Number(c.SO_LUONG)||0, gia, tien: gia*(Number(c.SO_LUONG)||0) });
+});
+});
+return { drugs, billableToas: billable.map(t=>t.MA_TOA), waitingToas: waiting.map(t=>t.MA_TOA) };
+}
 function selectPay(maCho){
 const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
 const all = orderLines(maCho, r.MA_BN);
-selPay = { maCho, maBN:r.MA_BN, lines: all.filter(lineDone), pending: all.filter(l=>!lineDone(l)) };
+const db2 = drugBill(maCho);
+selPay = { maCho, maBN:r.MA_BN, lines: all.filter(lineDone), pending: all.filter(l=>!lineDone(l)),
+drugs: db2.drugs, billableToas: db2.billableToas, waitingToas: db2.waitingToas };
 renderPay();
 }
-function payTotal(){ return selPay ? selPay.lines.reduce((s,l)=>s+(Number(l.THANH_TIEN)||0),0) : 0; }
+function payTotal(){
+if (!selPay) return 0;
+return selPay.lines.reduce((s,l)=>s+(Number(l.THANH_TIEN)||0),0) + (selPay.drugs||[]).reduce((s,d)=>s+d.tien,0);
+}
 function renderPay(){
 if (!selPay){ $('payBox').innerHTML = '<div class="empty">Chọn bệnh nhân ở nhóm <b>Hoàn tất khám</b> trong hàng chờ để thanh toán.</div>'; return; }
 const total = payTotal();
@@ -688,7 +710,9 @@ $('payBox').innerHTML = `
 <div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ đã thực hiện <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)">➕ Thêm DV</button></div>
 ${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠️ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
 ${selPay.pending.length?`<div class="shortnote" style="display:block;">⏳ Còn <b>${selPay.pending.length}</b> dịch vụ chỉ định chưa xác nhận thực hiện — chưa tính tiền:<br>${selPay.pending.map(l=>'· '+l.TEN_DV).join('<br>')}<br><span style="font-size:11px;">Bác sĩ / trợ lý xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span></div>`:''}
-<div class="totline"><span>Tổng thanh toán</span><span class="num" id="payTot">${fmtD(total)}</span></div>
+${(selPay.drugs&&selPay.drugs.length)?`<div class="sect-label">Thuốc theo toa (đã soạn)</div>${selPay.drugs.map(d=>`<div class="payline"><span class="dv">💊 ${d.ten} ×${d.sl}</span><span class="num">${fmtD(d.tien)}</span></div>`).join('')}`:''}
+${(selPay.waitingToas&&selPay.waitingToas.length)?`<div class="shortnote" style="display:block;">💊 Toa ${selPay.waitingToas.join(', ')} đang chờ Dược sỹ soạn — CHƯA tính tiền thuốc. Chờ soạn xong rồi thu, hoặc thu trước phần dịch vụ.</div>`:''}
+<div class="totline"><span>Tổng thanh toán${(selPay.drugs&&selPay.drugs.length)?' (dịch vụ + thuốc)':''}</span><span class="num" id="payTot">${fmtD(total)}</span></div>
 <div class="fieldrow">
 <div style="flex:1;"><label>Giảm giá (đ)</label><input type="number" id="pDisc" value="0" min="0" oninput="updPay()" style="width:100%;"></div>
 <div style="flex:1.4;"><label>Lý do giảm</label><select id="pDiscWhy" style="width:100%;"><option value="">— chọn nếu có giảm —</option><option>Người quen BS</option><option>Khách thân thiết</option><option>Chương trình ưu đãi</option><option>Hoàn cảnh khó khăn</option><option>Khác (ghi chú)</option></select></div>
@@ -725,7 +749,7 @@ $('pConfirm').textContent = '✓ Xác nhận thu ' + fmtD(paidNow);
 async function confirmPay(){
 if(!selPay) return;
 const total = payTotal();
-if (!selPay.lines.length){ toast('⚠️ Chưa có dịch vụ đã thực hiện để thanh toán'); return; }
+if (!selPay.lines.length && !(selPay.drugs&&selPay.drugs.length)){ toast('⚠️ Chưa có dịch vụ đã thực hiện hoặc thuốc đã soạn để thanh toán'); return; }
 const disc = Number($('pDisc').value)||0;
 const why = $('pDiscWhy').value;
 if (disc > 0 && !why){ toast('⚠️ Có giảm giá thì bắt buộc chọn lý do'); $('pDiscWhy').focus(); return; }
@@ -739,7 +763,9 @@ $('pConfirm').disabled = true;
 const row = { MA_TT: nextId('T',5,'THANH_TOAN','MA_TT'), NGAY: todayStr(), MA_BN: selPay.maBN, TONG_HD: total, DA_THU: paid, CON_LAI: due - paid, HINH_THUC: method, THU_NGAN: me.email, GHI_CHU: note };
 const j = await api('append', {table:'THANH_TOAN', row});
 if (!j.ok){ toast('⚠️ Lỗi ghi thanh toán: '+(j.error||'')); $('pConfirm').disabled=false; return; }
-await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal: selPay.maCho, row:{TRANG_THAI:'Đã thu', GIO_THU: nowTime()}});
+const cpCalls = [ api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal: selPay.maCho, row:{TRANG_THAI:'Đã thu', GIO_THU: nowTime()}}) ];
+(selPay.billableToas||[]).forEach(mt=>cpCalls.push(api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:mt, row:{MA_TT: row.MA_TT}}).catch(e=>({ok:false}))));
+await Promise.all(cpCalls);
 toast('✓ Đã thu <b>'+fmtD(paid)+'</b> — '+bnName(selPay.maBN));
 printReceipt(true, row, {disc, why, paid, due, method});
 selPay = null; renderPay(); loadAll(true);
@@ -805,7 +831,7 @@ ${b.SDT?('<span>SĐT: '+b.SDT+'</span>'):''}
 </div>
 <table>
 <thead><tr><th style="width:24px;">TT</th><th>Dịch vụ</th><th class="r">SL</th><th class="r">Đơn giá</th><th class="r">Thành tiền</th></tr></thead>
-<tbody>${lines.map((l,i)=>`<tr><td>${i+1}</td><td>${l.TEN_DV}</td><td class="r">${l.SO_LUONG||1}</td><td class="r">${(Number(l.DON_GIA)||0).toLocaleString('vi-VN')}</td><td class="r">${(Number(l.THANH_TIEN)||0).toLocaleString('vi-VN')}</td></tr>`).join('')}</tbody>
+<tbody>${lines.map((l,i)=>`<tr><td>${i+1}</td><td>${l.TEN_DV}</td><td class="r">${l.SO_LUONG||1}</td><td class="r">${(Number(l.DON_GIA)||0).toLocaleString('vi-VN')}</td><td class="r">${(Number(l.THANH_TIEN)||0).toLocaleString('vi-VN')}</td></tr>`).join('')}${(selPay&&selPay.drugs&&selPay.drugs.length)?selPay.drugs.map((d,i)=>`<tr><td>${lines.length+i+1}</td><td>💊 ${d.ten}</td><td class="r">${d.sl}</td><td class="r">${d.gia.toLocaleString('vi-VN')}</td><td class="r">${d.tien.toLocaleString('vi-VN')}</td></tr>`).join(''):''}</tbody>
 <tfoot>
 <tr class="tot"><td colspan="4" class="lbl">Tổng cộng</td><td class="r"><b>${total.toLocaleString('vi-VN')} đ</b></td></tr>
 ${disc>0?`<tr class="tot"><td colspan="4" class="lbl">Giảm giá${why?(' <i style="font-size:10px;">('+why+')</i>'):''}</td><td class="r">−${disc.toLocaleString('vi-VN')} đ</td></tr>`:''}
@@ -943,11 +969,12 @@ show('shiftOvl');
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ renderHen(); renderQueue(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); } renderPay(); } }
+function renderAll(){ renderHen(); renderQueue(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
 
 /* hồ sơ 360°: nút hành động của trang này */
 window.PKHooks = { reception: openReception, addSvc: openSvc };
 </script>
 <script src="profile.js"></script>
+<script src="toa.js"></script>
 </body>
 </html>

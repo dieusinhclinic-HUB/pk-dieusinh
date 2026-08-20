@@ -127,13 +127,22 @@
     </div>
 
     <div class="ttabs">
-      <button class="ttab on" data-p="paneTon">📦 Tồn kho</button>
+      <button class="ttab on" data-p="paneToa">💊 Toa thuốc <span id="toaBadge"></span></button>
+      <button class="ttab" data-p="paneTon">📦 Tồn kho</button>
       <button class="ttab" data-p="paneGd">↕️ Nhập / Xuất / Kiểm kê</button>
       <button class="ttab" data-p="paneLs">🕘 Lịch sử</button>
     </div>
 
+    <!-- ===== TOA THUỐC ===== -->
+    <div class="tpane on" id="paneToa">
+      <div class="card">
+        <div class="sect">Toa thuốc — soạn trước, phát sau khi thanh toán. Tick TỪNG DÒNG bằng tay, không có nút phát tất cả.</div>
+        <div id="toaBox"></div>
+      </div>
+    </div>
+
     <!-- ===== TỒN KHO ===== -->
-    <div class="tpane on" id="paneTon">
+    <div class="tpane" id="paneTon">
       <div class="card">
         <input id="tkSearch" placeholder="🔍 Tìm thuốc — tên hoặc mã…" style="width:100%;margin-bottom:10px;" oninput="renderTon()">
         <div style="max-height:60vh;overflow:auto;">
@@ -187,7 +196,7 @@
 const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES    = ['THUOC','KHO_GD'];
+const TABLES    = ['THUOC','KHO_GD','TOA_THUOC','TOA_CT','BENH_NHAN','HANG_CHO'];
 const ALLOWED   = ['Quản lý','Dược sỹ'];
 
 /* ================== TRẠNG THÁI ================== */
@@ -309,8 +318,107 @@ function nextId(prefix, pad, table, col){
   return prefix + String(mx+1).padStart(pad,'0');
 }
 
+/* ================== TOA THUỐC ================== */
+const sameDay = v => String(v).slice(0,10) === todayStr();
+const nowTime = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); };
+const hhmm = v => { const m=String(v||'').match(/^(\d{1,2}):(\d{2})/); return m ? (m[1].padStart(2,'0')+':'+m[2]) : ''; };
+function bnTen(ma){ const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===ma); return b ? b.HO_TEN : ma; }
+let toaOpen = null;
+function toaPaid(t){
+  if (String(t.MA_TT||'').trim()) return true;
+  if (String(t.MA_CHO||'').trim()){
+    const o = rowsToObj('HANG_CHO').find(x=>x.MA_CHO===t.MA_CHO);
+    return !!(o && o.TRANG_THAI==='Đã thu');
+  }
+  return false; // toa không gắn đơn: phát khi có xác nhận riêng
+}
+function renderToa(){
+  const box = $('toaBox'); if (!box) return;
+  const toas = rowsToObj('TOA_THUOC').filter(t=>t.TRANG_THAI!=='Hủy');
+  const cts = rowsToObj('TOA_CT');
+  const ton = stockMap();
+  const cho = toas.filter(t=>t.TRANG_THAI==='Chờ soạn');
+  const soan = toas.filter(t=>t.TRANG_THAI==='Đã soạn');
+  const phat = toas.filter(t=>t.TRANG_THAI==='Đã phát' && sameDay(t.NGAY));
+  const bd = $('toaBadge'); if (bd) bd.innerHTML = cho.length ? ('<span style="background:#d03b3b;color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;">'+cho.length+'</span>') : '';
+  const card = t => {
+    const lines = cts.filter(c=>c.MA_TOA===t.MA_TOA);
+    const openNow = toaOpen===t.MA_TOA;
+    const paid = toaPaid(t);
+    const stChip = t.TRANG_THAI==='Chờ soạn' ? '<span style="background:#fdf3dc;color:#8a6205;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">⏳ Chờ soạn</span>'
+      : t.TRANG_THAI==='Đã soạn' ? (paid ? '<span style="background:#e8f7e8;color:#0a7a0a;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">💰 Đã thanh toán — sẵn sàng phát</span>' : '<span style="background:#e7f0fd;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">✔ Đã soạn — chờ thanh toán</span>')
+      : '<span style="background:#e8f7e8;color:#0a7a0a;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">💊 Đã phát'+(t.GIO_PHAT?(' '+hhmm(t.GIO_PHAT)):'')+'</span>';
+    let body = '';
+    if (openNow){
+      body = '<table class="tk" style="margin-top:8px;"><thead><tr><th>Thuốc</th><th>Liều dùng</th><th class="r">SL kê</th><th class="r">Tồn</th>' +
+        (t.TRANG_THAI==='Chờ soạn' ? '<th class="r">Đủ hàng ✓</th>' : t.TRANG_THAI==='Đã soạn' ? '<th class="r">SL phát</th><th class="r">Đã phát ✓</th>' : '<th class="r">SL đã phát</th>') + '</tr></thead><tbody>' +
+        lines.map(l=>{
+          const tk = ton[String(l.MA_THUOC)]||0;
+          const lieu = `${l.LIEU_LAN}/lần × ${l.LAN_NGAY} lần/ngày × ${l.SO_NGAY} ngày${l.THOI_DIEM?(' — '+l.THOI_DIEM):''}`;
+          let act = '';
+          if (t.TRANG_THAI==='Chờ soạn')
+            act = `<td class="r"><input type="checkbox" ${String(l.DA_SOAN)==='x'?'checked':''} onchange="toaTickSoan('${l.MA_CT}', this.checked)" style="width:17px;height:17px;accent-color:#0f6e56;"></td>`;
+          else if (t.TRANG_THAI==='Đã soạn')
+            act = `<td class="r"><input type="number" id="slp_${l.MA_CT}" value="${Number(l.SL_PHAT)||Number(l.SO_LUONG)||0}" min="0" style="width:64px;font-size:12px;" ${paid?'':'disabled'}></td><td class="r"><input type="checkbox" ${String(l.DA_PHAT)==='x'?'checked':''} ${paid?'':'disabled'} onchange="toaTickPhat('${l.MA_CT}', this.checked)" style="width:17px;height:17px;accent-color:#0f6e56;"></td>`;
+          else act = `<td class="r num">${l.SL_PHAT||l.SO_LUONG}</td>`;
+          return `<tr><td><b>${l.TEN_THUOC}</b></td><td style="font-size:12px;">${lieu}</td><td class="r num">${l.SO_LUONG}</td><td class="r num" style="${tk<(Number(l.SO_LUONG)||0)?'color:#d03b3b;font-weight:700;':''}">${tk}</td>${act}</tr>`;
+        }).join('') + '</tbody></table>' +
+        (t.GHI_CHU?('<div class="hint">Lời dặn: '+t.GHI_CHU+'</div>'):'');
+      const allSoan = lines.length && lines.every(l=>String(l.DA_SOAN)==='x');
+      const allPhat = lines.length && lines.every(l=>String(l.DA_PHAT)==='x');
+      if (t.TRANG_THAI==='Chờ soạn')
+        body += `<div style="margin-top:10px;display:flex;gap:9px;align-items:center;"><button class="btn btn-brand" ${allSoan?'':'disabled'} onclick="toaXongSoan('${t.MA_TOA}')">✔ Xong soạn — chuyển chờ thanh toán</button><span class="hint" style="margin:0;">Tick đủ hàng TỪNG dòng thì nút mới sáng.</span></div>`;
+      else if (t.TRANG_THAI==='Đã soạn')
+        body += paid
+          ? `<div style="margin-top:10px;display:flex;gap:9px;align-items:center;"><button class="btn btn-brand" ${allPhat?'':'disabled'} onclick="toaXongPhat('${t.MA_TOA}')">💊 Xác nhận đã phát — trừ kho</button><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In toa</button><span class="hint" style="margin:0;">Soát tên thuốc – liều – SL với toa rồi tick từng dòng.</span></div>`
+          : `<div class="hint" style="margin-top:10px;">⏳ Chờ thu ngân thu tiền — phát thuốc sau khi thanh toán.</div>`;
+      else body += `<div style="margin-top:10px;"><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In toa</button></div>`;
+    }
+    return `<div style="border:1px solid var(--hair);border-radius:12px;padding:10px 13px;margin-bottom:9px;background:#fff;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;cursor:pointer;" onclick="toaOpen = toaOpen==='${t.MA_TOA}' ? null : '${t.MA_TOA}'; renderToa();">
+      <b style="color:#5b2fa0;">💊 ${t.MA_TOA}</b>
+      <b style="cursor:pointer;" onclick="event.stopPropagation();PKProfile.open('${t.MA_BN}')" title="Mở bệnh án">${bnTen(t.MA_BN)}</b>
+      <span style="font-size:12px;color:var(--ink2);">${lines.length} thuốc · BS ${t.BS_KE}${t.GIO_KE?(' · kê '+hhmm(t.GIO_KE)):''}</span>
+      ${stChip}<span style="margin-left:auto;font-size:12px;color:var(--ink2);">${openNow?'▲ thu gọn':'▼ mở'}</span></div>${body}</div>`;
+  };
+  let html = '<div class="sect">⏳ Chờ soạn ('+cho.length+')</div>' + (cho.length?cho.map(card).join(''):'<div class="hint">Không có toa chờ soạn.</div>');
+  html += '<div class="sect" style="margin-top:14px;">✔ Đã soạn ('+soan.length+')</div>' + (soan.length?soan.map(card).join(''):'<div class="hint">Không có.</div>');
+  html += '<div class="sect" style="margin-top:14px;">💊 Đã phát hôm nay ('+phat.length+')</div>' + (phat.length?phat.map(card).join(''):'<div class="hint">Chưa phát toa nào hôm nay.</div>');
+  box.innerHTML = html;
+}
+async function toaTickSoan(maCT, on){
+  const j = await api('update', {table:'TOA_CT', keyCol:'MA_CT', keyVal:maCT, row:{DA_SOAN: on?'x':''}});
+  if (j.ok){ ver=j.v; loadAll(true); } else toast('⚠️ '+(j.error||'lỗi'));
+}
+async function toaTickPhat(maCT, on){
+  const el = document.getElementById('slp_'+maCT);
+  const sl = el ? (Number(el.value)||0) : 0;
+  const j = await api('update', {table:'TOA_CT', keyCol:'MA_CT', keyVal:maCT, row:{DA_PHAT: on?'x':'', SL_PHAT: sl}});
+  if (j.ok){ ver=j.v; loadAll(true); } else toast('⚠️ '+(j.error||'lỗi'));
+}
+async function toaXongSoan(maToa){
+  const j = await api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:maToa, row:{TRANG_THAI:'Đã soạn', GIO_SOAN: nowTime(), NGUOI_SOAN: me?me.email:''}});
+  if (j.ok){ ver=j.v; toast('✓ Toa <b>'+maToa+'</b> đã soạn xong — thu ngân có thể thu tiền'); loadAll(true); }
+  else toast('⚠️ '+(j.error||'lỗi'));
+}
+async function toaXongPhat(maToa){
+  const lines = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===maToa);
+  if (!lines.length || !lines.every(l=>String(l.DA_PHAT)==='x')){ toast('⚠️ Tick đủ từng dòng trước khi xác nhận phát'); return; }
+  let base = parseInt(nextId('K',5,'KHO_GD','MA_GD').slice(1),10);
+  const who = me?me.email.split('@')[0]:'';
+  const rs = await Promise.all(lines.map((l,i)=>api('append', {table:'KHO_GD', row:{
+    MA_GD:'K'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_THUOC: l.MA_THUOC, LOAI:'Xuất',
+    SO_LUONG: Number(l.SL_PHAT)||Number(l.SO_LUONG)||0, LO:'', HSD:'',
+    GHI_CHU: ('Phát toa '+maToa+' — bởi '+who) }}).catch(e=>({ok:false}))));
+  const fail = rs.filter(x=>!(x&&x.ok)).length;
+  if (fail){ toast('⚠️ '+fail+' dòng chưa trừ được kho — thử lại'); loadAll(true); return; }
+  const j = await api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:maToa, row:{TRANG_THAI:'Đã phát', GIO_PHAT: nowTime(), NGUOI_PHAT: me?me.email:''}});
+  if (j.ok){ ver=j.v; toast('✓ Đã phát toa <b>'+maToa+'</b> — kho đã trừ '+lines.length+' mặt hàng'); toaOpen=null; loadAll(true); }
+  else toast('⚠️ '+(j.error||'lỗi'));
+}
+
 /* ================== RENDER ================== */
-function renderAll(){ renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); }
+function renderAll(){ renderToa(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); }
 function renderKpis(){
   const st = stockMap(), ds = drugList();
   let units=0, val=0, low=0;
@@ -422,5 +530,7 @@ function renderLs(){
   }).join('') : '<div class="empty">Chưa có giao dịch.</div>';
 }
 </script>
+<script src="profile.js"></script>
+<script src="toa.js"></script>
 </body>
 </html>

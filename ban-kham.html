@@ -101,6 +101,11 @@ header.bar .sub{font-size:12px;opacity:.85;}
 .actionbar .btn{flex:1;padding:13px;font-size:14px;}
 .histrow{border-bottom:1px solid #eeeee9;padding:8px 2px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px;}
 
+.kqbox{margin-top:4px;background:#eef4fd;border-left:3px solid #2456a8;border-radius:0 8px 8px 0;padding:5px 9px;font-size:12px;color:#1c3f7a;font-weight:400;}
+.kqedit{display:flex;gap:7px;align-items:center;padding:7px 2px;background:#fffdf3;border-radius:9px;margin:4px 0;}
+.kqedit input{flex:1;font-size:12.5px;}
+.toaline{display:flex;gap:9px;align-items:center;padding:7px 10px;border:1px solid #ddd0f2;background:#f4f0fb;border-radius:10px;margin-bottom:6px;font-size:12.5px;flex-wrap:wrap;}
+.toaline b{color:#5b2fa0;}
 /* rail queue */
 .qrow{border:1px solid var(--hair);border-radius:11px;padding:8px 11px;background:#fff;display:flex;align-items:center;gap:9px;margin-bottom:7px;}
 .qrow .stt{background:var(--brand);color:#fff;border-radius:8px;min-width:32px;text-align:center;font-weight:800;padding:4px 0;font-size:13px;}
@@ -177,7 +182,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN'];
+const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN','TOA_THUOC','TOA_CT'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null;
 let cur=null; // {maCho, maBN}
@@ -447,7 +452,7 @@ ${preg.edd?('<span class="chip">Dự sinh: '+preg.edd.toLocaleDateString('vi-VN'
 
 <div class="sect-label">🧾 Dịch vụ của lượt khám — xác nhận từng dòng khi đã thực hiện</div>
 ${pendLines.map(l=>`<div class="oline pending"><span class="dv">⏳ ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">(chỉ định — chưa thực hiện)</span></span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`).join('')}
-${doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join('')}
+${doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${String(l.KET_QUA||'').trim()?('<div class="kqbox">🧾 '+l.KET_QUA+'</div>'):''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${l.MA_LUOT}')">✎ KQ</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="kq_${l.MA_LUOT}"></div>`).join('')}
 ${lines.map((l,i)=>`<div class="oline"><span class="dv">${l.dv.TEN_DV}${l.qty>1?' ×'+l.qty:''} <span style="font-size:11px;color:var(--ink3);">(mới thêm — sẽ ghi khi hoàn tất)</span></span><span class="num">${fmtD(l.gia*l.qty)}</span><button class="x" onclick="delLine(${i})">✕</button></div>`).join('')}
 ${(!pendLines.length && !doneLines.length && !lines.length)?'<div class="empty">Chưa có dịch vụ — bấm chọn bên dưới.</div>':''}
 <div class="totline"><span>Tổng đã thực hiện${lines.length?' (gồm dòng mới)':''}</span><span class="num">${fmtD(total)}</span></div>
@@ -458,6 +463,13 @@ ${Object.entries(groups).map(([g,ds])=>`<div class="dvgroup"><div class="gname">
 ${ds.map(d=>`<button class="dvchip" onclick="addLine('${d.MA_DV}')">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></button>`).join('')}
 </div></div>`).join('')}
 </div>
+
+<div class="sect-label">💊 Toa thuốc của lượt khám</div>
+${(rowsToObj('TOA_THUOC').filter(t=>String(t.MA_CHO||'')===cur.maCho && t.TRANG_THAI!=='Hủy')).map(t=>{
+const n = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===t.MA_TOA).length;
+return `<div class="toaline"><b>💊 ${t.MA_TOA}</b><span>${n} thuốc · BS ${t.BS_KE}${t.GIO_KE?(' · '+fmtT(t.GIO_KE)):''}</span><span style="font-weight:700;">${t.TRANG_THAI}</span><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')" style="margin-left:auto;">🖨 In toa</button></div>`;
+}).join('')||'<div class="empty">Chưa kê toa cho lượt khám này.</div>'}
+<button class="btn btn-soft" style="margin-top:4px;" onclick="keToa()">💊 Kê toa thuốc</button>
 
 <div class="sect-label">📝 Ghi chú khám</div>
 <textarea id="exNote" rows="3" style="width:100%;" placeholder="Nhận xét lâm sàng, dặn dò, hẹn tái khám…" oninput="examNote=this.value">${examNote}</textarea>
@@ -485,7 +497,7 @@ const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
 const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{
 TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime(),
 BS_THUC_HIEN: String(l.BS_THUC_HIEN||'').trim() || myBS() }});
-if (j.ok){ ver=j.v; toast('✓ Đã xác nhận thực hiện: <b>'+l.TEN_DV+'</b>'); loadAll(true); }
+if (j.ok){ ver=j.v; toast('✓ Đã xác nhận: <b>'+l.TEN_DV+'</b> — nhập kết quả bên dưới'); await loadAll(true); kqEdit(maLuot); }
 else toast('⚠️ ' + (j.error||'lỗi'));
 }
 async function cancelLine(maLuot){
@@ -532,10 +544,32 @@ await loadAll(true);
 } finally { $('loading').classList.remove('on'); }
 }
 
+/* ================== KẾT QUẢ DỊCH VỤ ================== */
+function kqEdit(maLuot){
+const host = document.getElementById('kq_'+maLuot); if (!host) return;
+const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
+host.innerHTML = `<div class="kqedit"><input id="kqi_${maLuot}" placeholder="Kết quả dịch vụ — vd: thai 12 tuần, tim thai (+)…" value="${String(l.KET_QUA||'').replace(/"/g,'&quot;')}"><button class="qbtn ok" onclick="kqSave('${maLuot}')">💾 Lưu kết quả</button><button class="qbtn" onclick="document.getElementById('kq_${maLuot}').innerHTML=''">Đóng</button></div>`;
+document.getElementById('kqi_'+maLuot).focus();
+}
+async function kqSave(maLuot){
+const el = document.getElementById('kqi_'+maLuot); if(!el) return;
+const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{KET_QUA: el.value.trim()}});
+if (j.ok){ ver=j.v; toast('✓ Đã lưu kết quả vào bệnh án'); loadAll(true); }
+else toast('⚠️ ' + (j.error||'lỗi'));
+}
+
+/* ================== KÊ TOA ================== */
+function keToa(){
+if (!cur) return;
+PKToa.openCompose({ maBN: cur.maBN, tenBN: bn(cur.maBN).HO_TEN, maCho: cur.maCho, bsKe: myBS(), nguoiNhap: me?me.email:'',
+onDone: function(maToa, fail){ toast(fail ? ('⚠️ Toa '+maToa+' lưu thiếu '+fail+' dòng — kiểm tra lại') : ('✓ Đã kê toa <b>'+maToa+'</b> — gửi Dược sỹ soạn')); loadAll(true); } });
+}
+
 /* ================== RENDER ================== */
 function renderAll(){ renderQueue(); renderWorkspace(); }
 </script>
 <script src="profile.js"></script>
+<script src="toa.js"></script>
 <script>
 /* ===== TOÀN PHÒNG KHÁM (bảng trực tiếp mọi bác sĩ) ===== */
 (function(){

@@ -157,7 +157,7 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <div class="sect-label">Bệnh nhân</div>
 <div class="pk"><input id="skPk" placeholder="🔍 Tìm BN — tên, SĐT hoặc mã…" oninput="pkSearch('sk')" autocomplete="off"><div class="pkResults" id="skPkR"></div></div>
 <div id="skSel" class="empty" style="margin-top:6px;">Chưa chọn bệnh nhân.</div>
-<div class="sect-label">Dịch vụ</div>
+<div class="sect-label">Chỉ định dịch vụ</div>
 <div class="frow">
 <div class="f" style="flex:2;"><label>Dịch vụ</label><select id="skDv"></select></div>
 <div class="f"><label>SL</label><input type="number" id="skQty" value="1" min="1"></div>
@@ -216,10 +216,15 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 
 <!-- ==== KÊ ĐƠN ==== -->
 <div class="tpane" id="t-kedon">
-<div style="background:var(--warn-soft);border-radius:12px;padding:16px;font-size:13px;color:#8a6205;line-height:1.6;">
-💊 <b>Kê đơn thuốc sẽ mở ở Đợt D</b> — kho thuốc đã sẵn sàng (112 thuốc, xem tại màn hình Dược sỹ).<br>
-Quy trình đã chốt: kê toa từng dòng (thuốc · liều/lần · lần/ngày · số ngày) → Dược sỹ soạn → Thu ngân thu → Dược sỹ phát, kho tự trừ.
+<div class="sect-label">Kê toa hộ bác sĩ</div>
+<div class="frow">
+<div class="f pk" style="flex:2;"><label>Bệnh nhân</label><input id="kdPk" placeholder="🔍 Tìm BN…" oninput="pkSearch('kd')" autocomplete="off"><div class="pkResults" id="kdPkR"></div></div>
+<div class="f"><label>Bác sĩ kê *</label><select id="kdBs"></select></div>
+<button class="btn btn-brand" onclick="kdOpen()">💊 Soạn toa</button>
 </div>
+<div style="font-size:11.5px;color:var(--ink3);margin-bottom:10px;">Toa ghi rõ bác sĩ kê và người nhập. Liều dùng phải nhập tay từng dòng — hệ thống không tự điền.</div>
+<div class="sect-label">Toa thuốc hôm nay</div>
+<div id="kdToday"></div>
 </div>
 
 </div>
@@ -247,10 +252,10 @@ Quy trình đã chốt: kê toa từng dòng (thuốc · liều/lần · lần/n
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN'];
+const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN','TOA_THUOC','TOA_CT'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null;
-let skBN=null, skList=[], hsBN=null, tkBN=null, lhBN=null;
+let skBN=null, skList=[], hsBN=null, tkBN=null, lhBN=null, kdBN=null;
 
 const $ = id => document.getElementById(id);
 const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
@@ -349,7 +354,7 @@ $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập h
 function fillSelects(){
 const bss = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
 const bsOpts = '<option value="">—</option>' + bss.map(b=>`<option>${b.TEN_BS}</option>`).join('');
-['skBsTh','skBsCd','lhBs'].forEach(id=>$(id).innerHTML=bsOpts);
+['skBsTh','skBsCd','lhBs','kdBs'].forEach(id=>$(id).innerHTML=bsOpts);
 const dvs = rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không');
 $('skDv').innerHTML = dvs.map(d=>`<option value="${d.MA_DV}">${d.TEN_DV} — ${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}đ</option>`).join('');
 }
@@ -379,6 +384,7 @@ if (kind==='sk'){ skBN=ma; renderSkSel(); }
 if (kind==='hs'){ hsBN=ma; renderHsEdit(); }
 if (kind==='tk'){ tkBN=ma; }
 if (kind==='lh'){ lhBN=ma; }
+if (kind==='kd'){ kdBN=ma; }
 }
 
 /* ================== TAB: NHẬP SỔ KHÁM ================== */
@@ -425,7 +431,7 @@ skList=[]; $('skNote').value=''; renderSkLines(); loadAll(true);
 }
 function renderSkToday(){
 const rows = rowsToObj('SO_KHAM').filter(x=>sameDay(x.NGAY)).reverse();
-$('skToday').innerHTML = rows.length ? rows.map(r=>`<div class="histrow"><span class="num" style="color:var(--ink3);">${r.MA_LUOT}</span><span style="flex:1;padding:0 8px;">${pname(r.MA_BN)} — ${r.TEN_DV}${r.BS_THUC_HIEN?(' · '+r.BS_THUC_HIEN):''}</span><span class="num">${fmtD(r.THANH_TIEN)}</span></div>`).join('') : '<div class="empty">Chưa có dòng nào hôm nay.</div>';
+$('skToday').innerHTML = rows.length ? rows.map(r=>`<div class="histrow"><span class="num" style="color:var(--ink3);">${r.MA_LUOT}</span><span style="flex:1;padding:0 8px;">${pname(r.MA_BN)} — ${r.TEN_DV}${r.BS_THUC_HIEN?(' · '+r.BS_THUC_HIEN):''}${String(r.KET_QUA||'').trim()?('<div style="margin-top:3px;background:#eef4fd;border-left:3px solid #2456a8;border-radius:0 8px 8px 0;padding:4px 8px;font-size:12px;color:#1c3f7a;">🧾 '+r.KET_QUA+'</div>'):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${r.MA_LUOT}')">✎ KQ</button><span class="num">${fmtD(r.THANH_TIEN)}</span></div><div id="kq_${r.MA_LUOT}"></div>`).join('') : '<div class="empty">Chưa có dòng nào hôm nay.</div>';
 }
 
 /* ================== TAB: HỒ SƠ ================== */
@@ -561,8 +567,40 @@ $('todoBox').innerHTML = `
 <div class="todo"><span class="n num">${tkDue}</span> thai kỳ sắp đến mốc khám</div>`;
 }
 
+/* ================== KÊ ĐƠN ================== */
+function kdOpen(){
+if (!kdBN){ toast('⚠️ Chọn bệnh nhân trước'); return; }
+if (!$('kdBs').value){ toast('⚠️ Chọn bác sĩ kê toa'); $('kdBs').focus(); return; }
+const order = rowsToObj('HANG_CHO').find(x=>sameDay(x.NGAY) && x.MA_BN===kdBN && !['Hủy'].includes(String(x.TRANG_THAI).trim()));
+PKToa.openCompose({ maBN: kdBN, tenBN: bn(kdBN).HO_TEN, maCho: order?order.MA_CHO:'', bsKe: $('kdBs').value, nguoiNhap: me?me.email:'',
+onDone: function(maToa, fail){ toast(fail ? ('⚠️ Toa '+maToa+' lưu thiếu '+fail+' dòng') : ('✓ Đã kê toa <b>'+maToa+'</b> — gửi Dược sỹ soạn')); loadAll(true); } });
+}
+function renderKd(){
+if (!$('kdToday')) return;
+const toas = rowsToObj('TOA_THUOC').filter(t=>sameDay(t.NGAY) && t.TRANG_THAI!=='Hủy').reverse();
+const cts = rowsToObj('TOA_CT');
+$('kdToday').innerHTML = toas.length ? toas.map(t=>{
+const n = cts.filter(c=>c.MA_TOA===t.MA_TOA).length;
+return `<div class="histrow"><span class="num" style="color:#5b2fa0;font-weight:700;">💊 ${t.MA_TOA}</span><span style="flex:1;padding:0 8px;">${pname(t.MA_BN)} — ${n} thuốc · BS ${t.BS_KE}${t.GIO_KE?(' · '+String(t.GIO_KE).slice(0,5)):''}</span><span style="font-size:11.5px;font-weight:700;">${t.TRANG_THAI}</span><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In</button></div>`;
+}).join('') : '<div class="empty">Chưa có toa nào hôm nay.</div>';
+}
+
+/* ================== KẾT QUẢ DỊCH VỤ ================== */
+function kqEdit(maLuot){
+const host = document.getElementById('kq_'+maLuot); if (!host) return;
+const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
+host.innerHTML = `<div style="display:flex;gap:7px;align-items:center;padding:7px 2px;background:#fffdf3;border-radius:9px;margin:4px 0;"><input id="kqi_${maLuot}" style="flex:1;font-size:12.5px;" placeholder="Kết quả dịch vụ…" value="${String(l.KET_QUA||'').replace(/"/g,'&quot;')}"><button class="qbtn" onclick="kqSave('${maLuot}')">💾 Lưu kết quả</button><button class="qbtn" onclick="document.getElementById('kq_${maLuot}').innerHTML=''">Đóng</button></div>`;
+document.getElementById('kqi_'+maLuot).focus();
+}
+async function kqSave(maLuot){
+const el = document.getElementById('kqi_'+maLuot); if(!el) return;
+const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{KET_QUA: el.value.trim()}});
+if (j.ok){ ver=j.v; toast('✓ Đã lưu kết quả vào bệnh án'); loadAll(true); }
+else toast('⚠️ ' + (j.error||'lỗi'));
+}
+
 /* ================== RENDER ================== */
-function renderAll(){ renderSkSel(); renderSkLines(); renderSkToday(); renderHsWorklist(); if(hsBN) renderHsEdit(); renderTk(); renderLh(); renderRail(); }
+function renderAll(){ renderSkSel(); renderSkLines(); renderSkToday(); renderHsWorklist(); if(hsBN) renderHsEdit(); renderTk(); renderLh(); renderKd(); renderRail(); }
 
 /* hồ sơ 360°: nút hành động của trang này */
 window.PKHooks = {
@@ -571,5 +609,6 @@ datHen: function(ma){ lhBN=ma; $('lhPk').value = bn(ma).HO_TEN + ' (' + ma + ')'
 };
 </script>
 <script src="profile.js"></script>
+<script src="toa.js"></script>
 </body>
 </html>

@@ -188,7 +188,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU'];
+const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU','THUOC','TOA_THUOC','TOA_CT'];
 const ALLOWED = ['Quản lý','Kế toán'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null, range='7', selBS=null;
@@ -380,12 +380,21 @@ const nhomOf = ten => { const d = dvs.find(x=>String(x.TEN_DV).trim()===String(t
 const visits = rowsToObj('SO_KHAM').filter(s=>inRange(s.NGAY)).filter(lineCounted);
 const by = {};
 visits.forEach(v=>{ const g=nhomOf(v.TEN_DV); by[g]=(by[g]||0)+(Number(v.THANH_TIEN)||0); });
+// nhóm Thuốc: toa đã gắn phiếu thu trong kỳ (tính theo giá bán)
+const thuocs = rowsToObj('THUOC');
+const paidToas = rowsToObj('TOA_THUOC').filter(t=>String(t.MA_TT||'').trim() && inRange(t.NGAY));
+const paidSet = {}; paidToas.forEach(t=>paidSet[t.MA_TOA]=1);
+rowsToObj('TOA_CT').forEach(c=>{
+if (!paidSet[c.MA_TOA]) return;
+const th = thuocs.find(x=>String(x.MA_THUOC)===String(c.MA_THUOC));
+by['Thuốc'] = (by['Thuốc']||0) + (th?(Number(th.GIA_BAN)||0):0) * (Number(c.SO_LUONG)||0);
+});
 const entries = Object.entries(by).sort((a,b)=>b[1]-a[1]);
 const sum = entries.reduce((s,e)=>s+e[1],0);
 const mx = Math.max(1, ...entries.map(e=>e[1]));
 $('nhomBox').innerHTML = entries.length ? entries.map(([g,v])=>`
 <div class="hrow" style="cursor:default;"><div class="nm">${g}</div><div class="track"><div class="tfill" style="width:${Math.round(v/mx*100)}%;"></div></div><div class="val num">${fmtD(v)} · ${sum?Math.round(v/sum*100):0}%</div></div>`).join('')
-+ `<div style="font-size:11px;color:var(--ink3);margin-top:6px;">Theo giá trị dịch vụ trong Sổ khám (nhóm lấy từ danh mục dịch vụ). Nhóm Thuốc sẽ có từ Đợt D.</div>`
++ `<div style="font-size:11px;color:var(--ink3);margin-top:6px;">Theo giá trị dịch vụ trong Sổ khám (nhóm lấy từ danh mục dịch vụ). Nhóm Thuốc = toa đã thanh toán, tính theo giá bán.</div>`
 : '<div class="empty">Chưa có dữ liệu trong kỳ.</div>';
 }
 function renderBS(){
