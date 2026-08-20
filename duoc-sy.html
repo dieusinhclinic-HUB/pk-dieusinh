@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bàn dược sỹ — PK Diệu Sinh</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --brand:#0a5240; --brand2:#0f6e56; --brand3:#12836a;
+    --brand-soft:#e3f2ed; --brand-bg:#f0f8f5;
+    --ink:#20241f; --ink2:#5c635a; --ink3:#8a9187;
+    --surface:#fcfcfb; --hair:#e1e0d9;
+    --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+    --good-soft:#e8f7e8; --warn-soft:#fdf3dc; --crit-soft:#fbe9e9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--brand-bg);color:var(--ink);font-size:14px;}
+  .num{font-variant-numeric:tabular-nums;}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;font-size:13.5px;border:1.5px solid var(--hair);border-radius:9px;padding:8px 11px;background:#fff;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand3);}
+  .btn{border:none;border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-brand{background:var(--brand2);color:#fff;}
+  .btn-ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand3);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .qbtn{border:1px solid var(--hair);background:#fff;border-radius:9px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink2);}
+
+  #loginView{display:grid;place-items:center;min-height:100vh;padding:20px;}
+  .logincard{background:#fff;border-radius:20px;box-shadow:0 10px 36px rgba(10,82,64,.13);padding:38px 42px;width:min(420px,100%);text-align:center;}
+  .logincard h1{font-size:20px;color:var(--brand);margin:10px 0 4px;}
+  .logincard .sub{color:var(--ink2);font-size:13px;margin-bottom:22px;}
+  #gbtn{display:flex;justify-content:center;margin-bottom:14px;}
+  #loginMsg{font-size:12.5px;color:var(--ink3);min-height:18px;}
+  #loginMsg.err{color:var(--crit);font-weight:600;}
+
+  #app{display:none;}
+  header.bar{background:var(--brand);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;}
+  header.bar h1{font-size:16.5px;font-weight:800;}
+  header.bar .sub{font-size:11.5px;color:#cfe6de;}
+  header.bar .sp{flex:1;}
+  .userchip{background:rgba(255,255,255,.14);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;}
+  .syncdot{width:9px;height:9px;border-radius:50%;background:#42d67c;display:inline-block;margin-right:5px;}
+  .syncdot.off{background:#f2b23a;}
+  .hbtn{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+
+  main{max-width:1180px;margin:0 auto;padding:14px 16px 40px;}
+  .ttabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .ttab{border:1.5px solid var(--hair);background:#fff;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink2);}
+  .ttab.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .tpane{display:none;}
+  .tpane.on{display:block;}
+  .card{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+  .sect{font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;}
+  .kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .kpi{flex:1 1 140px;background:#fff;border:1px solid var(--hair);border-radius:12px;padding:10px 13px;}
+  .kpi .v{font-size:19px;font-weight:800;color:var(--brand);}
+  .kpi .l{font-size:11px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+  .kpi.warn .v{color:var(--crit);}
+  table.tk{width:100%;border-collapse:collapse;font-size:13px;}
+  table.tk th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);text-align:left;padding:7px 8px;border-bottom:1.5px solid var(--hair);}
+  table.tk td{padding:8px;border-bottom:1px solid #eee9;vertical-align:middle;}
+  table.tk tr:hover td{background:var(--brand-bg);}
+  table.tk td.r,table.tk th.r{text-align:right;}
+  .badge{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;}
+  .badge.ok{background:var(--good-soft);color:#0a7a0a;}
+  .badge.low{background:var(--crit-soft);color:var(--crit);}
+  .badge.zero{background:#eee;color:var(--ink3);}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .fgrid .full{grid-column:1/-1;}
+  .fgrid label{display:block;font-size:11px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .hint{font-size:11.5px;color:var(--ink3);margin-top:8px;}
+  .histrow{display:flex;gap:10px;padding:8px 4px;border-bottom:1px solid #eee9;font-size:12.5px;align-items:center;}
+  .histrow .tag{border-radius:7px;padding:2px 8px;font-size:11px;font-weight:800;}
+  .tag.in{background:var(--good-soft);color:#0a7a0a;}
+  .tag.out{background:var(--crit-soft);color:var(--crit);}
+  .tag.adj{background:var(--warn-soft);color:#8a6205;}
+  .tag.open{background:var(--brand-soft);color:var(--brand);}
+  .empty{color:var(--ink3);font-size:13px;padding:12px 4px;}
+  #loading{position:fixed;inset:0;background:rgba(240,248,245,.75);display:none;place-items:center;z-index:150;font-weight:700;color:var(--brand);}
+  #loading.on{display:grid;}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(90px);background:var(--brand);color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(10,82,64,.35);transition:transform .25s;z-index:200;max-width:92vw;text-align:center;}
+  #toast.on{transform:translateX(-50%) translateY(0);}
+
+  @media (prefers-reduced-motion: no-preference){
+    .btn,.qbtn,button{transition:background .15s ease,color .15s ease,border-color .15s ease,box-shadow .18s ease,transform .1s ease;}
+    .btn:active,.qbtn:active,button:active{transform:scale(.96);}
+    .tpane.on{animation:paneIn .18s ease;}
+    table.tk tr{animation:rowIn .18s ease both;}
+    #toast{transition:transform .28s cubic-bezier(.2,.8,.3,1),opacity .28s ease;opacity:0;}
+    #toast.on{opacity:1;}
+  }
+  @keyframes paneIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @keyframes rowIn{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div id="loginView">
+  <div class="logincard">
+    <div style="font-size:40px;">💊</div>
+    <h1>Bàn dược sỹ — PK Diệu Sinh</h1>
+    <div class="sub">Kho thuốc: tồn tự tính từ giao dịch nhập / xuất / kiểm kê.</div>
+    <div id="gbtn"></div>
+    <div id="loginMsg">Dùng đúng Gmail đã được phòng khám khai báo.</div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="bar">
+    <div><h1>💊 Bàn dược sỹ</h1><div class="sub" id="hdDate"></div></div>
+    <div class="sp"></div>
+    <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
+    <span class="userchip" id="userChip">…</span>
+    <button class="hbtn" onclick="logout()">Thoát</button>
+  </header>
+
+  <main>
+    <div class="kpis">
+      <div class="kpi"><div class="v num" id="kpiSku">0</div><div class="l">Mặt hàng</div></div>
+      <div class="kpi"><div class="v num" id="kpiUnits">0</div><div class="l">Tổng tồn (đơn vị)</div></div>
+      <div class="kpi"><div class="v num" id="kpiValue">0 đ</div><div class="l">Giá trị tồn kho</div></div>
+      <div class="kpi warn"><div class="v num" id="kpiLow">0</div><div class="l">Sắp hết / hết hàng</div></div>
+    </div>
+
+    <div class="ttabs">
+      <button class="ttab on" data-p="paneTon">📦 Tồn kho</button>
+      <button class="ttab" data-p="paneGd">↕️ Nhập / Xuất / Kiểm kê</button>
+      <button class="ttab" data-p="paneLs">🕘 Lịch sử</button>
+    </div>
+
+    <!-- ===== TỒN KHO ===== -->
+    <div class="tpane on" id="paneTon">
+      <div class="card">
+        <input id="tkSearch" placeholder="🔍 Tìm thuốc — tên hoặc mã…" style="width:100%;margin-bottom:10px;" oninput="renderTon()">
+        <div style="max-height:60vh;overflow:auto;">
+          <table class="tk">
+            <thead><tr><th>Mã</th><th>Tên thuốc</th><th>Đvt</th><th class="r">Tồn</th><th class="r">Đơn giá</th><th class="r">Giá trị</th><th></th></tr></thead>
+            <tbody id="tonBody"></tbody>
+          </table>
+        </div>
+        <div class="hint">Tồn = Tồn đầu + Nhập − Xuất ± Kiểm kê. Đỏ = tồn ≤ mức tối thiểu. Bấm ➕/➖ để nhập/xuất nhanh thuốc đó.</div>
+      </div>
+    </div>
+
+    <!-- ===== GIAO DỊCH ===== -->
+    <div class="tpane" id="paneGd">
+      <div class="card" style="max-width:640px;">
+        <div class="sect">Ghi giao dịch kho</div>
+        <div class="fgrid">
+          <div class="full"><label>Thuốc *</label><select id="gdThuoc" style="width:100%;" onchange="gdInfo()"></select></div>
+          <div><label>Loại *</label>
+            <select id="gdLoai" style="width:100%;" onchange="gdInfo()">
+              <option value="Nhập">➕ Nhập kho</option>
+              <option value="Xuất">➖ Xuất kho</option>
+              <option value="Kiểm kê">📋 Kiểm kê (đếm thực tế)</option>
+            </select>
+          </div>
+          <div><label id="gdSlLabel">Số lượng *</label><input type="number" id="gdSl" min="0" value="1"></div>
+          <div><label>Lô (tùy chọn)</label><input id="gdLo" placeholder="số lô"></div>
+          <div><label>Hạn dùng (tùy chọn)</label><input type="date" id="gdHsd"></div>
+          <div class="full"><label>Ghi chú</label><input id="gdGhiChu" placeholder="bắt buộc khi kiểm kê"></div>
+        </div>
+        <div class="hint" id="gdHint">—</div>
+        <div style="margin-top:12px;"><button class="btn btn-brand" id="gdSave" onclick="saveGd()">✓ Ghi giao dịch</button></div>
+      </div>
+    </div>
+
+    <!-- ===== LỊCH SỬ ===== -->
+    <div class="tpane" id="paneLs">
+      <div class="card">
+        <div class="sect">60 giao dịch gần nhất</div>
+        <div id="lsBox"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="loading"><div>⏳ Đang tải…</div></div>
+<div id="toast"></div>
+
+<script>
+/* ================== CẤU HÌNH ================== */
+const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
+const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
+const POLL_MS   = 3000;
+const TABLES    = ['THUOC','KHO_GD'];
+const ALLOWED   = ['Quản lý','Dược sỹ'];
+
+/* ================== TRẠNG THÁI ================== */
+let token=null, me=null, DB={}, ver=-1, pollTimer=null;
+const $ = id => document.getElementById(id);
+const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+function toast(m){const t=$('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3600);}
+const strip = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+
+/* ================== API + PHIÊN ================== */
+const SESS_KEY='pk_sess', SNAP_KEY='pk_db_ds';
+function saveSnap(){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({DB:DB, ver:ver, t:Date.now()})); }catch(e){} }
+function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
+async function api(action, extra){
+  const body = Object.assign({action, token}, extra||{});
+  const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
+  const j = await r.json();
+  if (j && j.error === 'AUTH_REQUIRED'){ sessionExpired(); throw new Error('AUTH_REQUIRED'); }
+  return j;
+}
+function rowsToObj(t){
+  const d = DB[t]; if(!d) return [];
+  return d.rows.map(r => { const o={}; d.header.forEach((h,i)=>o[String(h).trim()]=r[i]); return o; });
+}
+async function loadAll(silent){
+  if(!silent) $('loading').classList.add('on');
+  try{
+    const j = await api('readAll', {tables: TABLES});
+    if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); saveSnap(); }
+    else { toast('⚠️ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
+  }catch(e){ setSync(false); }
+  $('loading').classList.remove('on');
+}
+function startPoll(){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    if (document.hidden) return;
+    try{
+      const j = await api('version');
+      if (j.ok){ setSync(true); if (j.v !== ver){ ver = j.v; loadAll(true); } }
+      else setSync(false);
+    }catch(e){ if(String(e.message)!=='AUTH_REQUIRED') setSync(false); }
+  }, POLL_MS);
+}
+function setSync(ok){ $('syncDot').className = 'syncdot' + (ok?'':' off'); $('syncTxt').textContent = ok?'đồng bộ':'mất kết nối'; }
+
+/* ================== ĐĂNG NHẬP ================== */
+function gisInit(){
+  google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential });
+  google.accounts.id.renderButton($('gbtn'), { theme:'filled_blue', size:'large', text:'signin_with', shape:'pill', width:280 });
+}
+window.addEventListener('load', () => {
+  const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
+  setTimeout(()=>clearInterval(t), 10000);
+  $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+  document.querySelectorAll('.ttab').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); $(b.dataset.p).classList.add('on');
+  }));
+  tryResume();
+});
+async function onCredential(resp){
+  token = resp.credential;
+  $('loginMsg').className=''; $('loginMsg').textContent='Đang kiểm tra quyền…';
+  try{
+    const w = await api('login');
+    if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền.' : ('Lỗi: '+w.error); token=null; return; }
+    if (!ALLOWED.includes(w.role)){ $('loginMsg').className='err'; $('loginMsg').textContent='Vai trò "'+w.role+'" không được vào Bàn dược sỹ (chỉ Dược sỹ & Quản lý).'; token=null; return; }
+    me = w;
+    if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
+    enterApp();
+    await loadAll(); startPoll();
+    toast('✓ Xin chào — vai trò: ' + me.role);
+  }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
+}
+function tryResume(){
+  const s = loadSess(); if (!s) return false;
+  if (!ALLOWED.includes(s.role)) return false;
+  token = s.sess; me = {email:s.email, role:s.role};
+  enterApp();
+  let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
+  const warm = !!(snap && snap.DB);
+  if (warm){ DB = snap.DB; ver = snap.ver; renderAll(); }
+  loadAll(warm); startPoll();
+  return true;
+}
+function enterApp(){
+  $('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+  $('loginView').style.display='none'; $('app').style.display='block';
+}
+function sessionExpired(){
+  try{ localStorage.removeItem(SESS_KEY); }catch(e){}
+  clearInterval(pollTimer); token=null;
+  $('app').style.display='none'; $('loginView').style.display='grid';
+  $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';
+}
+function logout(){ try{ navigator.sendBeacon(API_URL, JSON.stringify({action:'logout', token:token})); }catch(e){} try{ localStorage.removeItem(SESS_KEY); }catch(e){} clearInterval(pollTimer); token=null; me=null; location.reload(); }
+
+/* ================== TÍNH TỒN ================== */
+function stockMap(){
+  const m = {};
+  rowsToObj('KHO_GD').forEach(g => {
+    const ma = String(g.MA_THUOC||'').trim(); if(!ma) return;
+    const sl = Number(g.SO_LUONG)||0;
+    const loai = String(g.LOAI||'').trim();
+    if (!(ma in m)) m[ma] = 0;
+    if (loai === 'Xuất') m[ma] -= sl;
+    else m[ma] += sl;               // Tồn đầu, Nhập, Kiểm kê (delta có dấu)
+  });
+  return m;
+}
+function drugList(){ return rowsToObj('THUOC').filter(t => String(t.CON_AP_DUNG||'').trim() !== 'Không'); }
+function nextId(prefix, pad, table, col){
+  let mx = 0;
+  rowsToObj(table).forEach(r => {
+    const v = String(r[col]||'');
+    if (v.startsWith(prefix)){ const n = parseInt(v.slice(prefix.length),10); if(!isNaN(n) && n>mx) mx=n; }
+  });
+  return prefix + String(mx+1).padStart(pad,'0');
+}
+
+/* ================== RENDER ================== */
+function renderAll(){ renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); }
+function renderKpis(){
+  const st = stockMap(), ds = drugList();
+  let units=0, val=0, low=0;
+  ds.forEach(t => {
+    const ton = st[t.MA_THUOC]||0;
+    units += ton; val += ton * (Number(t.GIA_BAN)||Number(t.DON_GIA)||0);
+    if (ton <= (Number(t.TON_TOI_THIEU)||0)) low++;
+  });
+  $('kpiSku').textContent = ds.length;
+  $('kpiUnits').textContent = units.toLocaleString('vi-VN');
+  $('kpiValue').textContent = fmtD(val);
+  $('kpiLow').textContent = low;
+}
+function renderTon(){
+  const q = strip($('tkSearch').value);
+  const st = stockMap();
+  const rows = drugList()
+    .filter(t => !q || strip(t.TEN_THUOC).includes(q) || strip(t.MA_THUOC).includes(q))
+    .map(t => {
+      const ton = st[t.MA_THUOC]||0;
+      const min = Number(t.TON_TOI_THIEU)||0;
+      const gia = Number(t.GIA_BAN)||Number(t.DON_GIA)||0;
+      const badge = ton<=0 ? '<span class="badge zero">hết</span>' : (ton<=min ? '<span class="badge low">'+ton+'</span>' : '<span class="badge ok">'+ton+'</span>');
+      return `<tr>
+        <td class="num" style="color:var(--ink3);">${t.MA_THUOC}</td>
+        <td><b>${t.TEN_THUOC}</b></td>
+        <td>${t.DVT||''}</td>
+        <td class="r">${badge}</td>
+        <td class="r num">${gia?fmtD(gia):'—'}</td>
+        <td class="r num">${fmtD(ton*gia)}</td>
+        <td class="r"><button class="qbtn" title="Nhập" onclick="quickGd('${t.MA_THUOC}','Nhập')">➕</button> <button class="qbtn" title="Xuất" onclick="quickGd('${t.MA_THUOC}','Xuất')">➖</button></td>
+      </tr>`;
+    });
+  $('tonBody').innerHTML = rows.join('') || '<tr><td colspan="7" class="empty">Không tìm thấy thuốc.</td></tr>';
+}
+function fillGdSelect(){
+  const st = stockMap();
+  const cur = $('gdThuoc').value;
+  $('gdThuoc').innerHTML = '<option value="">— chọn thuốc —</option>' + drugList().map(t =>
+    `<option value="${t.MA_THUOC}">${t.MA_THUOC} · ${t.TEN_THUOC} (tồn ${st[t.MA_THUOC]||0} ${t.DVT||''})</option>`).join('');
+  if (cur) $('gdThuoc').value = cur;
+}
+function quickGd(ma, loai){
+  document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
+  document.querySelector('.ttab[data-p="paneGd"]').classList.add('on');
+  $('paneGd').classList.add('on');
+  $('gdThuoc').value = ma; $('gdLoai').value = loai; gdInfo();
+  $('gdSl').focus();
+}
+function gdInfo(){
+  const ma = $('gdThuoc').value, loai = $('gdLoai').value;
+  const t = drugList().find(x=>x.MA_THUOC===ma);
+  const ton = (stockMap()[ma])||0;
+  $('gdSlLabel').textContent = loai==='Kiểm kê' ? 'Số lượng THỰC ĐẾM *' : 'Số lượng *';
+  if (!t){ $('gdHint').textContent = 'Chọn thuốc để xem tồn hiện tại.'; return; }
+  if (loai==='Kiểm kê') $('gdHint').innerHTML = 'Tồn trên hệ thống: <b>'+ton+' '+(t.DVT||'')+'</b> — nhập số thực đếm, hệ thống tự ghi chênh lệch. <b>Bắt buộc ghi lý do.</b>';
+  else if (loai==='Xuất') $('gdHint').innerHTML = 'Tồn hiện tại: <b>'+ton+' '+(t.DVT||'')+'</b> — không xuất quá số tồn.';
+  else $('gdHint').innerHTML = 'Tồn hiện tại: <b>'+ton+' '+(t.DVT||'')+'</b>.';
+}
+async function saveGd(){
+  const ma = $('gdThuoc').value;
+  const t = drugList().find(x=>x.MA_THUOC===ma);
+  if (!t){ toast('⚠️ Chọn thuốc trước'); return; }
+  const loai = $('gdLoai').value;
+  const sl = Number($('gdSl').value);
+  const note = $('gdGhiChu').value.trim();
+  const ton = (stockMap()[ma])||0;
+  if (isNaN(sl) || sl < 0){ toast('⚠️ Số lượng không hợp lệ'); return; }
+  let qty = sl, loaiGhi = loai, noteGhi = note;
+  if (loai === 'Xuất'){
+    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
+    if (sl > ton){ toast('⚠️ Chỉ còn <b>'+ton+'</b> '+(t.DVT||'')+' trong kho — không xuất được '+sl); return; }
+  } else if (loai === 'Nhập'){
+    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
+  } else { // Kiểm kê
+    if (!note){ toast('⚠️ Kiểm kê bắt buộc ghi lý do (vd: vỡ, hết hạn, đếm lại)'); return; }
+    qty = sl - ton;
+    if (qty === 0){ toast('✓ Số đếm khớp hệ thống — không cần điều chỉnh'); return; }
+    noteGhi = 'Thực đếm '+sl+', hệ thống '+ton+' → chênh '+(qty>0?'+':'')+qty+'. '+note;
+  }
+  const btn = $('gdSave'); if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Đang ghi…';
+  try{
+    const row = { MA_GD: nextId('K',5,'KHO_GD','MA_GD'), NGAY: todayStr(), MA_THUOC: ma, LOAI: loaiGhi,
+      SO_LUONG: qty, LO: $('gdLo').value.trim(), HSD: $('gdHsd').value||'',
+      GHI_CHU: (noteGhi + ' — bởi ' + (me?me.email.split('@')[0]:'')).trim() };
+    const j = await api('append', {table:'KHO_GD', row});
+    if (j.ok){
+      ver = j.v;
+      toast('✓ Đã ghi <b>'+loaiGhi+'</b> '+Math.abs(qty)+' '+(t.DVT||'')+' — <b>'+t.TEN_THUOC+'</b>');
+      $('gdSl').value = loai==='Kiểm kê' ? '' : 1; $('gdGhiChu').value=''; $('gdLo').value=''; $('gdHsd').value='';
+      loadAll(true);
+    } else toast('⚠️ ' + (j.error||'lỗi'));
+  } finally { btn.disabled=false; btn.textContent='✓ Ghi giao dịch'; }
+}
+function renderLs(){
+  const names = {}; drugList().forEach(t => names[t.MA_THUOC] = t.TEN_THUOC);
+  const gs = rowsToObj('KHO_GD').slice(-60).reverse();
+  $('lsBox').innerHTML = gs.length ? gs.map(g => {
+    const loai = String(g.LOAI||'').trim();
+    const cls = loai==='Nhập'?'in':(loai==='Xuất'?'out':(loai==='Kiểm kê'?'adj':'open'));
+    return `<div class="histrow">
+      <span class="num" style="color:var(--ink3);min-width:78px;">${String(g.NGAY).slice(0,10)}</span>
+      <span class="tag ${cls}">${loai}</span>
+      <span style="flex:1;"><b>${names[g.MA_THUOC]||g.MA_THUOC}</b>${g.LO?' · lô '+g.LO:''}${g.HSD?' · HSD '+String(g.HSD).slice(0,10):''}</span>
+      <span class="num" style="font-weight:800;">${loai==='Xuất'?'−':(Number(g.SO_LUONG)<0?'':'+')}${g.SO_LUONG}</span>
+    </div>`;
+  }).join('') : '<div class="empty">Chưa có giao dịch.</div>';
+}
+</script>
+</body>
+</html>
