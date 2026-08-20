@@ -6,218 +6,266 @@
 <title>Quầy thu ngân — PK Diệu Sinh</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-  :root{
-    --brand:#0a5240; --brand2:#0f6e56; --brand3:#12836a;
-    --brand-soft:#e3f2ed; --brand-bg:#f0f8f5;
-    --ink:#20241f; --ink2:#5c635a; --ink3:#8a9187;
-    --surface:#fcfcfb; --hair:#e1e0d9;
-    --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
-    --good-soft:#e8f7e8; --warn-soft:#fdf3dc; --crit-soft:#fbe9e9;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--brand-bg);color:var(--ink);font-size:14px;}
-  .num{font-variant-numeric:tabular-nums;}
-  button{font-family:inherit;}
-  input,select,textarea{font-family:inherit;font-size:13.5px;border:1.5px solid var(--hair);border-radius:9px;padding:8px 11px;background:#fff;}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand3);}
-  .btn{border:none;border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer;}
-  .btn-brand{background:var(--brand2);color:#fff;}
-  .btn-ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand3);}
-  .btn-soft{background:var(--brand-soft);color:var(--brand);}
-  .btn-warn{background:var(--warn-soft);color:#8a6205;}
-  .btn:disabled{opacity:.45;cursor:not-allowed;}
+:root{
+--brand:#0a5240; --brand2:#0f6e56; --brand3:#12836a;
+--brand-soft:#e3f2ed; --brand-bg:#f0f8f5;
+--ink:#20241f; --ink2:#5c635a; --ink3:#8a9187;
+--surface:#fcfcfb; --hair:#e1e0d9;
+--good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+--good-soft:#e8f7e8; --warn-soft:#fdf3dc; --crit-soft:#fbe9e9;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--brand-bg);color:var(--ink);font-size:14px;}
+.num{font-variant-numeric:tabular-nums;}
+button{font-family:inherit;}
+input,select,textarea{font-family:inherit;font-size:13.5px;border:1.5px solid var(--hair);border-radius:9px;padding:8px 11px;background:#fff;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand3);}
+.btn{border:none;border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-brand{background:var(--brand2);color:#fff;}
+.btn-ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand3);}
+.btn-soft{background:var(--brand-soft);color:var(--brand);}
+.btn-warn{background:var(--warn-soft);color:#8a6205;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
 
-  /* ===== login ===== */
-  #loginView{min-height:100vh;display:grid;place-items:center;padding:20px;}
-  .logincard{background:#fff;border:1px solid var(--hair);border-radius:18px;padding:40px 44px;text-align:center;max-width:420px;box-shadow:0 8px 30px rgba(10,82,64,.08);}
-  .logincard h1{color:var(--brand);font-size:22px;margin-bottom:6px;}
-  .logincard .sub{color:var(--ink2);font-size:13.5px;margin-bottom:24px;}
-  #gbtn{display:flex;justify-content:center;margin-bottom:14px;min-height:44px;}
-  #loginMsg{font-size:12.5px;color:var(--ink2);line-height:1.5;}
-  #loginMsg.err{color:var(--crit);font-weight:600;}
+/* ===== login ===== */
+#loginView{min-height:100vh;display:grid;place-items:center;padding:20px;}
+.logincard{background:#fff;border:1px solid var(--hair);border-radius:18px;padding:40px 44px;text-align:center;max-width:420px;box-shadow:0 8px 30px rgba(10,82,64,.08);}
+.logincard h1{color:var(--brand);font-size:22px;margin-bottom:6px;}
+.logincard .sub{color:var(--ink2);font-size:13.5px;margin-bottom:24px;}
+#gbtn{display:flex;justify-content:center;margin-bottom:14px;min-height:44px;}
+#loginMsg{font-size:12.5px;color:var(--ink2);line-height:1.5;}
+#loginMsg.err{color:var(--crit);font-weight:600;}
 
-  /* ===== app frame ===== */
-  #app{display:none;}
-  header.bar{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;}
-  header.bar h1{font-size:17px;font-weight:700;}
-  header.bar .sub{font-size:12px;opacity:.85;}
-  .spacer{flex:1;}
-  .syncdot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 6px var(--good);display:inline-block;margin-right:5px;}
-  .syncdot.off{background:var(--crit);box-shadow:0 0 6px var(--crit);}
-  .userchip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 12px;font-size:12.5px;}
-  .hbtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;}
+/* ===== app frame ===== */
+#app{display:none;}
+header.bar{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;}
+header.bar h1{font-size:17px;font-weight:700;}
+header.bar .sub{font-size:12px;opacity:.85;}
+.spacer{flex:1;}
+.syncdot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 6px var(--good);display:inline-block;margin-right:5px;}
+.syncdot.off{background:var(--crit);box-shadow:0 0 6px var(--crit);}
+.userchip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 12px;font-size:12.5px;}
+.hbtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;}
 
-  .toolbar{max-width:1520px;margin:0 auto;padding:12px 14px 0;display:flex;gap:10px;align-items:center;position:relative;}
-  #gsInput{flex:1;padding:11px 15px;font-size:14.5px;border-radius:12px;}
-  #gsResults{position:absolute;top:100%;left:14px;right:14px;background:#fff;border:1px solid var(--hair);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:60;max-height:340px;overflow:auto;display:none;}
-  .gsRow{padding:10px 14px;border-bottom:1px solid #eeeee9;cursor:pointer;display:flex;gap:10px;align-items:center;}
-  .gsRow:hover{background:var(--brand-bg);}
-  .gsRow .nm{font-weight:700;}
-  .gsRow .meta{font-size:12px;color:var(--ink2);}
+.toolbar{max-width:1520px;margin:0 auto;padding:12px 14px 0;display:flex;gap:10px;align-items:center;position:relative;}
+#gsInput{flex:1;padding:11px 15px;font-size:14.5px;border-radius:12px;}
+#gsResults{position:absolute;top:100%;left:14px;right:14px;background:#fff;border:1px solid var(--hair);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:60;max-height:340px;overflow:auto;display:none;}
+.gsRow{padding:10px 14px;border-bottom:1px solid #eeeee9;cursor:pointer;display:flex;gap:10px;align-items:center;}
+.gsRow:hover{background:var(--brand-bg);}
+.gsRow .nm{font-weight:700;}
+.gsRow .meta{font-size:12px;color:var(--ink2);}
 
-  .wrap{max-width:1520px;margin:0 auto;padding:12px 14px;display:grid;grid-template-columns:1.35fr 1fr;gap:14px;align-items:start;}
-  .card{background:var(--surface);border:1px solid var(--hair);border-radius:14px;overflow:hidden;}
-  .card .hd{padding:11px 14px;border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:8px;background:#fff;}
-  .card .hd h2{font-size:13.5px;font-weight:700;color:var(--brand);}
-  .card .bd{padding:12px 14px;}
-  .sect-label{font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--ink3);text-transform:uppercase;margin:12px 0 7px;}
-  .sect-label:first-child{margin-top:0;}
+.wrap{max-width:1520px;margin:0 auto;padding:12px 14px;display:grid;grid-template-columns:1.35fr 1fr;gap:14px;align-items:start;}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:14px;overflow:hidden;}
+.card .hd{padding:11px 14px;border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:8px;background:#fff;}
+.card .hd h2{font-size:13.5px;font-weight:700;color:var(--brand);}
+.card .bd{padding:12px 14px;}
+.sect-label{font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--ink3);text-transform:uppercase;margin:12px 0 7px;}
+.sect-label:first-child{margin-top:0;}
 
-  .qrow{border:1px solid var(--hair);border-radius:11px;padding:9px 12px;background:#fff;display:flex;align-items:center;gap:10px;margin-bottom:7px;}
-  .qrow .stt{background:var(--brand);color:#fff;border-radius:8px;min-width:34px;text-align:center;font-weight:800;padding:5px 0;font-size:14px;}
-  .qrow.wait{border-left:4px solid var(--warn);}
-  .qrow.exam{border-left:4px solid var(--brand3);}
-  .qrow.done{border-left:4px solid #7c4dbe;}
-  .qrow.paid{border-left:4px solid var(--good);opacity:.8;}
-  .qrow .nm{font-weight:700;font-size:14px;}
-  .qrow .meta{font-size:11.5px;color:var(--ink2);}
-  .qbtn{border:none;background:var(--brand-soft);color:var(--brand);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
-  .qbtn.call{background:var(--warn-soft);color:#8a6205;}
-  .qbtn.pay{background:#efe6fb;color:#5b2fa0;}
-  .empty{color:var(--ink3);font-size:12.5px;padding:4px 2px;}
+.qrow{border:1px solid var(--hair);border-radius:11px;padding:9px 12px;background:#fff;display:flex;align-items:center;gap:10px;margin-bottom:7px;flex-wrap:wrap;}
+.qrow .stt{background:var(--brand);color:#fff;border-radius:8px;min-width:34px;text-align:center;font-weight:800;padding:5px 0;font-size:14px;}
+.qrow.wait{border-left:4px solid var(--warn);}
+.qrow.exam{border-left:4px solid var(--brand3);}
+.qrow.done{border-left:4px solid #7c4dbe;}
+.qrow.paid{border-left:4px solid var(--good);opacity:.8;}
+.qrow.prio{background:#fffdf3;border-color:#eed77e;}
+.qrow .nm{font-weight:700;font-size:14px;cursor:pointer;}
+.qrow .nm:hover{color:var(--brand);text-decoration:underline;}
+.qrow .meta{font-size:11.5px;color:var(--ink2);}
+.qbtn{border:none;background:var(--brand-soft);color:var(--brand);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.qbtn.call{background:var(--warn-soft);color:#8a6205;}
+.qbtn.pay{background:#efe6fb;color:#5b2fa0;}
+.qbtn.crit{background:var(--crit-soft);color:var(--crit);}
+.tag{display:inline-block;border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:700;}
+.tag.hen{background:#e7f0fd;color:#2456a8;}
+.tag.vl{background:#f1f1ec;color:var(--ink2);}
+.tag.uu{background:var(--warn-soft);color:#8a6205;}
+.empty{color:var(--ink3);font-size:12.5px;padding:4px 2px;}
 
-  /* pay panel */
-  .payline{display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px dashed #eeeee9;font-size:13.5px;}
-  .payline .dv{color:var(--ink);}
-  .totline{display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:var(--brand);padding:10px 2px 4px;}
-  .fieldrow{display:flex;gap:10px;margin-top:10px;align-items:flex-end;flex-wrap:wrap;}
-  .fieldrow label{font-size:10.5px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;}
-  .shortnote{background:var(--warn-soft);border-radius:9px;padding:8px 11px;font-size:12.5px;color:#8a6205;margin-top:9px;display:none;}
-  .qrbox{background:#fff;border:2px dashed var(--brand3);border-radius:12px;padding:12px;margin-top:10px;font-size:12.5px;color:var(--ink2);display:none;text-align:center;}
-  .paybtnrow{display:flex;gap:10px;margin-top:14px;}
-  .paybtnrow .btn{flex:1;padding:12px;}
+/* hẹn hôm nay */
+.henrow{border:1px solid var(--hair);border-radius:11px;padding:8px 12px;background:#fff;display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.henrow.arrived{opacity:.65;}
+.henrow .gio{background:#e7f0fd;color:#2456a8;border-radius:8px;padding:4px 9px;font-weight:800;font-size:12.5px;white-space:nowrap;}
+.henrow .nm{font-weight:700;cursor:pointer;}
+.henrow .nm:hover{color:var(--brand);text-decoration:underline;}
+.henrow .meta{font-size:11.5px;color:var(--ink2);}
 
-  /* modal */
-  .ovl{position:fixed;inset:0;background:rgba(20,30,25,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
-  .ovl.on{display:flex;}
-  .modal{background:#fff;border-radius:16px;width:min(640px,100%);max-height:88vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);}
-  .modal .mh{padding:13px 18px;border-bottom:1px solid var(--hair);display:flex;align-items:center;position:sticky;top:0;background:#fff;z-index:2;}
-  .modal .mh h3{font-size:15px;color:var(--brand);}
-  .modal .mb{padding:15px 18px;}
-  .modal .mf{padding:12px 18px;border-top:1px solid var(--hair);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
-  .mclose{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);margin-left:auto;}
-  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
-  .fgrid .full{grid-column:1/-1;}
-  .fgrid label{font-size:10.5px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;}
-  .fgrid input,.fgrid select{width:100%;}
-  .histrow{border-bottom:1px solid #eeeee9;padding:8px 2px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px;}
-  .stat{border:1px solid var(--hair);border-radius:10px;padding:11px;text-align:center;background:#fff;}
-  .stat .v{font-size:19px;font-weight:800;color:var(--brand);}
-  .stat .l{font-size:11px;color:var(--ink3);margin-top:2px;}
-  .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+/* pay panel */
+.payline{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px dashed #eeeee9;font-size:13.5px;}
+.payline .dv{color:var(--ink);flex:1;}
+.payline.pend{opacity:.6;}
+.payline.pend .dv{color:#8a6205;}
+.totline{display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:var(--brand);padding:10px 2px 4px;}
+.fieldrow{display:flex;gap:10px;margin-top:10px;align-items:flex-end;flex-wrap:wrap;}
+.fieldrow label{font-size:10.5px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;}
+.shortnote{background:var(--warn-soft);border-radius:9px;padding:8px 11px;font-size:12.5px;color:#8a6205;margin-top:9px;display:none;}
+.qrbox{background:#fff;border:2px dashed var(--brand3);border-radius:12px;padding:12px;margin-top:10px;font-size:12.5px;color:var(--ink2);display:none;text-align:center;}
+.paybtnrow{display:flex;gap:10px;margin-top:14px;}
+.paybtnrow .btn{flex:1;padding:12px;}
 
-  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(90px);background:var(--brand);color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(10,82,64,.35);transition:transform .25s;z-index:200;max-width:92vw;text-align:center;}
-  #toast.on{transform:translateX(-50%) translateY(0);}
-  #loading{position:fixed;inset:0;background:rgba(252,252,251,.75);display:none;place-items:center;z-index:150;font-weight:700;color:var(--brand);}
-  #loading.on{display:grid;}
-  @media (max-width:1000px){.wrap{grid-template-columns:1fr;}}
+/* modal */
+.ovl{position:fixed;inset:0;background:rgba(20,30,25,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ovl.on{display:flex;}
+.modal{background:#fff;border-radius:16px;width:min(640px,100%);max-height:88vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+.modal .mh{padding:13px 18px;border-bottom:1px solid var(--hair);display:flex;align-items:center;position:sticky;top:0;background:#fff;z-index:2;}
+.modal .mh h3{font-size:15px;color:var(--brand);}
+.modal .mb{padding:15px 18px;}
+.modal .mf{padding:12px 18px;border-top:1px solid var(--hair);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
+.mclose{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3);margin-left:auto;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fgrid .full{grid-column:1/-1;}
+.fgrid label{font-size:10.5px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;}
+.fgrid input,.fgrid select{width:100%;}
+.histrow{border-bottom:1px solid #eeeee9;padding:8px 2px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px;}
+.stat{border:1px solid var(--hair);border-radius:10px;padding:11px;text-align:center;background:#fff;}
+.stat .v{font-size:19px;font-weight:800;color:var(--brand);}
+.stat .l{font-size:11px;color:var(--ink3);margin-top:2px;}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
 
-  /* ===== chuyển động mượt ===== */
-  @media (prefers-reduced-motion: no-preference){
-    .btn,.qbtn,button{transition:background .15s ease,color .15s ease,border-color .15s ease,box-shadow .18s ease,transform .1s ease;}
-    .btn:active,.qbtn:active,button:active{transform:scale(.96);}
-    .card{transition:box-shadow .2s ease;}
-    .qrow{animation:rowIn .18s ease both;}
-    #toast{transition:transform .28s cubic-bezier(.2,.8,.3,1),opacity .28s ease;opacity:0;}
-    #toast.on{opacity:1;}
-  }
-  @keyframes rowIn{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion: no-preference){
-    .ovl.on{animation:ovlIn .16s ease;}
-    .ovl.on .modal{animation:popIn .2s cubic-bezier(.2,.8,.3,1);}
-    .ovl.closing{animation:ovlOut .14s ease forwards;}
-    .ovl.closing .modal{animation:popOut .14s ease forwards;}
-  }
-  @keyframes ovlIn{from{opacity:0}to{opacity:1}}
-  @keyframes ovlOut{to{opacity:0}}
-  @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
-  @keyframes popOut{to{opacity:0;transform:translateY(8px) scale(.98)}}
+/* tiếp nhận: chọn DV */
+.rcGroup{margin-bottom:10px;}
+.rcGroup .gname{font-size:11px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.rcChips{display:flex;gap:7px;flex-wrap:wrap;}
+.rcChip{display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--hair);border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;user-select:none;}
+.rcChip input{width:15px;height:15px;padding:0;margin:0;accent-color:var(--brand2);}
+.rcChip:has(input:checked){border-color:var(--brand2);background:var(--brand-soft);color:var(--brand);}
+.rcHen{background:#e7f0fd;border:1px solid #b8d2f5;border-radius:11px;padding:9px 12px;font-size:12.5px;color:#2456a8;margin-bottom:11px;}
+
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(90px);background:var(--brand);color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(10,82,64,.35);transition:transform .25s;z-index:200;max-width:92vw;text-align:center;}
+#toast.on{transform:translateX(-50%) translateY(0);}
+#loading{position:fixed;inset:0;background:rgba(252,252,251,.75);display:none;place-items:center;z-index:150;font-weight:700;color:var(--brand);}
+#loading.on{display:grid;}
+@media (max-width:1000px){.wrap{grid-template-columns:1fr;}}
+
+/* ===== chuyển động mượt ===== */
+@media (prefers-reduced-motion: no-preference){
+.btn,.qbtn,button{transition:background .15s ease,color .15s ease,border-color .15s ease,box-shadow .18s ease,transform .1s ease;}
+.btn:active,.qbtn:active,button:active{transform:scale(.96);}
+.card{transition:box-shadow .2s ease;}
+.qrow{animation:rowIn .18s ease both;}
+#toast{transition:transform .28s cubic-bezier(.2,.8,.3,1),opacity .28s ease;opacity:0;}
+#toast.on{opacity:1;}
+}
+@keyframes rowIn{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: no-preference){
+.ovl.on{animation:ovlIn .16s ease;}
+.ovl.on .modal{animation:popIn .2s cubic-bezier(.2,.8,.3,1);}
+.ovl.closing{animation:ovlOut .14s ease forwards;}
+.ovl.closing .modal{animation:popOut .14s ease forwards;}
+}
+@keyframes ovlIn{from{opacity:0}to{opacity:1}}
+@keyframes ovlOut{to{opacity:0}}
+@keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes popOut{to{opacity:0;transform:translateY(8px) scale(.98)}}
 </style>
 </head>
 <body>
 
 <!-- ============ LOGIN ============ -->
 <div id="loginView">
-  <div class="logincard">
-    <h1>🏥 Phòng khám Diệu Sinh</h1>
-    <div class="sub">Quầy thu ngân — đăng nhập bằng tài khoản Google của phòng khám cấp</div>
-    <div id="gbtn"></div>
-    <div id="loginMsg">Đang tải đăng nhập Google…</div>
-  </div>
+<div class="logincard">
+<h1>🏥 Phòng khám Diệu Sinh</h1>
+<div class="sub">Quầy thu ngân — đăng nhập bằng tài khoản Google của phòng khám cấp</div>
+<div id="gbtn"></div>
+<div id="loginMsg">Đang tải đăng nhập Google…</div>
+</div>
 </div>
 
 <!-- ============ APP ============ -->
 <div id="app">
-  <header class="bar">
-    <div><h1>💵 Quầy thu ngân</h1><div class="sub" id="hdDate"></div></div>
-    <div class="spacer"></div>
-    <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
-    <span class="userchip" id="userChip">…</span>
-    <button class="hbtn" onclick="openShift()">🧾 Chốt ca</button>
-    <button class="hbtn" onclick="logout()">Thoát</button>
-  </header>
+<header class="bar">
+<div><h1>💵 Quầy thu ngân</h1><div class="sub" id="hdDate"></div></div>
+<div class="spacer"></div>
+<span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
+<span class="userchip" id="userChip">…</span>
+<button class="hbtn" onclick="openShift()">🧾 Chốt ca</button>
+<button class="hbtn" onclick="logout()">Thoát</button>
+</header>
 
-  <div class="toolbar">
-    <input id="gsInput" placeholder="🔍 Tìm bệnh nhân — tên, số điện thoại hoặc mã BN…" oninput="renderSearch()" autocomplete="off">
-    <button class="btn btn-brand" onclick="openNewBN()">➕ BN mới</button>
-    <div id="gsResults"></div>
-  </div>
-
-  <div class="wrap">
-    <!-- ==== QUEUE ==== -->
-    <div class="card">
-      <div class="hd"><h2>📋 Hàng chờ hôm nay</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="qCount"></span></div>
-      <div class="bd" id="queueBox"></div>
-    </div>
-
-    <!-- ==== PAY ==== -->
-    <div class="card">
-      <div class="hd"><h2>💳 Thu tiền</h2></div>
-      <div class="bd" id="payBox"><div class="empty">Chọn bệnh nhân có trạng thái <b>Xong khám</b> trong hàng chờ để thu tiền.</div></div>
-    </div>
-  </div>
+<div class="toolbar">
+<input id="gsInput" placeholder="🔍 Tìm bệnh nhân — tên, số điện thoại hoặc mã BN…" oninput="renderSearch()" autocomplete="off">
+<button class="btn btn-brand" onclick="openNewBN()">➕ BN mới</button>
+<div id="gsResults"></div>
 </div>
 
-<!-- ===== modal: hồ sơ BN ===== -->
-<div class="ovl" id="profOvl"><div class="modal">
-  <div class="mh"><h3 id="profTitle">Hồ sơ</h3><button class="mclose" onclick="hide('profOvl')">✕</button></div>
-  <div class="mb" id="profBody"></div>
-  <div class="mf"><button class="btn btn-ghost" id="profSvcBtn">➕ Thêm dịch vụ</button><button class="btn btn-soft" id="profQueueBtn">➕ Thêm vào hàng chờ hôm nay</button></div>
-</div></div>
+<div class="wrap">
+<div style="display:flex;flex-direction:column;gap:14px;">
+<!-- ==== HẸN HÔM NAY ==== -->
+<div class="card">
+<div class="hd"><h2>🗓 Hẹn hôm nay</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="henCount"></span></div>
+<div class="bd" id="henBox"></div>
+</div>
+<!-- ==== QUEUE ==== -->
+<div class="card">
+<div class="hd"><h2>📋 Hàng chờ hôm nay</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="qCount"></span></div>
+<div class="bd" id="queueBox"></div>
+</div>
+</div>
+
+<!-- ==== PAY ==== -->
+<div class="card">
+<div class="hd"><h2>💳 Thanh toán</h2></div>
+<div class="bd" id="payBox"><div class="empty">Chọn bệnh nhân ở nhóm <b>Hoàn tất khám</b> trong hàng chờ để thanh toán.</div></div>
+</div>
+</div>
+</div>
 
 <!-- ===== modal: BN mới ===== -->
 <div class="ovl" id="newOvl"><div class="modal" style="width:min(540px,100%);">
-  <div class="mh"><h3>➕ Bệnh nhân mới</h3><button class="mclose" onclick="hide('newOvl')">✕</button></div>
-  <div class="mb"><div class="fgrid">
-    <div class="full"><label>Họ tên *</label><input id="nbTen"></div>
-    <div><label>Số điện thoại</label><input id="nbSdt"></div>
-    <div><label>Năm sinh / ngày sinh</label><input id="nbNs" placeholder="VD: 1992 hoặc 15/03/1992"></div>
-    <div class="full"><label>Địa chỉ</label><input id="nbDc"></div>
-    <div class="full"><label>Ghi chú</label><input id="nbGc"></div>
-    <div class="full" style="font-size:12px;color:var(--ink2);">☑ Sau khi lưu sẽ tự thêm vào hàng chờ hôm nay.</div>
-  </div></div>
-  <div class="mf"><button class="btn btn-brand" onclick="saveNewBN()">✓ Lưu & thêm vào hàng chờ</button></div>
+<div class="mh"><h3>➕ Bệnh nhân mới</h3><button class="mclose" onclick="hide('newOvl')">✕</button></div>
+<div class="mb"><div class="fgrid">
+<div class="full"><label>Họ tên *</label><input id="nbTen"></div>
+<div><label>Số điện thoại</label><input id="nbSdt"></div>
+<div><label>Năm sinh / ngày sinh</label><input id="nbNs" placeholder="VD: 1992 hoặc 15/03/1992"></div>
+<div class="full"><label>Địa chỉ</label><input id="nbDc"></div>
+<div class="full"><label>Ghi chú</label><input id="nbGc"></div>
+<div class="full" style="font-size:12px;color:var(--ink2);">Sau khi lưu, hồ sơ sẽ mở sang bước Tiếp nhận (chọn dịch vụ &amp; bác sĩ).</div>
+</div></div>
+<div class="mf"><button class="btn btn-brand" onclick="saveNewBN()">✓ Lưu &amp; tiếp nhận</button></div>
+</div></div>
+
+<!-- ===== modal: tiếp nhận ===== -->
+<div class="ovl" id="rcOvl"><div class="modal" style="width:min(700px,100%);">
+<div class="mh"><h3 id="rcTitle">🏥 Tiếp nhận</h3><button class="mclose" onclick="hide('rcOvl')">✕</button></div>
+<div class="mb" id="rcBody" style="max-height:64vh;overflow-y:auto;"></div>
+<div class="mf">
+<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#8a6205;font-weight:700;margin-right:auto;cursor:pointer;"><input type="checkbox" id="rcUuTien" style="width:15px;height:15px;accent-color:var(--warn);">⬆ Ưu tiên khám trước</label>
+<button class="btn btn-brand" id="rcSaveBtn" onclick="rcSave()">✓ Tiếp nhận vào hàng chờ</button>
+</div>
+</div></div>
+
+<!-- ===== modal: hủy đơn ===== -->
+<div class="ovl" id="ccOvl"><div class="modal" style="width:min(460px,100%);">
+<div class="mh"><h3>✕ Hủy tiếp nhận</h3><button class="mclose" onclick="hide('ccOvl')">✕</button></div>
+<div class="mb">
+<div id="ccInfo" style="font-size:13px;margin-bottom:11px;"></div>
+<label style="font-size:10.5px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;">Lý do hủy *</label>
+<select id="ccWhy" style="width:100%;"><option value="">— chọn lý do —</option><option>Bệnh nhân bỏ về / không chờ được</option><option>Hết giờ khám</option><option>Tiếp nhận nhầm / trùng</option><option>Chuyển viện</option><option>Khác (ghi rõ bên dưới)</option></select>
+<input id="ccNote" placeholder="Ghi chú thêm (tùy chọn)" style="width:100%;margin-top:9px;">
+</div>
+<div class="mf"><button class="btn" style="background:var(--crit);color:#fff;" onclick="doCancel()">✕ Xác nhận hủy</button></div>
 </div></div>
 
 <!-- ===== modal: thêm dịch vụ ===== -->
 <div class="ovl" id="svcOvl"><div class="modal" style="width:min(680px,100%);">
-  <div class="mh"><h3 id="svcTitle">➕ Thêm dịch vụ</h3><button class="mclose" onclick="hide('svcOvl')">✕</button></div>
-  <div class="mb" style="max-height:62vh;overflow-y:auto;">
-    <div id="svcRows"></div>
-    <button class="btn btn-ghost" style="margin-top:10px;" onclick="addSvcRow()">➕ Thêm dòng dịch vụ</button>
-    <div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Giá lấy từ bảng dịch vụ chuẩn — không sửa tay. Mỗi dòng ghi vào Sổ khám và cộng ngay vào hóa đơn của BN.</div>
-  </div>
-  <div class="mf" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-    <div style="font-weight:800;">Tổng: <span id="svcSum">0 đ</span></div>
-    <button class="btn btn-brand" id="svcSaveBtn" onclick="saveSvc()">✓ Thêm vào Sổ khám</button>
-  </div>
+<div class="mh"><h3 id="svcTitle">➕ Thêm dịch vụ</h3><button class="mclose" onclick="hide('svcOvl')">✕</button></div>
+<div class="mb" style="max-height:62vh;overflow-y:auto;">
+<div id="svcRows"></div>
+<button class="btn btn-ghost" style="margin-top:10px;" onclick="addSvcRow()">➕ Thêm dòng dịch vụ</button>
+<div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Giá lấy từ bảng dịch vụ chuẩn — không sửa tay. Dịch vụ thêm tại quầy được tính là đã thực hiện (thu ngân xác nhận trực tiếp với bệnh nhân).</div>
+</div>
+<div class="mf" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+<div style="font-weight:800;">Tổng: <span id="svcSum">0 đ</span></div>
+<button class="btn btn-brand" id="svcSaveBtn" onclick="saveSvc()">✓ Thêm vào Sổ khám</button>
+</div>
 </div></div>
 
 <!-- ===== modal: chốt ca ===== -->
 <div class="ovl" id="shiftOvl"><div class="modal" style="width:min(560px,100%);">
-  <div class="mh"><h3>🧾 Chốt ca — hôm nay</h3><button class="mclose" onclick="hide('shiftOvl')">✕</button></div>
-  <div class="mb" id="shiftBody"></div>
-  <div class="mf"><button class="btn btn-ghost" onclick="window.print()">🖨️ In</button></div>
+<div class="mh"><h3>🧾 Chốt ca — hôm nay</h3><button class="mclose" onclick="hide('shiftOvl')">✕</button></div>
+<div class="mb" id="shiftBody"></div>
+<div class="mf"><button class="btn btn-ghost" onclick="window.print()">🖨️ In</button></div>
 </div></div>
 
 <div id="toast"></div>
@@ -225,12 +273,14 @@
 
 <script>
 /* ================== CẤU HÌNH ================== */
-const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
-const BANK_INFO = '';                 // ← 'VCB · 0123456789 · PHONG KHAM DIEU SINH' (hiện trong ô chuyển khoản)
-const POLL_MS   = 3000;
-const TABLES    = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO'];
-const STATUS    = ['Chờ khám','Đang khám','Xong khám','Đã thu'];
+const BANK_INFO = ''; // ← 'VCB · 0123456789 · PHONG KHAM DIEU SINH' (hiện trong ô chuyển khoản)
+const CLINIC_NAME = 'PHÒNG KHÁM CHUYÊN KHOA DIỆU SINH';
+const CLINIC_ADDR = '28 Tăng Bạt Hổ, TP. Quy Nhơn, Gia Lai';
+const CLINIC_PHONE = ''; // ← số điện thoại phòng khám (hiện trên phiếu in)
+const POLL_MS = 3000;
+const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','LICH_HEN'];
 
 /* ================== TRẠNG THÁI ================== */
 let token=null, me=null, DB={}, ver=-1, pollTimer=null, selPay=null;
@@ -239,13 +289,23 @@ const $ = id => document.getElementById(id);
 const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
 const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const sameDay = v => String(v).slice(0,10) === todayStr();
+const nowTime = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); };
+function fmtT(v){ // hiện HH:mm từ 'HH:mm:ss' hoặc chuỗi ISO của Sheets
+if (v==null || v==='') return '';
+const s = String(v);
+const m = s.match(/^(\d{1,2}):(\d{2})/);
+if (m) return m[1].padStart(2,'0')+':'+m[2];
+const d = new Date(s);
+if (!isNaN(d)) return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+return '';
+}
 function toast(m){const t=$('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3600);}
 function show(id){const el=$(id);el.classList.remove('closing');el.classList.add('on');}
 function hide(id){const el=$(id);
-  if (el.classList.contains('ovl') && el.classList.contains('on')){
-    el.classList.add('closing');
-    setTimeout(()=>{ el.classList.remove('on','closing'); }, 140);
-  } else el.classList.remove('on');
+if (el.classList.contains('ovl') && el.classList.contains('on')){
+el.classList.add('closing');
+setTimeout(()=>{ el.classList.remove('on','closing'); }, 140);
+} else el.classList.remove('on');
 }
 function chime(){try{const c=new (window.AudioContext||window.webkitAudioContext)();[[880,0],[1174,.18]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;g.gain.setValueAtTime(.2,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.35);o.start(c.currentTime+d);o.stop(c.currentTime+d+.4);});}catch(e){}}
 
@@ -254,407 +314,641 @@ const SESS_KEY='pk_sess', SNAP_KEY='pk_db_tn';
 function saveSnap(){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify({DB:DB, ver:ver, t:Date.now()})); }catch(e){} }
 function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
 async function api(action, extra){
-  const body = Object.assign({action, token}, extra||{});
-  const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
-  const j = await r.json();
-  if (j && j.error === 'AUTH_REQUIRED'){ sessionExpired(); throw new Error('AUTH_REQUIRED'); }
-  return j;
+const body = Object.assign({action, token}, extra||{});
+const r = await fetch(API_URL, {method:'POST', body: JSON.stringify(body)});
+const j = await r.json();
+if (j && j.error === 'AUTH_REQUIRED'){ sessionExpired(); throw new Error('AUTH_REQUIRED'); }
+return j;
 }
 function rowsToObj(t){
-  const d = DB[t]; if(!d) return [];
-  return d.rows.map(r => { const o={}; d.header.forEach((h,i)=>o[String(h).trim()]=r[i]); return o; });
+const d = DB[t]; if(!d) return [];
+return d.rows.map(r => { const o={}; d.header.forEach((h,i)=>o[String(h).trim()]=r[i]); return o; });
 }
 async function loadAll(silent){
-  if(!silent) $('loading').classList.add('on');
-  try{
-    const j = await api('readAll', {tables: TABLES});
-    if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); saveSnap(); }
-    else { toast('⚠️ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
-  }catch(e){ setSync(false); }
-  $('loading').classList.remove('on');
+if(!silent) $('loading').classList.add('on');
+try{
+const j = await api('readAll', {tables: TABLES});
+if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); saveSnap(); }
+else { toast('⚠️ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
+}catch(e){ setSync(false); }
+$('loading').classList.remove('on');
 }
 function startPoll(){
-  clearInterval(pollTimer);
-  pollTimer = setInterval(async () => {
-    if (document.hidden) return;
-    try{
-      const j = await api('version');
-      if (j.ok){ setSync(true); if (j.v !== ver){ ver = j.v; loadAll(true); } }
-      else setSync(false);
-    }catch(e){ if(String(e.message)!=='AUTH_REQUIRED') setSync(false); }
-  }, POLL_MS);
+clearInterval(pollTimer);
+pollTimer = setInterval(async () => {
+if (document.hidden) return;
+try{
+const j = await api('version');
+if (j.ok){ setSync(true); if (j.v !== ver){ ver = j.v; loadAll(true); } }
+else setSync(false);
+}catch(e){ if(String(e.message)!=='AUTH_REQUIRED') setSync(false); }
+}, POLL_MS);
 }
 function setSync(ok){ $('syncDot').className = 'syncdot' + (ok?'':' off'); $('syncTxt').textContent = ok?'đồng bộ':'mất kết nối'; }
 
 /* ================== ĐĂNG NHẬP ================== */
 function gisInit(){
-  if (!CLIENT_ID){
-    $('loginMsg').className='err';
-    $('loginMsg').innerHTML='Chưa cấu hình CLIENT_ID đăng nhập Google.<br>Liên hệ quản trị (bước cài đặt cuối của P1).';
-    return;
-  }
-  google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential });
-  google.accounts.id.renderButton($('gbtn'), { theme:'filled_blue', size:'large', text:'signin_with', shape:'pill', width:280 });
-  $('loginMsg').textContent = 'Dùng đúng Gmail đã được phòng khám khai báo.';
+if (!CLIENT_ID){
+$('loginMsg').className='err';
+$('loginMsg').innerHTML='Chưa cấu hình CLIENT_ID đăng nhập Google.<br>Liên hệ quản trị (bước cài đặt cuối của P1).';
+return;
+}
+google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential });
+google.accounts.id.renderButton($('gbtn'), { theme:'filled_blue', size:'large', text:'signin_with', shape:'pill', width:280 });
+$('loginMsg').textContent = 'Dùng đúng Gmail đã được phòng khám khai báo.';
 }
 window.addEventListener('load', () => {
-  const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
-  setTimeout(()=>clearInterval(t), 10000);
-  $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
-  tryResume();
+const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
+setTimeout(()=>clearInterval(t), 10000);
+$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+tryResume();
 });
 function tryResume(){
-  const s = loadSess(); if (!s) return false;
-  token = s.sess; me = {email:s.email, role:s.role};
-  $('userChip').textContent = '\ud83d\udc64 ' + me.email.split('@')[0] + ' \u00b7 ' + me.role;
-  $('loginView').style.display='none'; $('app').style.display='block';
-  let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
-  const warm = !!(snap && snap.DB);
-  if (warm){ DB = snap.DB; ver = snap.ver; renderAll();  }
-  loadAll(warm); startPoll();
-  return true;
+const s = loadSess(); if (!s) return false;
+token = s.sess; me = {email:s.email, role:s.role};
+$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+$('loginView').style.display='none'; $('app').style.display='block';
+let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
+const warm = !!(snap && snap.DB);
+if (warm){ DB = snap.DB; ver = snap.ver; renderAll(); }
+loadAll(warm); startPoll();
+return true;
 }
 async function onCredential(resp){
-  token = resp.credential;
-  $('loginMsg').className=''; $('loginMsg').textContent='Đang kiểm tra quyền…';
-  try{
-    const w = await api('login');
-    if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền (chưa có trong danh sách nhân sự).' : ('Lỗi: '+w.error); token=null; return; }
-    me = w;
-    if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
-    $('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
-    $('loginView').style.display='none'; $('app').style.display='block';
-    await loadAll(); startPoll();
-    toast('✓ Xin chào — vai trò: ' + me.role);
-  }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
+token = resp.credential;
+$('loginMsg').className=''; $('loginMsg').textContent='Đang kiểm tra quyền…';
+try{
+const w = await api('login');
+if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền (chưa có trong danh sách nhân sự).' : ('Lỗi: '+w.error); token=null; return; }
+me = w;
+if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
+$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+$('loginView').style.display='none'; $('app').style.display='block';
+await loadAll(); startPoll();
+toast('✓ Xin chào — vai trò: ' + me.role);
+}catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
 }
 function sessionExpired(){
-  try{ localStorage.removeItem(SESS_KEY); }catch(e){}
-  clearInterval(pollTimer); token=null;
-  $('app').style.display='none'; $('loginView').style.display='grid';
-  $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';
+try{ localStorage.removeItem(SESS_KEY); }catch(e){}
+clearInterval(pollTimer); token=null;
+$('app').style.display='none'; $('loginView').style.display='grid';
+$('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';
 }
 function logout(){ try{ navigator.sendBeacon(API_URL, JSON.stringify({action:'logout', token:token})); }catch(e){} try{ localStorage.removeItem(SESS_KEY); }catch(e){} clearInterval(pollTimer); token=null; me=null; location.reload(); }
 
 /* ================== ID MỚI ================== */
 function nextId(prefix, pad, table, col){
-  let mx = 0;
-  rowsToObj(table).forEach(r => {
-    const v = String(r[col]||'');
-    if (v.startsWith(prefix)){ const n = parseInt(v.slice(prefix.length),10); if(!isNaN(n) && n>mx) mx=n; }
-  });
-  return prefix + String(mx+1).padStart(pad,'0');
+let mx = 0;
+rowsToObj(table).forEach(r => {
+const v = String(r[col]||'');
+if (v.startsWith(prefix)){ const n = parseInt(v.slice(prefix.length),10); if(!isNaN(n) && n>mx) mx=n; }
+});
+return prefix + String(mx+1).padStart(pad,'0');
+}
+
+/* ================== DÒNG SỔ KHÁM TÍNH TIỀN ==================
+Quy tắc vàng: chỉ tính dòng ĐÃ HOÀN THÀNH.
+- TRANG_THAI_DV = 'Hoàn thành' → tính.
+- TRANG_THAI_DV trống (dữ liệu cũ / thêm tại quầy đời trước) → tính.
+- 'Chỉ định' / 'Đang làm' → CHƯA tính (hiện mờ). 'Hủy' → bỏ. */
+function lineDone(l){ const s=String(l.TRANG_THAI_DV||'').trim(); return s==='' || s==='Hoàn thành'; }
+function lineCancelled(l){ return String(l.TRANG_THAI_DV||'').trim()==='Hủy'; }
+function orderLines(maCho, maBN){
+return rowsToObj('SO_KHAM').filter(l =>
+!lineCancelled(l) && (
+(maCho && String(l.MA_CHO||'')===maCho) ||
+(!String(l.MA_CHO||'') && l.MA_BN===maBN && sameDay(l.NGAY))
+));
 }
 
 /* ================== HÀNG CHỜ ================== */
 function queueToday(){ return rowsToObj('HANG_CHO').filter(r => sameDay(r.NGAY)); }
 function bnName(ma){ const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===ma); return b ? b.HO_TEN : ma; }
+function henOf(r){ return r.MA_HEN ? rowsToObj('LICH_HEN').find(h=>h.MA_HEN===r.MA_HEN) : null; }
+function sortQueue(rows){
+return rows.slice().sort((a,b)=>{
+const ua = String(a.UU_TIEN||'').trim()==='Có' ? 0:1, ub = String(b.UU_TIEN||'').trim()==='Có' ? 0:1;
+if (ua!==ub) return ua-ub;
+return (Number(a.STT)||0)-(Number(b.STT)||0);
+});
+}
+function qTags(r){
+const hen = henOf(r);
+let t = r.MA_HEN ? `<span class="tag hen">🗓 hẹn${hen&&hen.GIO_HEN?(' '+fmtT(hen.GIO_HEN)):''}</span>` : '<span class="tag vl">🚶 vãng lai</span>';
+if (String(r.UU_TIEN||'').trim()==='Có') t += ' <span class="tag uu">⬆ ưu tiên</span>';
+return t;
+}
+function dvNames(r){
+const ids = String(r.DV_YEU_CAU||'').split('|').filter(Boolean);
+if (!ids.length) return '';
+const dvs = rowsToObj('DICH_VU');
+return ids.map(id=>{ const d=dvs.find(x=>x.MA_DV===id); return d?d.TEN_DV:id; }).join(' + ');
+}
 function renderQueue(){
-  const q = queueToday().sort((a,b)=>(Number(a.STT)||0)-(Number(b.STT)||0));
-  const groups = [
-    {key:'Chờ khám', cls:'wait', icon:'⏳', label:'Chờ khám'},
-    {key:'Đang khám', cls:'exam', icon:'🩺', label:'Đang khám'},
-    {key:'Xong khám', cls:'done', icon:'💜', label:'Xong khám — chờ thu tiền'},
-    {key:'Đã thu', cls:'paid', icon:'✅', label:'Đã thu tiền'},
-  ];
-  let html='';
-  groups.forEach(g => {
-    const rows = q.filter(r => r.TRANG_THAI === g.key);
-    html += `<div class="sect-label">${g.icon} ${g.label} (${rows.length})</div>`;
-    if(!rows.length){ html += '<div class="empty">— trống —</div>'; return; }
-    rows.forEach(r => {
-      const svcBtn = g.key!=='Đã thu' ? `<button class="qbtn" title="Thêm dịch vụ" onclick="openSvc('${r.MA_BN}')">➕ DV</button>` : '';
-      const acts = (
-        g.key==='Chờ khám'  ? `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')">📢 Gọi</button><button class="qbtn" onclick="setStatus('${r.MA_CHO}','Đang khám')">▶ Vào khám</button>` :
-        g.key==='Đang khám' ? `<button class="qbtn" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Xong khám</button>` :
-        g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')">💳 Thu tiền</button>` : '') + svcBtn;
-      html += `<div class="qrow ${g.cls}">
-        <div class="stt num">${r.STT||'–'}</div>
-        <div style="flex:1;cursor:pointer;" onclick="openProfile('${r.MA_BN}')">
-          <div class="nm">${bnName(r.MA_BN)}</div>
-          <div class="meta num">${r.MA_BN}${r.BS_KHAM?' · '+r.BS_KHAM:''}${r.GHI_CHU?' · '+r.GHI_CHU:''}</div>
-        </div>${acts}</div>`;
-    });
-  });
-  $('queueBox').innerHTML = html;
-  $('qCount').textContent = q.length + ' lượt';
+const q = sortQueue(queueToday());
+const groups = [
+{key:'Chờ khám', cls:'wait', icon:'⏳', label:'Chờ khám'},
+{key:'Đang khám', cls:'exam', icon:'🩺', label:'Đang khám'},
+{key:'Xong khám', cls:'done', icon:'💜', label:'Hoàn tất khám — chờ thanh toán'},
+{key:'Đã thu', cls:'paid', icon:'✅', label:'Đã thanh toán'},
+];
+let html='';
+groups.forEach(g => {
+const rows = q.filter(r => r.TRANG_THAI === g.key);
+html += `<div class="sect-label">${g.icon} ${g.label} (${rows.length})</div>`;
+if(!rows.length){ html += '<div class="empty">— trống —</div>'; return; }
+rows.forEach(r => {
+const svcBtn = g.key!=='Đã thu' ? `<button class="qbtn" title="Thêm dịch vụ" onclick="openSvc('${r.MA_BN}')">➕ DV</button>` : '';
+const acts = (
+g.key==='Chờ khám' ? `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')">📢 Gọi</button><button class="qbtn" onclick="togglePriority('${r.MA_CHO}')">${String(r.UU_TIEN||'').trim()==='Có'?'↩ Bỏ ưu tiên':'⬆ Ưu tiên'}</button><button class="qbtn crit" onclick="openCancel('${r.MA_CHO}')">✕ Hủy</button>` :
+g.key==='Đang khám' ? `<button class="qbtn" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Hoàn tất khám</button>` :
+g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')">💳 Thanh toán</button>` : '') + svcBtn;
+const dvTxt = dvNames(r);
+html += `<div class="qrow ${g.cls}${String(r.UU_TIEN||'').trim()==='Có'&&g.key==='Chờ khám'?' prio':''}">
+<div class="stt num">${r.STT||'–'}</div>
+<div style="flex:1;min-width:160px;">
+<div class="nm" onclick="openProfile('${r.MA_BN}')">${bnName(r.MA_BN)} ${qTags(r)}</div>
+<div class="meta num">${r.MA_BN}${r.BS_KHAM?' · '+r.BS_KHAM:(r.BS_YEU_CAU?' · YC: '+r.BS_YEU_CAU:'')}${dvTxt?' · '+dvTxt:''}${r.GHI_CHU?' · '+r.GHI_CHU:''}${r.GIO_TIEP_NHAN?' · tiếp nhận '+fmtT(r.GIO_TIEP_NHAN):''}</div>
+</div>${acts}</div>`;
+});
+});
+$('queueBox').innerHTML = html;
+$('qCount').textContent = q.filter(r=>r.TRANG_THAI!=='Hủy').length + ' lượt';
 }
 async function setStatus(maCho, st){
-  const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:maCho, row:{TRANG_THAI:st}});
-  if (j.ok){ ver=j.v; toast('✓ Đã chuyển: ' + st); loadAll(true); }
-  else toast('⚠️ ' + (j.error||'lỗi'));
+const patch = {TRANG_THAI:st};
+if (st==='Đang khám') patch.GIO_GOI = nowTime();
+if (st==='Xong khám') patch.GIO_XONG = nowTime();
+const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:maCho, row:patch});
+if (j.ok){ ver=j.v; toast('✓ Đã chuyển: ' + (st==='Xong khám'?'Hoàn tất khám':st)); loadAll(true); }
+else toast('⚠️ ' + (j.error||'lỗi'));
 }
 function callBN(maCho){
-  const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
-  chime();
-  toast('📢 Mời số <b>' + (r.STT||'') + '</b> — <b>' + bnName(r.MA_BN) + '</b>' + (r.BS_KHAM?' vào phòng '+r.BS_KHAM:''));
+const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
+chime();
+toast('📢 Mời số <b>' + (r.STT||'') + '</b> — <b>' + bnName(r.MA_BN) + '</b>' + (r.BS_KHAM?' vào phòng '+r.BS_KHAM:''));
 }
-async function addToQueue(maBN, bs){
-  const q = queueToday();
-  // chặn trùng: BN đang có mặt trong hàng chờ (chưa khám xong) thì không thêm nữa
-  const dup = q.find(x => x.MA_BN === maBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
-  if (dup){ toast('⚠️ <b>'+bnName(maBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); return; }
-  const stt = q.reduce((m,r)=>Math.max(m, Number(r.STT)||0), 0) + 1;
-  const row = { MA_CHO: nextId('C',5,'HANG_CHO','MA_CHO'), NGAY: todayStr(), STT: stt, MA_BN: maBN, TRANG_THAI:'Chờ khám', BS_KHAM: bs||'', GHI_CHU:'' };
-  const j = await api('append', {table:'HANG_CHO', row});
-  if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+bnName(maBN)+'</b> — số thứ tự <b>'+stt+'</b>'); loadAll(true); }
-  else toast('⚠️ ' + (j.error||'lỗi'));
+async function togglePriority(maCho){
+const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
+const on = String(r.UU_TIEN||'').trim()==='Có';
+const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:maCho, row:{UU_TIEN: on?'':'Có'}});
+if (j.ok){ ver=j.v; toast(on ? '✓ Đã bỏ ưu tiên' : '✓ <b>'+bnName(r.MA_BN)+'</b> được ưu tiên khám trước'); loadAll(true); }
+else toast('⚠️ ' + (j.error||'lỗi'));
+}
+
+/* ================== HỦY ĐƠN ================== */
+let ccCho = null;
+function openCancel(maCho){
+const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
+ccCho = maCho;
+$('ccInfo').innerHTML = 'Hủy tiếp nhận của <b>'+bnName(r.MA_BN)+'</b> (số '+(r.STT||'?')+')? Các dịch vụ đã chỉ định nhưng chưa thực hiện sẽ được hủy theo.';
+$('ccWhy').value=''; $('ccNote').value='';
+show('ccOvl');
+}
+async function doCancel(){
+if (!ccCho) return;
+const why = $('ccWhy').value;
+if (!why){ toast('⚠️ Chọn lý do hủy trước'); $('ccWhy').focus(); return; }
+const r = queueToday().find(x=>x.MA_CHO===ccCho); if(!r){ hide('ccOvl'); return; }
+const reason = (why + ($('ccNote').value.trim()?(' — '+$('ccNote').value.trim()):'')).trim();
+$('loading').classList.add('on');
+try{
+const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:ccCho, row:{TRANG_THAI:'Hủy', LY_DO_HUY:reason}});
+if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
+ver=j.v;
+// hủy các dòng DV còn 'Chỉ định' của đơn này
+const pend = rowsToObj('SO_KHAM').filter(l=>String(l.MA_CHO||'')===ccCho && String(l.TRANG_THAI_DV||'').trim()==='Chỉ định');
+for (const l of pend){
+const j2 = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:l.MA_LUOT, row:{TRANG_THAI_DV:'Hủy'}});
+if (j2.ok) ver=j2.v;
+}
+hide('ccOvl');
+toast('✓ Đã hủy tiếp nhận — <b>'+bnName(r.MA_BN)+'</b>'+(pend.length?(' (hủy kèm '+pend.length+' dịch vụ chưa thực hiện)'):''));
+ccCho=null; loadAll(true);
+} finally { $('loading').classList.remove('on'); }
+}
+
+/* ================== TIẾP NHẬN (vãng lai + có hẹn cùng 1 đường) ================== */
+let rcBN=null, rcHen=null;
+function bsStatusList(){
+const q = queueToday();
+return rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có').map(b=>{
+const ten = String(b.TEN_BS).trim();
+const busy = q.filter(r=>r.TRANG_THAI==='Đang khám' && String(r.BS_KHAM||'').trim()===ten).length;
+const waiting = q.filter(r=>r.TRANG_THAI==='Chờ khám' && (String(r.BS_KHAM||'').trim()===ten || String(r.BS_YEU_CAU||'').trim()===ten)).length;
+return { ten, busy, waiting, label: ten + (busy? ' — 🟡 đang khám' : ' — 🟢 đang trống') + (waiting? (' · '+waiting+' chờ') : '') };
+});
+}
+function openReception(maBN, hen){
+rcBN = maBN; rcHen = hen || null;
+const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===maBN);
+if (!b){ toast('⚠️ Không tìm thấy hồ sơ '+maBN); return; }
+// chặn trùng ngay từ đầu
+const dup = queueToday().find(x => x.MA_BN === maBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
+if (dup){ toast('⚠️ <b>'+bnName(maBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); return; }
+$('rcTitle').textContent = '🏥 Tiếp nhận — ' + b.HO_TEN + ' (' + maBN + ')';
+const dvs = rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không');
+const groups = {};
+dvs.forEach(d=>{ const g=d.NHOM||'Khác'; (groups[g]=groups[g]||[]).push(d); });
+const bss = bsStatusList();
+$('rcBody').innerHTML = `
+${rcHen ? `<div class="rcHen">🗓 <b>Check-in từ lịch hẹn</b> ${rcHen.GIO_HEN?('lúc '+fmtT(rcHen.GIO_HEN)):''}${rcHen.LY_DO?(' — '+rcHen.LY_DO):''}${rcHen.BS_PHU_TRACH?(' · BS '+rcHen.BS_PHU_TRACH):''}</div>` : ''}
+<div class="sect-label">Dịch vụ yêu cầu (chọn trước — bác sĩ sẽ xác nhận khi thực hiện)</div>
+${Object.entries(groups).map(([g,ds])=>`<div class="rcGroup"><div class="gname">${g}</div><div class="rcChips">
+${ds.map(d=>`<label class="rcChip"><input type="checkbox" class="rcDv" value="${d.MA_DV}">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></label>`).join('')}
+</div></div>`).join('')}
+<div style="font-size:11.5px;color:var(--ink3);margin:2px 0 12px;">Chưa rõ bệnh nhân cần gì? Bỏ trống — bác sĩ sẽ chỉ định trong lúc khám.</div>
+<div class="sect-label">Bác sĩ khám</div>
+<select id="rcBs" style="width:100%;">
+<option value="">— Bác sĩ nào cũng được —</option>
+${bss.map(x=>`<option value="${x.ten}">${x.label}</option>`).join('')}
+</select>
+<div class="sect-label">Ghi chú tiếp nhận</div>
+<input id="rcNote" style="width:100%;" placeholder="Tùy chọn — lý do khám, triệu chứng…" value="${rcHen&&rcHen.LY_DO?String(rcHen.LY_DO).replace(/"/g,'&quot;'):''}">`;
+if (rcHen && rcHen.BS_PHU_TRACH){
+const el = $('rcBs');
+if ([...el.options].some(o=>o.value===String(rcHen.BS_PHU_TRACH).trim())) el.value = String(rcHen.BS_PHU_TRACH).trim();
+}
+$('rcUuTien').checked = false;
+show('rcOvl');
+}
+async function rcSave(){
+if (!rcBN) return;
+const btn = $('rcSaveBtn');
+if (btn.disabled) return;
+const q = queueToday();
+const dup = q.find(x => x.MA_BN === rcBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
+if (dup){ toast('⚠️ <b>'+bnName(rcBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); hide('rcOvl'); return; }
+const dvIds = [...document.querySelectorAll('.rcDv:checked')].map(x=>x.value);
+const bs = $('rcBs').value;
+const note = $('rcNote').value.trim();
+btn.disabled = true; btn.textContent = 'Đang tiếp nhận…';
+try{
+const stt = q.reduce((m,r)=>Math.max(m, Number(r.STT)||0), 0) + 1;
+const maCho = nextId('C',5,'HANG_CHO','MA_CHO');
+const row = { MA_CHO:maCho, NGAY:todayStr(), STT:stt, MA_BN:rcBN, TRANG_THAI:'Chờ khám', BS_KHAM:'', GHI_CHU:note,
+DV_YEU_CAU:dvIds.join('|'), BS_YEU_CAU:bs, MA_HEN:(rcHen?rcHen.MA_HEN:''), UU_TIEN:($('rcUuTien').checked?'Có':''),
+LY_DO_HUY:'', GIO_TIEP_NHAN:nowTime(), GIO_GOI:'', GIO_XONG:'', GIO_THU:'' };
+const j = await api('append', {table:'HANG_CHO', row});
+if (!j.ok){ toast('⚠️ ' + (j.error||'lỗi')); return; }
+ver=j.v;
+// ghi các dòng Sổ khám trạng thái 'Chỉ định'
+const dvs = rowsToObj('DICH_VU');
+let base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1),10);
+for (let i=0;i<dvIds.length;i++){
+const d = dvs.find(x=>x.MA_DV===dvIds[i]); if(!d) continue;
+const gia = Number(d.DON_GIA)||0;
+const skRow = { MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:rcBN, TEN_DV:d.TEN_DV,
+BS_THUC_HIEN:'', BS_CHI_DINH:bs, DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:'', ANH_KET_QUA:'',
+MA_CHO:maCho, TRANG_THAI_DV:'Chỉ định', NGUOI_XAC_NHAN:'', GIO_XAC_NHAN:'' };
+const j2 = await api('append', {table:'SO_KHAM', row:skRow});
+if (j2.ok) ver=j2.v; else { toast('⚠️ Lỗi ghi dịch vụ: '+(j2.error||'')); break; }
+}
+// nếu check-in từ hẹn → đánh dấu Đã đến
+if (rcHen){
+const j3 = await api('update', {table:'LICH_HEN', keyCol:'MA_HEN', keyVal:rcHen.MA_HEN, row:{TRANG_THAI:'Đã đến'}});
+if (j3.ok) ver=j3.v;
+}
+hide('rcOvl');
+chime();
+toast('✓ Đã tiếp nhận <b>'+bnName(rcBN)+'</b> — số thứ tự <b>'+stt+'</b>'+(dvIds.length?(' · '+dvIds.length+' dịch vụ yêu cầu'):''));
+rcBN=null; rcHen=null;
+loadAll(true);
+} finally { btn.disabled=false; btn.textContent='✓ Tiếp nhận vào hàng chờ'; }
+}
+
+/* ================== HẸN HÔM NAY ================== */
+function renderHen(){
+const all = rowsToObj('LICH_HEN').filter(h=>sameDay(h.NGAY_HEN) && String(h.TRANG_THAI||'')!=='Hủy');
+const sorted = all.slice().sort((a,b)=>String(fmtT(a.GIO_HEN)).localeCompare(String(fmtT(b.GIO_HEN))));
+$('henCount').textContent = all.filter(h=>h.TRANG_THAI==='Đã hẹn').length + ' chưa đến';
+$('henBox').innerHTML = sorted.length ? sorted.map(h=>{
+const arrived = h.TRANG_THAI==='Đã đến';
+return `<div class="henrow${arrived?' arrived':''}">
+<span class="gio num">${fmtT(h.GIO_HEN)||'—'}</span>
+<div style="flex:1;">
+<div class="nm" onclick="openProfile('${h.MA_BN}')">${bnName(h.MA_BN)}</div>
+<div class="meta">${h.LY_DO||''}${h.BS_PHU_TRACH?(' · BS '+h.BS_PHU_TRACH):''}</div>
+</div>
+${arrived ? '<span style="font-size:12px;color:var(--good);font-weight:700;">✓ đã đến</span>'
+: `<button class="qbtn call" onclick="henCheckin('${h.MA_HEN}')">✓ Check-in</button>`}
+</div>`;
+}).join('') : '<div class="empty">Không có lịch hẹn hôm nay.</div>';
+}
+function henCheckin(maHen){
+const h = rowsToObj('LICH_HEN').find(x=>x.MA_HEN===maHen); if(!h) return;
+openReception(h.MA_BN, h);
 }
 
 /* ================== TÌM KIẾM & HỒ SƠ ================== */
 function stripVN(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase(); }
 function renderSearch(){
-  const q = stripVN($('gsInput').value.trim());
-  const box = $('gsResults');
-  if (q.length < 2){ box.style.display='none'; return; }
-  const hits = rowsToObj('BENH_NHAN').filter(b =>
-    stripVN(b.HO_TEN).includes(q) || String(b.SDT||'').includes(q) || stripVN(b.MA_BN).includes(q)
-  ).slice(0,12);
-  box.innerHTML = hits.length ? hits.map(b =>
-    `<div class="gsRow" onclick="openProfile('${b.MA_BN}');$('gsResults').style.display='none';">
-      <div style="flex:1;"><span class="nm">${b.HO_TEN}</span> <span class="meta num">${b.MA_BN}</span><div class="meta">${b.SDT||'—'} · ${b.DIA_CHI||''}</div></div>
-      <button class="qbtn" onclick="event.stopPropagation();addToQueue('${b.MA_BN}');$('gsResults').style.display='none';$('gsInput').value='';">➕ Vào hàng chờ</button>
-    </div>`).join('') : '<div class="gsRow"><div class="meta">Không tìm thấy — bấm "➕ BN mới" để tạo.</div></div>';
-  box.style.display='block';
+const q = stripVN($('gsInput').value.trim());
+const box = $('gsResults');
+if (q.length < 2){ box.style.display='none'; return; }
+const hits = rowsToObj('BENH_NHAN').filter(b =>
+stripVN(b.HO_TEN).includes(q) || String(b.SDT||'').includes(q) || stripVN(b.MA_BN).includes(q)
+).slice(0,12);
+box.innerHTML = hits.length ? hits.map(b =>
+`<div class="gsRow" onclick="openProfile('${b.MA_BN}');$('gsResults').style.display='none';">
+<div style="flex:1;"><span class="nm">${b.HO_TEN}</span> <span class="meta num">${b.MA_BN}</span><div class="meta">${b.SDT||'—'} · ${b.DIA_CHI||''}</div></div>
+<button class="qbtn" onclick="event.stopPropagation();openReception('${b.MA_BN}');$('gsResults').style.display='none';$('gsInput').value='';">🏥 Tiếp nhận</button>
+</div>`).join('') : '<div class="gsRow"><div class="meta">Không tìm thấy — bấm "➕ BN mới" để tạo hồ sơ.</div></div>';
+box.style.display='block';
 }
 document.addEventListener('click', e => { if (!e.target.closest('.toolbar')) $('gsResults').style.display='none'; });
-function openProfile(maBN){
-  const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===maBN); if(!b) return;
-  const visits = rowsToObj('SO_KHAM').filter(x=>x.MA_BN===maBN).slice(-25).reverse();
-  const pays   = rowsToObj('THANH_TOAN').filter(x=>x.MA_BN===maBN).slice(-10).reverse();
-  $('profTitle').textContent = '👩 ' + b.HO_TEN + ' — ' + b.MA_BN;
-  $('profBody').innerHTML = `
-    <div style="font-size:13px;color:var(--ink2);margin-bottom:10px;">
-      ${b.NGAY_SINH?('🎂 '+b.NGAY_SINH+' · '):''}${b.SDT?('📞 '+b.SDT+' · '):''}${b.DIA_CHI?('🏠 '+b.DIA_CHI):''}
-      ${b.TIEN_SU?('<div style="color:#8a6205;margin-top:4px;">⚠️ Tiền sử: '+b.TIEN_SU+'</div>'):''}
-    </div>
-    <div class="sect-label">🩺 Lịch sử khám (${visits.length})</div>
-    ${visits.length?visits.map(v=>`<div class="histrow"><span class="num">${String(v.NGAY).slice(0,10)}</span><span style="flex:1;padding:0 8px;">${v.TEN_DV}</span><span class="num">${fmtD(v.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">Chưa có</div>'}
-    <div class="sect-label">💳 Thanh toán gần đây</div>
-    ${pays.length?pays.map(p=>`<div class="histrow"><span class="num">${String(p.NGAY).slice(0,10)}</span><span style="flex:1;padding:0 8px;">${p.HINH_THUC||''}</span><span class="num">${fmtD(p.DA_THU)}</span></div>`).join(''):'<div class="empty">Chưa có</div>'}`;
-  $('profQueueBtn').onclick = () => { hide('profOvl'); addToQueue(maBN); };
-  $('profSvcBtn').onclick = () => { hide('profOvl'); openSvc(maBN); };
-  show('profOvl');
-}
+function openProfile(maBN){ PKProfile.open(maBN); }
 
 /* ================== BN MỚI ================== */
 function openNewBN(){ ['nbTen','nbSdt','nbNs','nbDc','nbGc'].forEach(i=>$(i).value=''); show('newOvl'); const t=$('gsInput').value.trim(); if(t && !/\d/.test(t)) $('nbTen').value=t; }
 async function saveNewBN(){
-  const ten = $('nbTen').value.trim();
-  if (!ten){ toast('⚠️ Nhập họ tên'); return; }
-  const ma = nextId('BN',4,'BENH_NHAN','MA_BN');
-  const row = { MA_BN:ma, HO_TEN:ten, NGAY_SINH:$('nbNs').value.trim(), GIOI_TINH:'Nữ', SDT:$('nbSdt').value.trim(), DIA_CHI:$('nbDc').value.trim(), TIEN_SU:'', GHI_CHU:$('nbGc').value.trim(), NGAY_LAP: todayStr() };
-  const j = await api('append', {table:'BENH_NHAN', row});
-  if (j.ok){ ver=j.v; hide('newOvl'); toast('✓ Đã tạo <b>'+ten+'</b> ('+ma+')'); await addToQueue(ma); }
-  else toast('⚠️ ' + (j.error||'lỗi'));
+const ten = $('nbTen').value.trim();
+if (!ten){ toast('⚠️ Nhập họ tên'); return; }
+const ma = nextId('BN',4,'BENH_NHAN','MA_BN');
+const row = { MA_BN:ma, HO_TEN:ten, NGAY_SINH:$('nbNs').value.trim(), GIOI_TINH:'Nữ', SDT:$('nbSdt').value.trim(), DIA_CHI:$('nbDc').value.trim(), TIEN_SU:'', GHI_CHU:$('nbGc').value.trim(), NGAY_LAP: todayStr() };
+const j = await api('append', {table:'BENH_NHAN', row});
+if (j.ok){ ver=j.v; hide('newOvl'); toast('✓ Đã tạo hồ sơ <b>'+ten+'</b> ('+ma+')'); await loadAll(true); openReception(ma); }
+else toast('⚠️ ' + (j.error||'lỗi'));
 }
 
-/* ================== THU TIỀN ================== */
+/* ================== THANH TOÁN ================== */
 function selectPay(maCho){
-  const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
-  const lines = rowsToObj('SO_KHAM').filter(x=>x.MA_BN===r.MA_BN && sameDay(x.NGAY));
-  selPay = { maCho, maBN:r.MA_BN, lines };
-  renderPay();
+const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
+const all = orderLines(maCho, r.MA_BN);
+selPay = { maCho, maBN:r.MA_BN, lines: all.filter(lineDone), pending: all.filter(l=>!lineDone(l)) };
+renderPay();
 }
 function payTotal(){ return selPay ? selPay.lines.reduce((s,l)=>s+(Number(l.THANH_TIEN)||0),0) : 0; }
 function renderPay(){
-  if (!selPay){ $('payBox').innerHTML = '<div class="empty">Chọn bệnh nhân có trạng thái <b>Xong khám</b> trong hàng chờ để thu tiền.</div>'; return; }
-  const total = payTotal();
-  $('payBox').innerHTML = `
-    <div style="font-weight:800;font-size:15px;margin-bottom:2px;">${bnName(selPay.maBN)} <span class="num" style="color:var(--ink3);font-weight:600;font-size:12px;">${selPay.maBN}</span></div>
-    <div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ hôm nay <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)">➕ Thêm DV</button></div>
-    ${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠️ Chưa có dịch vụ nào ghi trong Sổ khám hôm nay cho BN này.</div>'}
-    <div class="totline"><span>Tổng hóa đơn</span><span class="num" id="payTot">${fmtD(total)}</span></div>
-    <div class="fieldrow">
-      <div style="flex:1;"><label>Giảm giá (đ)</label><input type="number" id="pDisc" value="0" min="0" oninput="updPay()" style="width:100%;"></div>
-      <div style="flex:1.4;"><label>Lý do giảm</label><select id="pDiscWhy" style="width:100%;"><option value="">— chọn nếu có giảm —</option><option>Người quen BS</option><option>Khách thân thiết</option><option>Chương trình ưu đãi</option><option>Hoàn cảnh khó khăn</option><option>Khác (ghi chú)</option></select></div>
-    </div>
-    <div class="fieldrow">
-      <div style="flex:1;"><label>Khách đưa (đ)</label><input type="number" id="pPaid" oninput="updPay()" style="width:100%;"></div>
-      <div style="flex:1;"><label>Hình thức</label><select id="pMethod" onchange="updPay()" style="width:100%;"><option>Tiền mặt</option><option>Chuyển khoản</option><option>Quẹt thẻ</option></select></div>
-    </div>
-    <div class="shortnote" id="pShort"></div>
-    <div class="qrbox" id="pQR">🏦 <b>Chuyển khoản:</b> ${BANK_INFO || 'Chưa cấu hình thông tin tài khoản ngân hàng (BANK_INFO)'}<br><span style="font-size:11.5px;">Nội dung: <b class="num">${selPay.maBN} ${todayStr().replaceAll('-','')}</b></span></div>
-    <div class="fieldrow"><div style="flex:1;"><label>Ghi chú</label><input id="pNote" style="width:100%;" placeholder="tùy chọn"></div></div>
-    <div class="paybtnrow">
-      <button class="btn btn-ghost" onclick="printReceipt(false)">🖨️ In tạm tính</button>
-      <button class="btn btn-brand" id="pConfirm" onclick="confirmPay()">✓ Xác nhận thu ${fmtD(total)}</button>
-    </div>`;
-  const pp = $('pPaid'); pp.value = total; updPay();
+if (!selPay){ $('payBox').innerHTML = '<div class="empty">Chọn bệnh nhân ở nhóm <b>Hoàn tất khám</b> trong hàng chờ để thanh toán.</div>'; return; }
+const total = payTotal();
+$('payBox').innerHTML = `
+<div style="font-weight:800;font-size:15px;margin-bottom:2px;cursor:pointer;" onclick="openProfile(selPay.maBN)">${bnName(selPay.maBN)} <span class="num" style="color:var(--ink3);font-weight:600;font-size:12px;">${selPay.maBN}</span></div>
+<div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ đã thực hiện <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)">➕ Thêm DV</button></div>
+${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠️ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
+${selPay.pending.length?`<div class="shortnote" style="display:block;">⏳ Còn <b>${selPay.pending.length}</b> dịch vụ chỉ định chưa xác nhận thực hiện — chưa tính tiền:<br>${selPay.pending.map(l=>'· '+l.TEN_DV).join('<br>')}<br><span style="font-size:11px;">Bác sĩ / trợ lý xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span></div>`:''}
+<div class="totline"><span>Tổng thanh toán</span><span class="num" id="payTot">${fmtD(total)}</span></div>
+<div class="fieldrow">
+<div style="flex:1;"><label>Giảm giá (đ)</label><input type="number" id="pDisc" value="0" min="0" oninput="updPay()" style="width:100%;"></div>
+<div style="flex:1.4;"><label>Lý do giảm</label><select id="pDiscWhy" style="width:100%;"><option value="">— chọn nếu có giảm —</option><option>Người quen BS</option><option>Khách thân thiết</option><option>Chương trình ưu đãi</option><option>Hoàn cảnh khó khăn</option><option>Khác (ghi chú)</option></select></div>
+</div>
+<div class="fieldrow">
+<div style="flex:1;"><label>Khách đưa (đ)</label><input type="number" id="pPaid" oninput="updPay()" style="width:100%;"></div>
+<div style="flex:1;"><label>Hình thức</label><select id="pMethod" onchange="updPay()" style="width:100%;"><option>Tiền mặt</option><option>Chuyển khoản</option><option>Quẹt thẻ</option></select></div>
+</div>
+<div class="shortnote" id="pShort"></div>
+<div class="qrbox" id="pQR">🏦 <b>Chuyển khoản:</b> ${BANK_INFO || 'Chưa cấu hình thông tin tài khoản ngân hàng (BANK_INFO)'}<br><span style="font-size:11.5px;">Nội dung: <b class="num">${selPay.maBN} ${todayStr().replaceAll('-','')}</b></span></div>
+<div class="fieldrow"><div style="flex:1;"><label>Ghi chú</label><input id="pNote" style="width:100%;" placeholder="tùy chọn"></div></div>
+<div class="paybtnrow">
+<button class="btn btn-ghost" onclick="printReceipt(false)">🖨️ In tạm tính</button>
+<button class="btn btn-brand" id="pConfirm" onclick="confirmPay()">✓ Xác nhận thu ${fmtD(total)}</button>
+</div>`;
+const pp = $('pPaid'); pp.value = total; updPay();
 }
 function updPay(){
-  if(!selPay) return;
-  const total = payTotal();
-  const disc = Math.min(Number($('pDisc').value)||0, total);
-  const due  = total - disc;
-  const paid = Number($('pPaid').value)||0;
-  if (Number($('pDisc').value) !== disc) $('pDisc').value = disc;
-  if (document.activeElement !== $('pPaid') && paid !== due) $('pPaid').value = due;
-  const paidNow = Number($('pPaid').value)||0;
-  const short = due - paidNow;
-  const sn = $('pShort');
-  if (short > 0){ sn.style.display='block'; sn.innerHTML = '⚠️ Thu thiếu <b class="num">'+fmtD(short)+'</b> — sẽ ghi nhận để Quản lý đối soát.'; }
-  else sn.style.display='none';
-  $('pQR').style.display = $('pMethod').value==='Chuyển khoản' ? 'block' : 'none';
-  $('pConfirm').textContent = '✓ Xác nhận thu ' + fmtD(paidNow);
+if(!selPay) return;
+const total = payTotal();
+const disc = Math.min(Number($('pDisc').value)||0, total);
+const due = total - disc;
+const paid = Number($('pPaid').value)||0;
+if (Number($('pDisc').value) !== disc) $('pDisc').value = disc;
+if (document.activeElement !== $('pPaid') && paid !== due) $('pPaid').value = due;
+const paidNow = Number($('pPaid').value)||0;
+const short = due - paidNow;
+const sn = $('pShort');
+if (short > 0){ sn.style.display='block'; sn.innerHTML = '⚠️ Thu thiếu <b class="num">'+fmtD(short)+'</b> — sẽ ghi nhận để Quản lý đối soát.'; }
+else sn.style.display='none';
+$('pQR').style.display = $('pMethod').value==='Chuyển khoản' ? 'block' : 'none';
+$('pConfirm').textContent = '✓ Xác nhận thu ' + fmtD(paidNow);
 }
 async function confirmPay(){
-  if(!selPay) return;
-  const total = payTotal();
-  if (!selPay.lines.length){ toast('⚠️ Không có dịch vụ để thu'); return; }
-  const disc = Number($('pDisc').value)||0;
-  const why  = $('pDiscWhy').value;
-  if (disc > 0 && !why){ toast('⚠️ Có giảm giá thì bắt buộc chọn lý do'); $('pDiscWhy').focus(); return; }
-  const paid = Number($('pPaid').value)||0;
-  const due  = total - disc;
-  const method = $('pMethod').value;
-  let note = $('pNote').value.trim();
-  if (disc>0) note = ('Giảm '+disc.toLocaleString('vi-VN')+'đ ('+why+'). ' + note).trim();
-  if (due - paid > 0) note = ('THU THIẾU '+(due-paid).toLocaleString('vi-VN')+'đ. ' + note).trim();
-  $('pConfirm').disabled = true;
-  const row = { MA_TT: nextId('T',5,'THANH_TOAN','MA_TT'), NGAY: todayStr(), MA_BN: selPay.maBN, TONG_HD: total, DA_THU: paid, CON_LAI: due - paid, HINH_THUC: method, THU_NGAN: me.email, GHI_CHU: note };
-  const j = await api('append', {table:'THANH_TOAN', row});
-  if (!j.ok){ toast('⚠️ Lỗi ghi thanh toán: '+(j.error||'')); $('pConfirm').disabled=false; return; }
-  await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal: selPay.maCho, row:{TRANG_THAI:'Đã thu'}});
-  toast('✓ Đã thu <b>'+fmtD(paid)+'</b> — '+bnName(selPay.maBN));
-  printReceipt(true, row);
-  selPay = null; renderPay(); loadAll(true);
-}
-function printReceipt(final, row){
-  if(!selPay && !row) return;
-  const lines = selPay ? selPay.lines : [];
-  const maBN = selPay ? selPay.maBN : row.MA_BN;
-  const total = row ? row.TONG_HD : payTotal();
-  const paid  = row ? row.DA_THU : (Number($('pPaid')&&$('pPaid').value)||0);
-  const w = window.open('', '_blank', 'width=420,height=640');
-  w.document.write(`<html><head><title>Hóa đơn</title><style>body{font-family:Arial;font-size:13px;padding:18px;color:#222;}h2{text-align:center;font-size:16px;}p.c{text-align:center;margin:2px 0;font-size:11.5px;color:#555;}table{width:100%;border-collapse:collapse;margin-top:10px;}td{padding:4px 2px;border-bottom:1px dashed #ccc;}td.r{text-align:right;white-space:nowrap;}tr.t td{font-weight:bold;border-bottom:none;font-size:14px;}</style></head><body>
-    <h2>PHÒNG KHÁM DIỆU SINH</h2>
-    <p class="c">${final?'HÓA ĐƠN THANH TOÁN':'BẢNG TẠM TÍNH'}</p>
-    <p class="c">${new Date().toLocaleString('vi-VN')} · BN: ${bnName(maBN)} (${maBN})${row?(' · '+row.MA_TT):''}</p>
-    <table>${lines.map(l=>`<tr><td>${l.TEN_DV}</td><td class="r">${fmtD(l.THANH_TIEN)}</td></tr>`).join('')}
-    <tr class="t"><td>TỔNG</td><td class="r">${fmtD(total)}</td></tr>
-    ${final?`<tr class="t"><td>ĐÃ THU (${row.HINH_THUC})</td><td class="r">${fmtD(paid)}</td></tr>`:''}</table>
-    <p class="c" style="margin-top:14px;">Cảm ơn quý khách!</p>
-    <script>window.print();<\/script></body></html>`);
-  w.document.close();
+if(!selPay) return;
+const total = payTotal();
+if (!selPay.lines.length){ toast('⚠️ Chưa có dịch vụ đã thực hiện để thanh toán'); return; }
+const disc = Number($('pDisc').value)||0;
+const why = $('pDiscWhy').value;
+if (disc > 0 && !why){ toast('⚠️ Có giảm giá thì bắt buộc chọn lý do'); $('pDiscWhy').focus(); return; }
+const paid = Number($('pPaid').value)||0;
+const due = total - disc;
+const method = $('pMethod').value;
+let note = $('pNote').value.trim();
+if (disc>0) note = ('Giảm '+disc.toLocaleString('vi-VN')+'đ ('+why+'). ' + note).trim();
+if (due - paid > 0) note = ('THU THIẾU '+(due-paid).toLocaleString('vi-VN')+'đ. ' + note).trim();
+$('pConfirm').disabled = true;
+const row = { MA_TT: nextId('T',5,'THANH_TOAN','MA_TT'), NGAY: todayStr(), MA_BN: selPay.maBN, TONG_HD: total, DA_THU: paid, CON_LAI: due - paid, HINH_THUC: method, THU_NGAN: me.email, GHI_CHU: note };
+const j = await api('append', {table:'THANH_TOAN', row});
+if (!j.ok){ toast('⚠️ Lỗi ghi thanh toán: '+(j.error||'')); $('pConfirm').disabled=false; return; }
+await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal: selPay.maCho, row:{TRANG_THAI:'Đã thu', GIO_THU: nowTime()}});
+toast('✓ Đã thu <b>'+fmtD(paid)+'</b> — '+bnName(selPay.maBN));
+printReceipt(true, row, {disc, why, paid, due, method});
+selPay = null; renderPay(); loadAll(true);
 }
 
-/* ================== THÊM DỊCH VỤ ================== */
+/* ================== PHIẾU THANH TOÁN (A5) ================== */
+function printReceipt(final, row, ex){
+if(!selPay && !row) return;
+const lines = selPay ? selPay.lines : [];
+const maBN = selPay ? selPay.maBN : row.MA_BN;
+const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===maBN) || {};
+const total = row ? Number(row.TONG_HD)||0 : payTotal();
+const disc = ex ? ex.disc : Math.min(Number($('pDisc')&&$('pDisc').value)||0, total);
+const why = ex ? ex.why : ($('pDiscWhy')?$('pDiscWhy').value:'');
+const paid = ex ? ex.paid : (row ? Number(row.DA_THU)||0 : (Number($('pPaid')&&$('pPaid').value)||0));
+const due = total - disc;
+const method = ex ? ex.method : (row ? row.HINH_THUC : ($('pMethod')?$('pMethod').value:''));
+const now = new Date();
+const soPhieu = row ? row.MA_TT : '(tạm tính)';
+const w = window.open('', '_blank', 'width=640,height=860');
+w.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${final?'Phiếu thanh toán':'Phiếu tạm tính'} ${soPhieu}</title><style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#222;background:#fff;}
+.sheet{width:148mm;min-height:200mm;margin:0 auto;padding:10mm 11mm;box-sizing:border-box;}
+@page{size:A5 portrait;margin:0;}
+.hd{display:flex;gap:10px;align-items:center;border-bottom:2.5px solid #0a5240;padding-bottom:8px;}
+.hd h1{font-size:15px;color:#0a5240;margin:0;letter-spacing:.3px;}
+.hd .sub{font-size:10.5px;color:#666;line-height:1.5;}
+.title{text-align:center;margin:12px 0 4px;}
+.title b{font-size:17px;letter-spacing:2px;}
+.title .no{font-size:11px;color:#666;margin-top:3px;}
+.bn{display:flex;flex-wrap:wrap;gap:4px 22px;font-size:12px;margin:10px 0 12px;padding:8px 10px;background:#f4f8f6;border-radius:8px;}
+.bn b{color:#0a5240;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{border-bottom:1.5px solid #0a5240;color:#0a5240;font-size:10px;letter-spacing:.6px;text-transform:uppercase;padding:6px 4px;text-align:left;}
+td{padding:7px 4px;border-bottom:1px dotted #d8d8d0;vertical-align:top;}
+.r{text-align:right;white-space:nowrap;}
+.tot td{border-bottom:none;padding:4px;}
+.tot .lbl{text-align:right;color:#666;}
+.tot .big{font-size:15px;font-weight:bold;color:#0a5240;}
+.pay{display:flex;gap:12px;margin-top:10px;align-items:flex-start;}
+.pay .qr{width:88px;height:88px;border:1.5px dashed #d8d8d0;border-radius:8px;display:grid;place-items:center;font-size:9.5px;color:#666;text-align:center;padding:4px;box-sizing:border-box;}
+.pay .inf{font-size:11.5px;color:#666;line-height:1.7;flex:1;}
+.sig{display:flex;justify-content:space-between;margin-top:18px;font-size:11.5px;text-align:center;}
+.sig .box{width:44%;}
+.sig .role{font-weight:bold;}
+.sig .hint{color:#666;font-size:10px;}
+.sig .name{margin-top:34px;font-weight:bold;}
+.ft{margin-top:14px;border-top:1px solid #d8d8d0;padding-top:7px;font-size:10px;color:#666;text-align:center;line-height:1.6;}
+.draft{position:fixed;top:40%;left:0;right:0;text-align:center;font-size:48px;color:rgba(208,59,59,.12);font-weight:bold;transform:rotate(-18deg);pointer-events:none;}
+</style></head><body>
+${final?'':'<div class="draft">TẠM TÍNH</div>'}
+<div class="sheet">
+<div class="hd"><div>
+<h1>${CLINIC_NAME}</h1>
+<div class="sub">${CLINIC_ADDR}${CLINIC_PHONE?(' · ĐT: '+CLINIC_PHONE):''}<br>Chuyên khoa Sản — Phụ khoa</div>
+</div></div>
+<div class="title"><b>${final?'PHIẾU THANH TOÁN':'PHIẾU TẠM TÍNH'}</b>
+<div class="no">Số: <b>${soPhieu}</b> · Ngày ${now.toLocaleDateString('vi-VN')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}</div></div>
+<div class="bn">
+<span>Bệnh nhân: <b>${(b.HO_TEN||bnName(maBN)).toUpperCase()}</b> (${maBN})</span>
+${b.NGAY_SINH?('<span>Năm sinh: '+b.NGAY_SINH+'</span>'):''}
+${b.SDT?('<span>SĐT: '+b.SDT+'</span>'):''}
+</div>
+<table>
+<thead><tr><th style="width:24px;">TT</th><th>Dịch vụ</th><th class="r">SL</th><th class="r">Đơn giá</th><th class="r">Thành tiền</th></tr></thead>
+<tbody>${lines.map((l,i)=>`<tr><td>${i+1}</td><td>${l.TEN_DV}</td><td class="r">${l.SO_LUONG||1}</td><td class="r">${(Number(l.DON_GIA)||0).toLocaleString('vi-VN')}</td><td class="r">${(Number(l.THANH_TIEN)||0).toLocaleString('vi-VN')}</td></tr>`).join('')}</tbody>
+<tfoot>
+<tr class="tot"><td colspan="4" class="lbl">Tổng cộng</td><td class="r"><b>${total.toLocaleString('vi-VN')} đ</b></td></tr>
+${disc>0?`<tr class="tot"><td colspan="4" class="lbl">Giảm giá${why?(' <i style="font-size:10px;">('+why+')</i>'):''}</td><td class="r">−${disc.toLocaleString('vi-VN')} đ</td></tr>`:''}
+<tr class="tot"><td colspan="4" class="lbl"><b>KHÁCH THANH TOÁN</b></td><td class="r big">${(final?paid:due).toLocaleString('vi-VN')} đ</td></tr>
+${final&&(due-paid)>0?`<tr class="tot"><td colspan="4" class="lbl" style="color:#d03b3b;">Còn thiếu</td><td class="r" style="color:#d03b3b;">${(due-paid).toLocaleString('vi-VN')} đ</td></tr>`:''}
+${final?`<tr class="tot"><td colspan="4" class="lbl">Hình thức</td><td class="r">${method}</td></tr>`:''}
+</tfoot>
+</table>
+${BANK_INFO?`<div class="pay"><div class="qr">QR<br>chuyển khoản</div><div class="inf">${BANK_INFO}<br>Nội dung CK: <b>${maBN} ${row?row.MA_TT:''}</b></div></div>`:''}
+<div class="sig">
+<div class="box"><div class="role">Khách hàng</div><div class="hint">(ký, ghi rõ họ tên)</div></div>
+<div class="box"><div class="role">Thu ngân</div><div class="hint">(ký, ghi rõ họ tên)</div><div class="name">${me?me.email.split('@')[0]:''}</div></div>
+</div>
+<div class="ft">Cảm ơn Quý khách — chúc mẹ tròn con vuông! 🌿<br>Phiếu in từ hệ thống PK Diệu Sinh${row?(' · mã tra cứu '+row.MA_TT):''} · in lúc ${now.toLocaleString('vi-VN')}</div>
+</div>
+<script>window.print();<\/script></body></html>`);
+w.document.close();
+}
+
+/* ================== THÊM DỊCH VỤ TẠI QUẦY ================== */
 let svcBN = null, svcOptHtml = '', svcBsHtml = '';
 function openSvc(maBN){
-  svcBN = maBN;
-  $('svcTitle').textContent = '➕ Thêm dịch vụ — ' + bnName(maBN) + ' (' + maBN + ')';
-  const dvs = rowsToObj('DICH_VU').filter(d => String(d.CON_AP_DUNG||'').trim() !== 'Không');
-  svcOptHtml = '<option value="">— chọn dịch vụ —</option>' + dvs.map(d =>
-    `<option value="${d.MA_DV}">${d.TEN_DV} — ${fmtD(d.DON_GIA)}${d.NHOM?' ('+d.NHOM+')':''}</option>`).join('');
-  const bss = rowsToObj('BAC_SI').filter(b => String(b.DANG_LAM_VIEC||'').trim() === 'Có');
-  svcBsHtml = '<option value="">—</option>' + bss.map(b => `<option>${b.TEN_BS}</option>`).join('');
-  $('svcRows').innerHTML = '';
-  addSvcRow();
-  show('svcOvl');
+svcBN = maBN;
+$('svcTitle').textContent = '➕ Thêm dịch vụ — ' + bnName(maBN) + ' (' + maBN + ')';
+const dvs = rowsToObj('DICH_VU').filter(d => String(d.CON_AP_DUNG||'').trim() !== 'Không');
+svcOptHtml = '<option value="">— chọn dịch vụ —</option>' + dvs.map(d =>
+`<option value="${d.MA_DV}">${d.TEN_DV} — ${fmtD(d.DON_GIA)}${d.NHOM?' ('+d.NHOM+')':''}</option>`).join('');
+const bss = rowsToObj('BAC_SI').filter(b => String(b.DANG_LAM_VIEC||'').trim() === 'Có');
+svcBsHtml = '<option value="">—</option>' + bss.map(b => `<option>${b.TEN_BS}</option>`).join('');
+$('svcRows').innerHTML = '';
+addSvcRow();
+show('svcOvl');
 }
 function addSvcRow(){
-  const div = document.createElement('div');
-  div.className = 'svcRow';
-  div.style.cssText = 'border:1px solid #e2e2da;border-radius:12px;padding:12px;margin-top:10px;position:relative;';
-  div.innerHTML = `
-    <button class="qbtn" title="Xóa dòng" onclick="delSvcRow(this)" style="position:absolute;top:8px;right:8px;">🗑</button>
-    <div class="fgrid">
-      <div class="full" style="padding-right:36px;"><label>Dịch vụ *</label><select class="sSel" onchange="updSvcRows()" style="width:100%;"></select></div>
-      <div><label>Số lượng</label><input type="number" class="sQty" value="1" min="1" oninput="updSvcRows()"></div>
-      <div><label>Thành tiền (tự tính)</label><input class="sTot" readonly style="background:#f4f4f1;font-weight:700;"></div>
-      <div><label>BS thực hiện</label><select class="sBsTh" style="width:100%;"></select></div>
-      <div><label>BS chỉ định</label><select class="sBsCd" style="width:100%;"></select></div>
-      <div class="full"><label>Ghi chú</label><input class="sNote" placeholder="tùy chọn"></div>
-    </div>`;
-  div.querySelector('.sSel').innerHTML = svcOptHtml;
-  div.querySelector('.sBsTh').innerHTML = svcBsHtml;
-  div.querySelector('.sBsCd').innerHTML = svcBsHtml;
-  // dòng mới lấy sẵn BS của dòng trước cho đỡ chọn lại
-  const prev = $('svcRows').querySelectorAll('.svcRow');
-  if (prev.length){
-    const last = prev[prev.length-1];
-    div.querySelector('.sBsTh').value = last.querySelector('.sBsTh').value;
-    div.querySelector('.sBsCd').value = last.querySelector('.sBsCd').value;
-  }
-  $('svcRows').appendChild(div);
-  updSvcRows();
+const div = document.createElement('div');
+div.className = 'svcRow';
+div.style.cssText = 'border:1px solid #e2e2da;border-radius:12px;padding:12px;margin-top:10px;position:relative;';
+div.innerHTML = `
+<button class="qbtn" title="Xóa dòng" onclick="delSvcRow(this)" style="position:absolute;top:8px;right:8px;">🗑</button>
+<div class="fgrid">
+<div class="full" style="padding-right:36px;"><label>Dịch vụ *</label><select class="sSel" onchange="updSvcRows()" style="width:100%;"></select></div>
+<div><label>Số lượng</label><input type="number" class="sQty" value="1" min="1" oninput="updSvcRows()"></div>
+<div><label>Thành tiền (tự tính)</label><input class="sTot" readonly style="background:#f4f4f1;font-weight:700;"></div>
+<div><label>BS thực hiện</label><select class="sBsTh" style="width:100%;"></select></div>
+<div><label>BS chỉ định</label><select class="sBsCd" style="width:100%;"></select></div>
+<div class="full"><label>Ghi chú</label><input class="sNote" placeholder="tùy chọn"></div>
+</div>`;
+div.querySelector('.sSel').innerHTML = svcOptHtml;
+div.querySelector('.sBsTh').innerHTML = svcBsHtml;
+div.querySelector('.sBsCd').innerHTML = svcBsHtml;
+// dòng mới lấy sẵn BS của dòng trước cho đỡ chọn lại
+const prev = $('svcRows').querySelectorAll('.svcRow');
+if (prev.length){
+const last = prev[prev.length-1];
+div.querySelector('.sBsTh').value = last.querySelector('.sBsTh').value;
+div.querySelector('.sBsCd').value = last.querySelector('.sBsCd').value;
+}
+$('svcRows').appendChild(div);
+updSvcRows();
 }
 function delSvcRow(btn){
-  const rows = $('svcRows').querySelectorAll('.svcRow');
-  if (rows.length <= 1){ // dòng cuối: chỉ xóa trắng, không bỏ hẳn
-    const r = btn.closest('.svcRow');
-    r.querySelector('.sSel').value = ''; r.querySelector('.sQty').value = 1; r.querySelector('.sNote').value = '';
-  } else btn.closest('.svcRow').remove();
-  updSvcRows();
+const rows = $('svcRows').querySelectorAll('.svcRow');
+if (rows.length <= 1){ // dòng cuối: chỉ xóa trắng, không bỏ hẳn
+const r = btn.closest('.svcRow');
+r.querySelector('.sSel').value = ''; r.querySelector('.sQty').value = 1; r.querySelector('.sNote').value = '';
+} else btn.closest('.svcRow').remove();
+updSvcRows();
 }
 function svcRowData(r){
-  const d = rowsToObj('DICH_VU').find(x => x.MA_DV === r.querySelector('.sSel').value);
-  const qty = Math.max(1, Number(r.querySelector('.sQty').value)||1);
-  const gia = d ? (Number(d.DON_GIA)||0) : 0;
-  return { d, qty, gia, tien: gia*qty,
-    bsTh: r.querySelector('.sBsTh').value, bsCd: r.querySelector('.sBsCd').value,
-    note: r.querySelector('.sNote').value.trim() };
+const d = rowsToObj('DICH_VU').find(x => x.MA_DV === r.querySelector('.sSel').value);
+const qty = Math.max(1, Number(r.querySelector('.sQty').value)||1);
+const gia = d ? (Number(d.DON_GIA)||0) : 0;
+return { d, qty, gia, tien: gia*qty,
+bsTh: r.querySelector('.sBsTh').value, bsCd: r.querySelector('.sBsCd').value,
+note: r.querySelector('.sNote').value.trim() };
 }
 function updSvcRows(){
-  let sum = 0;
-  $('svcRows').querySelectorAll('.svcRow').forEach(r => {
-    const x = svcRowData(r);
-    r.querySelector('.sTot').value = x.d ? fmtD(x.tien) : '';
-    sum += x.tien;
-  });
-  $('svcSum').textContent = fmtD(sum);
+let sum = 0;
+$('svcRows').querySelectorAll('.svcRow').forEach(r => {
+const x = svcRowData(r);
+r.querySelector('.sTot').value = x.d ? fmtD(x.tien) : '';
+sum += x.tien;
+});
+$('svcSum').textContent = fmtD(sum);
 }
 async function saveSvc(){
-  const items = [...$('svcRows').querySelectorAll('.svcRow')].map(svcRowData).filter(x => x.d);
-  if (!items.length){ toast('⚠️ Chọn dịch vụ trước'); return; }
-  const btn = $('svcSaveBtn');
-  if (btn.disabled) return;
-  btn.disabled = true; btn.textContent = 'Đang lưu…';
-  const who = 'Thêm tại quầy bởi ' + (me?me.email.split('@')[0]:'');
-  const base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1), 10);
-  let okCount = 0, sum = 0;
-  try{
-    for (let i=0; i<items.length; i++){
-      const x = items[i];
-      const row = { MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
-        BS_THUC_HIEN: x.bsTh, BS_CHI_DINH: x.bsCd, DON_GIA: x.gia, SO_LUONG: x.qty,
-        THANH_TIEN: x.tien, GHI_CHU: (who + (x.note?'. '+x.note:'')).trim(), ANH_KET_QUA: '' };
-      const j = await api('append', {table:'SO_KHAM', row});
-      if (j.ok){ ver=j.v; okCount++; sum += x.tien; }
-      else { toast('⚠️ Dòng '+(i+1)+': '+(j.error||'lỗi')+' — đã lưu '+okCount+'/'+items.length); break; }
-    }
-  } finally { btn.disabled = false; btn.textContent = '✓ Thêm vào Sổ khám'; }
-  if (okCount === items.length){
-    hide('svcOvl');
-    toast('✓ Đã thêm <b>'+okCount+' dịch vụ</b> ('+fmtD(sum)+') cho '+bnName(svcBN));
-  }
-  if (okCount) loadAll(true);
+const items = [...$('svcRows').querySelectorAll('.svcRow')].map(svcRowData).filter(x => x.d);
+if (!items.length){ toast('⚠️ Chọn dịch vụ trước'); return; }
+const btn = $('svcSaveBtn');
+if (btn.disabled) return;
+btn.disabled = true; btn.textContent = 'Đang lưu…';
+const who = 'Thêm tại quầy bởi ' + (me?me.email.split('@')[0]:'');
+// gắn vào đơn đang mở của BN hôm nay (nếu có) — dòng thêm tại quầy coi như đã thực hiện
+const order = queueToday().find(x=>x.MA_BN===svcBN && !['Đã thu','Hủy'].includes(String(x.TRANG_THAI).trim()));
+const base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1), 10);
+let okCount = 0, sum = 0;
+try{
+for (let i=0; i<items.length; i++){
+const x = items[i];
+const row = { MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
+BS_THUC_HIEN: x.bsTh, BS_CHI_DINH: x.bsCd, DON_GIA: x.gia, SO_LUONG: x.qty,
+THANH_TIEN: x.tien, GHI_CHU: (who + (x.note?'. '+x.note:'')).trim(), ANH_KET_QUA: '',
+MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() };
+const j = await api('append', {table:'SO_KHAM', row});
+if (j.ok){ ver=j.v; okCount++; sum += x.tien; }
+else { toast('⚠️ Dòng '+(i+1)+': '+(j.error||'lỗi')+' — đã lưu '+okCount+'/'+items.length); break; }
+}
+} finally { btn.disabled = false; btn.textContent = '✓ Thêm vào Sổ khám'; }
+if (okCount === items.length){
+hide('svcOvl');
+toast('✓ Đã thêm <b>'+okCount+' dịch vụ</b> ('+fmtD(sum)+') cho '+bnName(svcBN));
+}
+if (okCount) loadAll(true);
 }
 
 /* ================== CHỐT CA ================== */
 function openShift(){
-  const pays = rowsToObj('THANH_TOAN').filter(p => sameDay(p.NGAY));
-  const sum = f => pays.reduce((s,p)=>s+(Number(f(p))||0),0);
-  const byM = {};
-  pays.forEach(p => { const m=p.HINH_THUC||'Khác'; byM[m]=(byM[m]||0)+(Number(p.DA_THU)||0); });
-  const discTotal = sum(p=>p.TONG_HD) - sum(p=>p.DA_THU) - sum(p=>p.CON_LAI);
-  $('shiftBody').innerHTML = `
-    <div class="statgrid">
-      <div class="stat"><div class="v num">${pays.length}</div><div class="l">Hóa đơn</div></div>
-      <div class="stat"><div class="v num">${fmtD(sum(p=>p.DA_THU))}</div><div class="l">Đã thu</div></div>
-      <div class="stat"><div class="v num">${fmtD(sum(p=>p.CON_LAI))}</div><div class="l">Còn thiếu</div></div>
-    </div>
-    <div class="sect-label">Theo hình thức</div>
-    ${Object.keys(byM).length?Object.entries(byM).map(([m,v])=>`<div class="histrow"><span>${m}</span><span class="num">${fmtD(v)}</span></div>`).join(''):'<div class="empty">Chưa có giao dịch hôm nay</div>'}
-    <div class="sect-label">Giảm giá</div>
-    <div class="histrow"><span>Tổng giảm hôm nay</span><span class="num">${fmtD(discTotal)}</span></div>
-    <div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Người chốt: ${me?me.email:''} · ${new Date().toLocaleString('vi-VN')}</div>`;
-  show('shiftOvl');
+const pays = rowsToObj('THANH_TOAN').filter(p => sameDay(p.NGAY));
+const sum = f => pays.reduce((s,p)=>s+(Number(f(p))||0),0);
+const byM = {};
+pays.forEach(p => { const m=p.HINH_THUC||'Khác'; byM[m]=(byM[m]||0)+(Number(p.DA_THU)||0); });
+const discTotal = sum(p=>p.TONG_HD) - sum(p=>p.DA_THU) - sum(p=>p.CON_LAI);
+const cancels = queueToday().filter(r=>r.TRANG_THAI==='Hủy');
+$('shiftBody').innerHTML = `
+<div class="statgrid">
+<div class="stat"><div class="v num">${pays.length}</div><div class="l">Phiếu thanh toán</div></div>
+<div class="stat"><div class="v num">${fmtD(sum(p=>p.DA_THU))}</div><div class="l">Đã thu</div></div>
+<div class="stat"><div class="v num">${fmtD(sum(p=>p.CON_LAI))}</div><div class="l">Còn thiếu</div></div>
+</div>
+<div class="sect-label">Theo hình thức</div>
+${Object.keys(byM).length?Object.entries(byM).map(([m,v])=>`<div class="histrow"><span>${m}</span><span class="num">${fmtD(v)}</span></div>`).join(''):'<div class="empty">Chưa có giao dịch hôm nay</div>'}
+<div class="sect-label">Giảm giá</div>
+<div class="histrow"><span>Tổng giảm hôm nay</span><span class="num">${fmtD(discTotal)}</span></div>
+${cancels.length?`<div class="sect-label">Hủy tiếp nhận (${cancels.length})</div>${cancels.map(r=>`<div class="histrow"><span>${bnName(r.MA_BN)}</span><span style="color:var(--ink2);font-size:11.5px;">${r.LY_DO_HUY||''}</span></div>`).join('')}`:''}
+<div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Người chốt: ${me?me.email:''} · ${new Date().toLocaleString('vi-VN')}</div>`;
+show('shiftOvl');
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ renderQueue(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } renderPay(); } }
+function renderAll(){ renderHen(); renderQueue(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); } renderPay(); } }
+
+/* hồ sơ 360°: nút hành động của trang này */
+window.PKHooks = { reception: openReception, addSvc: openSvc };
 </script>
+<script src="profile.js"></script>
 </body>
 </html>
