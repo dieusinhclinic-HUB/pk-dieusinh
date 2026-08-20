@@ -252,6 +252,7 @@ google.accounts.id.renderButton($('gbtn'), { theme:'filled_blue', size:'large', 
 $('loginMsg').textContent = 'Dùng đúng Gmail đã được phòng khám khai báo.';
 }
 window.addEventListener('load', () => {
+try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){}; }catch(e){}
 const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
 setTimeout(()=>clearInterval(t), 10000);
 $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
@@ -318,8 +319,12 @@ try{
 const ph = String(phong||'').replace(/^BS\.?\s*/i,'bác sĩ ');
 const u = new SpeechSynthesisUtterance('Mời số '+(stt||'')+', '+ten+', vào phòng khám '+ph);
 u.lang='vi-VN'; u.rate=0.95;
-const vs = speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
-if (vs.length) u.voice = vs[0];
+const all = speechSynthesis.getVoices();
+const vi = all.filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
+// uu tien giong NU tu nhien: HoaiMy (Microsoft) > Google Tieng Viet (nu) > bat ky giong vi
+const pick = vi.find(v=>/hoaimy|female|n\u1eef/i.test(v.name)) || vi.find(v=>/google/i.test(v.name)) || vi[0];
+if (pick) u.voice = pick;
+u.pitch = 1.05;
 speechSynthesis.cancel(); speechSynthesis.speak(u);
 }catch(e){}
 }
@@ -709,7 +714,7 @@ css.textContent = "#docBoard{max-width:1180px;margin:12px auto 0;padding:0 16px;
 "#docBoard .dbwrap{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:12px 14px;}"+
 "#docBoard .dbtitle{font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--ink3);text-transform:uppercase;margin-bottom:9px;}"+
 "#docBoard .dbrow{display:flex;gap:10px;flex-wrap:wrap;}"+
-"#docBoard .dcard{flex:1 1 150px;min-width:150px;border:1px solid var(--hair);border-radius:12px;padding:9px 11px;background:var(--surface);}"+
+"#docBoard .dcard{flex:0 1 176px;min-width:150px;max-width:200px;border:1px solid var(--hair);border-radius:12px;padding:9px 11px;background:var(--surface);}"+
 "#docBoard .dcard.busy{border-color:var(--brand3);background:var(--brand-soft);}"+
 "#docBoard .dname{font-weight:800;font-size:12.5px;color:var(--brand);}"+
 "#docBoard .dst{font-size:12px;margin-top:3px;color:var(--ink2);}"+

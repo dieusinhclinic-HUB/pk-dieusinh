@@ -128,6 +128,7 @@
 
     <div class="ttabs">
       <button class="ttab on" data-p="paneToa">💊 Toa thuốc <span id="toaBadge"></span></button>
+      <button class="ttab" data-p="paneToaHx">🗂 Toa đã phát</button>
       <button class="ttab" data-p="paneTon">📦 Tồn kho</button>
       <button class="ttab" data-p="paneGd">↕️ Nhập / Xuất / Kiểm kê</button>
       <button class="ttab" data-p="paneLs">🕘 Lịch sử</button>
@@ -138,6 +139,15 @@
       <div class="card">
         <div class="sect">Toa thuốc — soạn trước, phát sau khi thanh toán. Tick TỪNG DÒNG bằng tay, không có nút phát tất cả.</div>
         <div id="toaBox"></div>
+      </div>
+    </div>
+
+    <!-- ===== LỊCH SỬ TOA ĐÃ PHÁT ===== -->
+    <div class="tpane" id="paneToaHx">
+      <div class="card">
+        <div class="sect">Toa đã phát — toàn bộ lịch sử, mới nhất trên cùng. Bấm một toa để xem chi tiết thuốc.</div>
+        <input id="toaHxQ" placeholder="🔍 Lọc theo tên bệnh nhân hoặc mã toa…" style="width:100%;margin-bottom:10px;" oninput="renderToaHx()" autocomplete="off">
+        <div id="toaHxBox"></div>
       </div>
     </div>
 
@@ -418,7 +428,39 @@ async function toaXongPhat(maToa){
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ renderToa(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); }
+/* ===== lịch sử toa đã phát ===== */
+function hxStrip(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'d').toLowerCase(); }
+function hxT(v){ const m = String(v||'').match(/^(\d{1,2}):(\d{2})/); return m ? (m[1].padStart(2,'0')+':'+m[2]) : ''; }
+function renderToaHx(){
+  const box = $('toaHxBox'); if (!box) return;
+  const qEl = $('toaHxQ'); const q = hxStrip(qEl ? qEl.value.trim() : '');
+  const cts = rowsToObj('TOA_CT');
+  let toas = rowsToObj('TOA_THUOC').filter(t=>t.TRANG_THAI==='Đã phát');
+  if (q) toas = toas.filter(t => hxStrip(bnTen(t.MA_BN)).includes(q) || hxStrip(t.MA_TOA).includes(q));
+  toas = toas.slice().sort((a,b)=> String(b.NGAY).localeCompare(String(a.NGAY)) || String(b.GIO_PHAT||'').localeCompare(String(a.GIO_PHAT||'')));
+  if (!toas.length){ box.innerHTML = '<div class="hint">'+(q?'Không tìm thấy toa nào khớp.':'Chưa có toa nào đã phát.')+'</div>'; return; }
+  let html = '', lastDay = '';
+  toas.slice(0,200).forEach(t=>{
+    const d = String(t.NGAY).slice(0,10);
+    if (d !== lastDay){ lastDay = d; html += '<div class="sect" style="margin-top:12px;">📅 '+d.split('-').reverse().join('/')+'</div>'; }
+    const lines = cts.filter(c=>c.MA_TOA===t.MA_TOA);
+    html += `<details style="border:1px solid #e1e0d9;border-radius:11px;background:#fff;margin-bottom:7px;overflow:hidden;">
+    <summary style="padding:9px 12px;cursor:pointer;display:flex;gap:10px;align-items:center;font-size:13px;list-style:none;flex-wrap:wrap;">
+      <b style="color:#5b2fa0;">💊 ${t.MA_TOA}</b>
+      <span style="font-weight:700;">${bnTen(t.MA_BN)}</span>
+      <span style="color:#8a9187;font-size:12px;">${lines.length} thuốc · kê: ${t.BS_KE||'—'}</span>
+      <span style="margin-left:auto;color:#0a7a0a;font-size:12px;font-weight:700;">✓ phát ${hxT(t.GIO_PHAT)||''} — ${t.NGUOI_PHAT?String(t.NGUOI_PHAT).split('@')[0]:''}</span>
+    </summary>
+    <div style="padding:4px 14px 10px;border-top:1px dashed #eee;">
+      ${lines.map(c=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed #f0efe9;font-size:12.5px;"><span style="flex:1;">${c.TEN_THUOC}</span><span style="color:#8a9187;">${c.LIEU_LAN?(c.LIEU_LAN+' × '+c.LAN_NGAY+' lần/ngày × '+c.SO_NGAY+' ngày'):''}</span><b class="num">SL phát: ${c.SL_PHAT||c.SO_LUONG||0}</b></div>`).join('')}
+      <div style="margin-top:8px;font-size:12px;color:#8a9187;">Soạn: ${t.NGUOI_SOAN?String(t.NGUOI_SOAN).split('@')[0]:'—'} ${hxT(t.GIO_SOAN)||''} · Phát: ${t.NGUOI_PHAT?String(t.NGUOI_PHAT).split('@')[0]:'—'} ${hxT(t.GIO_PHAT)||''}
+      <button class="qbtn" style="margin-left:10px;" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In lại toa</button></div>
+    </div></details>`;
+  });
+  if (toas.length > 200) html += '<div class="hint">Hiển thị 200 toa gần nhất — dùng ô lọc để tìm toa cũ hơn.</div>';
+  box.innerHTML = html;
+}
+function renderAll(){ renderToa(); renderToaHx(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); }
 function renderKpis(){
   const st = stockMap(), ds = drugList();
   let units=0, val=0, low=0;

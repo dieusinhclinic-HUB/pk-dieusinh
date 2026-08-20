@@ -440,6 +440,7 @@ google.accounts.id.renderButton($('gbtn'), { theme:'filled_blue', size:'large', 
 $('loginMsg').textContent = 'Dùng đúng Gmail đã được phòng khám khai báo.';
 }
 window.addEventListener('load', () => {
+try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){}; }catch(e){}
 const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
 setTimeout(()=>clearInterval(t), 10000);
 $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
@@ -566,17 +567,45 @@ if (j.ok){ ver=j.v; toast('✓ Đã chuyển: ' + (st==='Xong khám'?'Hoàn tấ
 else toast('⚠️ ' + (j.error||'lỗi'));
 }
 let gcCho = null;
+/* đơn có dịch vụ siêu âm? (nhóm/tên chứa "siêu âm" hoặc SHG) */
+function needsSieuAm(r){
+const ids = String(r.DV_YEU_CAU||'').split('|').filter(Boolean);
+const dvs = rowsToObj('DICH_VU');
+return ids.some(id=>{
+const d = dvs.find(x=>x.MA_DV===id); if(!d) return false;
+const t = stripVN((d.NHOM||'')+' '+(d.TEN_DV||''));
+return t.indexOf('sieu am')!==-1 || t.indexOf('shg')!==-1;
+});
+}
+/* các BS làm siêu âm đang làm việc hôm nay (theo cột CHUYÊN KHOA) */
+function sieuAmBS(){
+return rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có' && stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1).map(b=>String(b.TEN_BS).trim());
+}
 function callBN(maCho){
 const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
 gcCho = maCho;
 const yc = String(r.BS_YEU_CAU||'').trim();
+/* điều phối siêu âm: nếu đơn có siêu âm và BN không yêu cầu ai → đề xuất BS siêu âm ít bận nhất */
+let goiY = '';
+if (!yc && needsSieuAm(r)){
+const sa = sieuAmBS();
+if (sa.length){
+const q = queueToday();
+const load = ten => q.filter(x=>x.TRANG_THAI==='Đang khám' && String(x.BS_KHAM||'').trim()===ten).length*100
++ q.filter(x=>(x.TRANG_THAI==='Xong khám'||x.TRANG_THAI==='Đã thu') && String(x.BS_KHAM||'').trim()===ten).length;
+goiY = sa.slice().sort((a,b)=>load(a)-load(b))[0];
+}
+}
+const sel = yc || goiY;
 $('gcInfo').innerHTML = 'Mời số <b>'+(r.STT||'?')+'</b> — <b>'+bnName(r.MA_BN)+'</b> vào phòng khám.'
-+ (yc?(' <div style="color:#2456a8;margin-top:4px;">BN yêu cầu: <b>'+yc+'</b> (đã chọn sẵn)</div>'):'');
++ (yc?(' <div style="color:#2456a8;margin-top:4px;">BN yêu cầu: <b>'+yc+'</b> (đã chọn sẵn)</div>'):'')
++ (goiY?(' <div style="color:#7c4dbe;margin-top:4px;">🔊 Đơn có siêu âm — hệ thống đề xuất: <b>'+goiY+'</b> (đã chọn sẵn)</div>'):'');
 const bss = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
 $('gcBs').innerHTML = bss.map(b=>{
 const ten = String(b.TEN_BS).trim();
 const busy = queueToday().some(q=>q.TRANG_THAI==='Đang khám' && String(q.BS_KHAM||'').trim()===ten);
-return `<button class="btn ${ten===yc?'btn-brand':'btn-ghost'}" onclick="gcGo(this.dataset.bs)" data-bs="${ten.replace(/"/g,'&quot;')}" style="flex:1 1 150px;">${ten}${busy?' <span style="font-size:10.5px;opacity:.75;">· đang khám</span>':''}</button>`;
+const isSA = stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1;
+return `<button class="btn ${ten===sel?'btn-brand':'btn-ghost'}" onclick="gcGo(this.dataset.bs)" data-bs="${ten.replace(/"/g,'&quot;')}" style="flex:1 1 150px;">${ten}${isSA?' <span style="font-size:10px;opacity:.85;">🔊</span>':''}${busy?' <span style="font-size:10.5px;opacity:.75;">· đang khám</span>':''}</button>`;
 }).join('') || '<div class="empty">Chưa có bác sĩ đang làm việc.</div>';
 show('gcOvl');
 }
@@ -596,8 +625,12 @@ try{
 const ph = String(phong||'').replace(/^BS\.?\s*/i,'bác sĩ ');
 const u = new SpeechSynthesisUtterance('Mời số '+(stt||'')+', '+ten+', vào phòng khám '+ph);
 u.lang='vi-VN'; u.rate=0.95;
-const vs = speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
-if (vs.length) u.voice = vs[0];
+const all = speechSynthesis.getVoices();
+const vi = all.filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
+// uu tien giong NU tu nhien: HoaiMy (Microsoft) > Google Tieng Viet (nu) > bat ky giong vi
+const pick = vi.find(v=>/hoaimy|female|n\u1eef/i.test(v.name)) || vi.find(v=>/google/i.test(v.name)) || vi[0];
+if (pick) u.voice = pick;
+u.pitch = 1.05;
 speechSynthesis.cancel(); speechSynthesis.speak(u);
 }catch(e){}
 }
@@ -650,6 +683,54 @@ const waiting = q.filter(r=>r.TRANG_THAI==='Chờ khám' && (String(r.BS_KHAM||'
 return { ten, busy, waiting, label: ten + (busy? ' — 🟡 đang khám' : ' — 🟢 đang trống') + (waiting? (' · '+waiting+' chờ') : '') };
 });
 }
+/* ---- tìm dịch vụ trong modal tiếp nhận (giống bàn khám) ---- */
+let rcSel = [], rcDvSelIdx = -1;
+function dvAll(){ return rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không'); }
+function topDVs(n){
+const cnt = {};
+rowsToObj('SO_KHAM').forEach(l=>{ const t=String(l.TEN_DV||'').trim(); if(t) cnt[t]=(cnt[t]||0)+1; });
+return dvAll().slice().sort((a,b)=>(cnt[b.TEN_DV]||0)-(cnt[a.TEN_DV]||0)).slice(0, n||6);
+}
+function rcDvMatches(){
+const el = $('rcDvSearch'); if (!el) return [];
+const q = stripVN(el.value).trim();
+if (!q) return [];
+return dvAll().filter(d=>stripVN(d.TEN_DV).includes(q) || stripVN(d.NHOM).includes(q)).slice(0,8);
+}
+function rcDvPaint(m){
+const box = $('rcDvSug'); if (!box) return;
+if (!m.length){ box.style.display='none'; box.innerHTML=''; return; }
+box.innerHTML = m.map((d,i)=>`<div onmousedown="rcDvPick('${d.MA_DV}')" style="padding:10px 13px;display:flex;gap:9px;align-items:center;cursor:pointer;font-size:13px;border-bottom:1px dashed #f0efe9;${i===rcDvSelIdx?'background:var(--brand-soft);':''}"><span style="flex:1;">${d.TEN_DV}</span><span style="font-size:10.5px;color:var(--ink3);background:#f1f1ec;border-radius:99px;padding:1px 8px;white-space:nowrap;">${d.NHOM||''}</span><span class="num" style="font-weight:700;">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></div>`).join('');
+box.style.display='block';
+}
+function rcDvSuggest(){
+const m = rcDvMatches();
+if (rcDvSelIdx >= m.length || rcDvSelIdx < 0) rcDvSelIdx = m.length ? 0 : -1;
+rcDvPaint(m);
+}
+function rcDvKey(e){
+const m = rcDvMatches(); if (!m.length) return;
+if (e.key==='ArrowDown'){ rcDvSelIdx=(rcDvSelIdx+1)%m.length; rcDvPaint(m); e.preventDefault(); }
+else if (e.key==='ArrowUp'){ rcDvSelIdx=(rcDvSelIdx-1+m.length)%m.length; rcDvPaint(m); e.preventDefault(); }
+else if (e.key==='Enter'){ e.preventDefault(); rcDvPick(m[Math.max(rcDvSelIdx,0)].MA_DV); }
+else if (e.key==='Escape'){ const b=$('rcDvSug'); if(b) b.style.display='none'; }
+}
+function rcDvPick(ma){
+if (rcSel.indexOf(ma)===-1) rcSel.push(ma);
+const el = $('rcDvSearch'); if (el){ el.value=''; el.focus(); }
+const b = $('rcDvSug'); if (b) b.style.display='none';
+rcDvSelIdx = -1;
+rcRenderSel();
+}
+function rcDelDv(i){ rcSel.splice(i,1); rcRenderSel(); }
+function rcRenderSel(){
+const host = $('rcSelList'); if (!host) return;
+const dvs = rowsToObj('DICH_VU');
+host.innerHTML = rcSel.length ? rcSel.map((ma,i)=>{
+const d = dvs.find(x=>x.MA_DV===ma) || {TEN_DV:ma, DON_GIA:0};
+return `<div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--hair);border-radius:10px;background:#fff;margin-bottom:6px;font-size:13px;"><span style="flex:1;">✓ ${d.TEN_DV}</span><span class="num" style="font-weight:700;">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')} đ</span><button type="button" onclick="rcDelDv(${i})" style="background:none;border:none;color:var(--crit);cursor:pointer;font-size:15px;">✕</button></div>`;
+}).join('') : '<div style="font-size:12px;color:var(--ink3);margin-bottom:6px;">Chưa chọn dịch vụ nào.</div>';
+}
 function openReception(maBN, hen){
 rcBN = maBN; rcHen = hen || null;
 const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===maBN);
@@ -658,17 +739,21 @@ if (!b){ toast('⚠️ Không tìm thấy hồ sơ '+maBN); return; }
 const dup = queueToday().find(x => x.MA_BN === maBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
 if (dup){ toast('⚠️ <b>'+bnName(maBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); return; }
 $('rcTitle').textContent = '🏥 Tiếp nhận — ' + b.HO_TEN + ' (' + maBN + ')';
-const dvs = rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không');
-const groups = {};
-dvs.forEach(d=>{ const g=d.NHOM||'Khác'; (groups[g]=groups[g]||[]).push(d); });
 const bss = bsStatusList();
+rcSel = [];
 $('rcBody').innerHTML = `
 ${rcHen ? `<div class="rcHen">🗓 <b>Check-in từ lịch hẹn</b> ${rcHen.GIO_HEN?('lúc '+fmtT(rcHen.GIO_HEN)):''}${rcHen.LY_DO?(' — '+rcHen.LY_DO):''}${rcHen.BS_PHU_TRACH?(' · BS '+rcHen.BS_PHU_TRACH):''}</div>` : ''}
 <div class="sect-label">Dịch vụ yêu cầu (chọn trước — bác sĩ sẽ xác nhận khi thực hiện)</div>
-${Object.entries(groups).map(([g,ds])=>`<div class="rcGroup"><div class="gname">${g}</div><div class="rcChips">
-${ds.map(d=>`<label class="rcChip"><input type="checkbox" class="rcDv" value="${d.MA_DV}">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></label>`).join('')}
-</div></div>`).join('')}
-<div style="font-size:11.5px;color:var(--ink3);margin:2px 0 12px;">Chưa rõ bệnh nhân cần gì? Bỏ trống — bác sĩ sẽ chỉ định trong lúc khám.</div>
+<div id="rcSelList"></div>
+<div style="position:relative;">
+<input id="rcDvSearch" placeholder="🔎 Tìm dịch vụ — gõ vài chữ, Enter để thêm (vd: sieu am, kham thai…)" autocomplete="off" style="width:100%;"
+ oninput="rcDvSuggest()" onkeydown="rcDvKey(event)" onfocus="rcDvSuggest()" onblur="setTimeout(()=>{const b=$('rcDvSug'); if(b) b.style.display='none';},180)">
+<div id="rcDvSug" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--brand3);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 12px 28px rgba(10,82,64,.14);z-index:70;max-height:250px;overflow:auto;display:none;"></div>
+</div>
+<div class="rcGroup" style="margin-top:9px;"><div class="gname">⚡ Hay dùng</div><div class="rcChips">
+${topDVs(6).map(d=>`<button type="button" class="rcChip" onclick="rcDvPick('${d.MA_DV}')">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></button>`).join('')}
+</div></div>
+<div style="font-size:11.5px;color:var(--ink3);margin:6px 0 12px;">Chưa rõ bệnh nhân cần gì? Bỏ trống — bác sĩ sẽ chỉ định trong lúc khám.</div>
 <div class="sect-label">Bác sĩ khám</div>
 <select id="rcBs" style="width:100%;">
 <option value="">— Bác sĩ nào cũng được —</option>
@@ -676,6 +761,7 @@ ${bss.map(x=>`<option value="${x.ten}">${x.label}</option>`).join('')}
 </select>
 <div class="sect-label">Ghi chú tiếp nhận</div>
 <input id="rcNote" style="width:100%;" placeholder="Tùy chọn — lý do khám, triệu chứng…" value="${rcHen&&rcHen.LY_DO?String(rcHen.LY_DO).replace(/"/g,'&quot;'):''}">`;
+rcRenderSel();
 if (rcHen && rcHen.BS_PHU_TRACH){
 const el = $('rcBs');
 if ([...el.options].some(o=>o.value===String(rcHen.BS_PHU_TRACH).trim())) el.value = String(rcHen.BS_PHU_TRACH).trim();
@@ -690,7 +776,7 @@ if (btn.disabled) return;
 const q = queueToday();
 const dup = q.find(x => x.MA_BN === rcBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
 if (dup){ toast('⚠️ <b>'+bnName(rcBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); hide('rcOvl'); return; }
-const dvIds = [...document.querySelectorAll('.rcDv:checked')].map(x=>x.value);
+const dvIds = rcSel.slice();
 const bs = $('rcBs').value;
 const note = $('rcNote').value.trim();
 btn.disabled = true; btn.textContent = 'Đang tiếp nhận…';
