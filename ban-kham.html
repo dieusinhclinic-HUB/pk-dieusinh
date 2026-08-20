@@ -85,9 +85,16 @@ header.bar .sub{font-size:12px;opacity:.85;}
 .tag.uu{background:var(--warn-soft);color:#8a6205;}
 
 /* dịch vụ */
-.dvgroups{display:flex;flex-direction:column;gap:8px;}
-.dvgroup .gname{font-size:11px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.wscol{display:flex;flex-direction:column;gap:12px;min-width:0;}
 .dvchips{display:flex;gap:7px;flex-wrap:wrap;}
+.dvsearchwrap{position:relative;}
+.dvsearchwrap input{width:100%;padding:11px 13px;font-size:14px;border-radius:11px;}
+.dvsug{position:absolute;top:calc(100% - 2px);left:0;right:0;background:#fff;border:1.5px solid var(--brand3);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 12px 28px rgba(10,82,64,.14);z-index:80;max-height:300px;overflow:auto;display:none;}
+.dvsug .it{padding:10px 13px;display:flex;gap:9px;align-items:center;cursor:pointer;font-size:13px;border-bottom:1px dashed #f0efe9;}
+.dvsug .it:last-child{border-bottom:none;}
+.dvsug .it.sel{background:var(--brand-soft);}
+.dvsug .it .g{font-size:10.5px;color:var(--ink3);background:#f1f1ec;border-radius:99px;padding:1px 8px;white-space:nowrap;}
+.quicklbl{font-size:11px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;}
 .dvchip{background:#fff;border:1.5px solid var(--hair);border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;}
 .dvchip:hover{border-color:var(--brand3);color:var(--brand);}
 .oline{display:flex;align-items:center;gap:9px;padding:7px 2px;border-bottom:1px dashed #eeeee9;font-size:13.5px;flex-wrap:wrap;}
@@ -158,11 +165,8 @@ header.bar .sub{font-size:12px;opacity:.85;}
 </header>
 
 <div class="wrap">
-<!-- ==== WORKSPACE ==== -->
-<div class="card">
-<div class="hd"><h2 id="wsTitle">🧑‍⚕️ Bệnh nhân</h2></div>
-<div class="bd" id="workspace"></div>
-</div>
+<!-- ==== WORKSPACE (chồng thẻ theo khối) ==== -->
+<div class="wscol" id="wsCol"></div>
 
 <!-- ==== RAIL ==== -->
 <div>
@@ -415,16 +419,18 @@ edd = new Date(lmp.getTime() + 280*86400000);
 return {o, weeks, days, edd};
 }
 
-/* ================== WORKSPACE ================== */
+/* ================== WORKSPACE (khối thẻ riêng biệt) ================== */
 function renderWorkspace(){
-const ws = $('workspace');
+const ws = $('wsCol');
+// giữ con trỏ đang gõ (tìm dịch vụ / ghi chú) khi dữ liệu tự làm tươi
+const ae = document.activeElement; const aeId = ae ? ae.id : '';
+const aePos = (ae && ae.selectionStart != null) ? ae.selectionStart : null;
 if (!cur){
 const w = sortQueue(queueToday().filter(r=>r.TRANG_THAI==='Chờ khám'));
-$('wsTitle').textContent = '🧑‍⚕️ Bệnh nhân';
-ws.innerHTML = `<div class="hero">
+ws.innerHTML = `<div class="card"><div class="bd hero">
 <button class="herobtn" onclick="callNext()" ${w.length?'':'disabled'}>📢 Gọi bệnh nhân tiếp theo</button>
 <div class="sub">${w.length ? 'Đang chờ: <b>'+w.length+'</b> bệnh nhân · tiếp theo: <b>'+bn(w[0].MA_BN).HO_TEN+'</b> (số '+(w[0].STT||'')+')' : 'Hàng chờ trống 🎉'}</div>
-</div>`;
+</div></div>`;
 return;
 }
 const b = bn(cur.maBN);
@@ -434,17 +440,14 @@ const oLines = orderLines(cur.maCho, cur.maBN);
 const doneLines = oLines.filter(lineDone);
 const pendLines = oLines.filter(l=>!lineDone(l));
 const preg = pregInfo(cur.maBN);
-$('wsTitle').textContent = '🧑‍⚕️ ' + b.HO_TEN;
-
-// dịch vụ theo nhóm
-const dvs = rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không');
-const groups = {};
-dvs.forEach(d=>{ const g=d.NHOM||'Khác'; (groups[g]=groups[g]||[]).push(d); });
-
 const total = lines.reduce((s,l)=>s+l.gia*l.qty,0) + doneLines.reduce((s,l)=>s+(Number(l.THANH_TIEN)||0),0);
 const reqTxt = dvNames(order);
+const toas = rowsToObj('TOA_THUOC').filter(t=>String(t.MA_CHO||'')===cur.maCho && t.TRANG_THAI!=='Hủy');
 
-ws.innerHTML = `
+/* ---- 1 · BỆNH NHÂN ---- */
+const cardBN = `<div class="card">
+<div class="hd"><h2>🧑‍⚕️ Bệnh nhân</h2><div class="spacer"></div><button class="qbtn" onclick="PKProfile.open('${b.MA_BN}')">📂 Mở bệnh án</button></div>
+<div class="bd">
 <div class="pt-head">
 <div style="flex:1;">
 <div class="nm" onclick="PKProfile.open('${b.MA_BN}')">${b.HO_TEN} <span class="num" style="font-size:12px;color:var(--ink3);font-weight:600;">${b.MA_BN}</span> ${qTags(order)}</div>
@@ -460,39 +463,97 @@ ${preg.edd?('<span class="chip">Dự sinh: '+preg.edd.toLocaleDateString('vi-VN'
 </div>
 <div class="kv">${Object.entries(preg.o).filter(([k,v])=>v!=='' && v!=null).map(([k,v])=>k+': <b>'+v+'</b>').join(' · ')}</div>
 </div>` : ''}
+</div></div>`;
 
-<div class="sect-label">🧾 Dịch vụ của lượt khám — xác nhận từng dòng khi đã thực hiện</div>
-${pendLines.map(l=>`<div class="oline pending"><span class="dv">⏳ ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">(chỉ định — chưa thực hiện)</span></span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`).join('')}
-${doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div class="kqbox">'+(String(l.KET_QUA||'').trim()?('🧾 '+l.KET_QUA):'📎 Tệp kết quả đính kèm')+kqFileChips(l)+'</div>'):''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${l.MA_LUOT}')">✎ KQ</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="kq_${l.MA_LUOT}"></div>`).join('')}
-${lines.map((l,i)=>`<div class="oline"><span class="dv">${l.dv.TEN_DV}${l.qty>1?' ×'+l.qty:''} <span style="font-size:11px;color:var(--ink3);">(mới thêm — sẽ ghi khi hoàn tất)</span></span><span class="num">${fmtD(l.gia*l.qty)}</span><button class="x" onclick="delLine(${i})">✕</button></div>`).join('')}
-${(!pendLines.length && !doneLines.length && !lines.length)?'<div class="empty">Chưa có dịch vụ — bấm chọn bên dưới.</div>':''}
-<div class="totline"><span>Tổng đã thực hiện${lines.length?' (gồm dòng mới)':''}</span><span class="num">${fmtD(total)}</span></div>
-
-<div class="sect-label">➕ Thêm dịch vụ (bấm để thêm)</div>
-<div class="dvgroups">
-${Object.entries(groups).map(([g,ds])=>`<div class="dvgroup"><div class="gname">${g}</div><div class="dvchips">
-${ds.map(d=>`<button class="dvchip" onclick="addLine('${d.MA_DV}')">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></button>`).join('')}
-</div></div>`).join('')}
+/* ---- 2 · DỊCH VỤ & CHỈ ĐỊNH ---- */
+const linesHtml =
+pendLines.map(l=>`<div class="oline pending"><span class="dv">⏳ ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">(chỉ định — chưa thực hiện)</span></span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`).join('')
++ doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div class="kqbox">'+(String(l.KET_QUA||'').trim()?('🧾 '+l.KET_QUA):'📎 Tệp kết quả đính kèm')+kqFileChips(l)+'</div>'):''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${l.MA_LUOT}')">✎ KQ</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="kq_${l.MA_LUOT}"></div>`).join('')
++ lines.map((l,i)=>`<div class="oline"><span class="dv">${l.dv.TEN_DV}${l.qty>1?' ×'+l.qty:''} <span style="font-size:11px;color:var(--ink3);">(mới thêm — sẽ ghi khi hoàn tất)</span></span><span class="num">${fmtD(l.gia*l.qty)}</span><button class="x" onclick="delLine(${i})">✕</button></div>`).join('');
+const cardDV = `<div class="card">
+<div class="hd"><h2>🧾 Dịch vụ & chỉ định</h2><div class="spacer"></div><span class="num" style="font-size:14.5px;font-weight:800;color:var(--brand);">${fmtD(total)}</span></div>
+<div class="bd">
+${linesHtml || '<div class="empty">Chưa có dịch vụ — tìm và thêm bên dưới.</div>'}
+<div class="dvsearchwrap" style="margin-top:11px;">
+<input id="dvSearch" placeholder="🔎 Tìm dịch vụ — gõ vài chữ, Enter để thêm (vd: sieu am, kham thai…)" autocomplete="off"
+ oninput="dvSuggest()" onkeydown="dvKey(event)" onfocus="dvSuggest()" onblur="setTimeout(dvHide,180)" value="${dvQuery.replace(/"/g,'&quot;')}">
+<div class="dvsug" id="dvSug"></div>
 </div>
+<div class="quicklbl">⚡ Hay dùng</div>
+<div class="dvchips">${topDVs(6).map(d=>`<button class="dvchip" onclick="addLine('${d.MA_DV}')">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></button>`).join('')}</div>
+</div></div>`;
 
-<div class="sect-label">💊 Toa thuốc của lượt khám</div>
-${(rowsToObj('TOA_THUOC').filter(t=>String(t.MA_CHO||'')===cur.maCho && t.TRANG_THAI!=='Hủy')).map(t=>{
+/* ---- 3 · TOA THUỐC ---- */
+const cardToa = `<div class="card">
+<div class="hd"><h2>💊 Toa thuốc</h2><div class="spacer"></div><button class="qbtn" onclick="keToa()">＋ Kê toa thuốc</button></div>
+<div class="bd">
+${toas.map(t=>{
 const n = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===t.MA_TOA).length;
 return `<div class="toaline"><b>💊 ${t.MA_TOA}</b><span>${n} thuốc · ${t.BS_KE}${t.GIO_KE?(' · '+fmtT(t.GIO_KE)):''}</span><span style="font-weight:700;">${t.TRANG_THAI}</span><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')" style="margin-left:auto;">🖨 In toa</button></div>`;
 }).join('')||'<div class="empty">Chưa kê toa cho lượt khám này.</div>'}
-<button class="btn btn-soft" style="margin-top:4px;" onclick="keToa()">💊 Kê toa thuốc</button>
+</div></div>`;
 
-<div class="sect-label">📝 Ghi chú khám</div>
+/* ---- 4 · KẾT LUẬN & HOÀN TẤT ---- */
+const cardKL = `<div class="card">
+<div class="hd"><h2>📝 Kết luận & ghi chú khám</h2></div>
+<div class="bd">
 <textarea id="exNote" rows="3" style="width:100%;" placeholder="Nhận xét lâm sàng, dặn dò, hẹn tái khám…" oninput="examNote=this.value">${examNote}</textarea>
-
-<div class="sect-label">🕐 Lịch sử khám gần đây</div>
-${visits.length?visits.map(v=>`<div class="histrow"><span class="num">${String(v.NGAY).slice(0,10)}</span><span style="flex:1;padding:0 8px;">${v.TEN_DV}${v.GHI_CHU?' — <i>'+v.GHI_CHU+'</i>':''}</span><span class="num">${fmtD(v.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">Chưa có</div>'}
-
 <div class="actionbar">
 <button class="btn btn-ghost" onclick="cur=null;lines=[];renderWorkspace();">← Quay lại</button>
 <button class="btn btn-brand" onclick="finishExam()">✓ Hoàn tất khám — chuyển thu ngân (${fmtD(total)})</button>
-</div>`;
+</div>
+</div></div>`;
+
+/* ---- 5 · LỊCH SỬ ---- */
+const cardLS = `<div class="card">
+<div class="hd"><h2>🕐 Lịch sử khám gần đây</h2><div class="spacer"></div><span style="font-size:11.5px;color:var(--ink3);">chi tiết trong bệnh án</span></div>
+<div class="bd">
+${visits.length?visits.map(v=>`<div class="histrow"><span class="num">${String(v.NGAY).slice(0,10)}</span><span style="flex:1;padding:0 8px;">${v.TEN_DV}${v.GHI_CHU?' — <i>'+v.GHI_CHU+'</i>':''}</span><span class="num">${fmtD(v.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">Chưa có</div>'}
+</div></div>`;
+
+ws.innerHTML = cardBN + cardDV + cardToa + cardKL + cardLS;
+// trả lại con trỏ nếu đang gõ dở
+if (aeId){ const el2 = $(aeId); if (el2){ el2.focus(); if (aePos!=null && el2.setSelectionRange){ try{ el2.setSelectionRange(aePos, aePos); }catch(e){} } if (aeId==='dvSearch') dvSuggest(); } }
 }
+
+/* ---- tìm kiếm dịch vụ ---- */
+let dvQuery='', dvSel=-1;
+function normVN(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u0111/g,'d').replace(/\u0110/g,'d').toLowerCase(); }
+function dvAll(){ return rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không'); }
+function dvMatches(){
+const q = normVN(dvQuery).trim();
+if (!q) return [];
+return dvAll().filter(d=>normVN(d.TEN_DV).includes(q) || normVN(d.NHOM).includes(q)).slice(0,8);
+}
+function dvPaint(m){
+const box = $('dvSug'); if (!box) return;
+if (!m.length){ box.style.display='none'; box.innerHTML=''; return; }
+box.innerHTML = m.map((d,i)=>`<div class="it${i===dvSel?' sel':''}" onmousedown="dvPick('${d.MA_DV}')"><span style="flex:1;">${d.TEN_DV}</span><span class="g">${d.NHOM||''}</span><span class="num" style="font-weight:700;">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></div>`).join('');
+box.style.display='block';
+}
+function dvSuggest(){
+const el = $('dvSearch'); if (!el) return;
+dvQuery = el.value;
+const m = dvMatches();
+if (dvSel >= m.length) dvSel = m.length ? 0 : -1;
+if (dvSel < 0 && m.length) dvSel = 0;
+dvPaint(m);
+}
+function dvHide(){ const box=$('dvSug'); if (box) box.style.display='none'; }
+function dvKey(e){
+const m = dvMatches(); if (!m.length) return;
+if (e.key==='ArrowDown'){ dvSel=(dvSel+1)%m.length; dvPaint(m); e.preventDefault(); }
+else if (e.key==='ArrowUp'){ dvSel=(dvSel-1+m.length)%m.length; dvPaint(m); e.preventDefault(); }
+else if (e.key==='Enter'){ e.preventDefault(); dvPick(m[Math.max(dvSel,0)].MA_DV); }
+else if (e.key==='Escape'){ dvHide(); }
+}
+function dvPick(ma){ dvQuery=''; dvSel=-1; addLine(ma); const el=$('dvSearch'); if (el){ el.value=''; el.focus(); } dvHide(); }
+function topDVs(n){
+const cnt = {};
+rowsToObj('SO_KHAM').forEach(l=>{ const t=String(l.TEN_DV||'').trim(); if(t) cnt[t]=(cnt[t]||0)+1; });
+return dvAll().slice().sort((a,b)=>(cnt[b.TEN_DV]||0)-(cnt[a.TEN_DV]||0)).slice(0, n||6);
+}
+
 function addLine(maDV){
 const d = rowsToObj('DICH_VU').find(x=>x.MA_DV===maDV); if(!d) return;
 const ex = lines.find(l=>l.dv.MA_DV===maDV);

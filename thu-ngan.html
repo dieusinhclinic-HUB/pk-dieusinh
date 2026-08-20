@@ -95,6 +95,40 @@ header.bar .sub{font-size:12px;opacity:.85;}
 .henrow .nm{font-weight:700;cursor:pointer;}
 .henrow .nm:hover{color:var(--brand);text-decoration:underline;}
 .henrow .meta{font-size:11.5px;color:var(--ink2);}
+/* ===== lịch hẹn dạng calendar ===== */
+.calmodal{width:min(1280px,97vw);height:min(860px,92vh);display:flex;flex-direction:column;}
+.calmodal .mb{flex:1;overflow:auto;display:flex;flex-direction:column;}
+.caltools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.caltools .lbl{font-size:15px;font-weight:800;color:var(--brand);min-width:150px;text-align:center;}
+.calseg{display:flex;border:1.5px solid var(--brand3);border-radius:10px;overflow:hidden;}
+.calseg button{border:none;background:#fff;color:var(--brand);padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
+.calseg button.on{background:var(--brand2);color:#fff;}
+.calnav{border:1.5px solid var(--hair);background:#fff;border-radius:9px;padding:6px 12px;font-weight:800;cursor:pointer;font-size:13px;}
+.calnav:hover{border-color:var(--brand3);color:var(--brand);}
+.calgrid{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(96px,1fr);gap:5px;margin-top:10px;min-height:0;}
+.calgrid .dow{grid-auto-rows:auto;}
+.caldow{font-size:11px;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;text-align:center;padding:4px 0;}
+.calday{border:1px solid var(--hair);border-radius:10px;background:#fff;padding:5px 6px;overflow:hidden;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0;}
+.calday:hover{border-color:var(--brand3);box-shadow:0 2px 8px rgba(10,82,64,.10);}
+.calday.dim{background:#f7f7f3;opacity:.55;}
+.calday.today{border:2px solid var(--brand2);background:var(--brand-bg);}
+.calday .dnum{font-size:12px;font-weight:800;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;}
+.calday.today .dnum{color:var(--brand);}
+.calday .dnum .cnt{background:var(--brand-soft);color:var(--brand);border-radius:99px;padding:0 7px;font-size:10.5px;}
+.calhen{background:#e7f0fd;border-left:3px solid #2456a8;color:#1c3f7a;border-radius:0 6px 6px 0;padding:2px 6px;font-size:11px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.calhen:hover{background:#d8e7fb;}
+.calhen.ok{background:var(--good-soft);border-left-color:var(--good);color:#0a6b0a;}
+.calhen.past{background:#f1f1ec;border-left-color:#b9beb4;color:var(--ink3);}
+.calmore{font-size:10.5px;color:var(--ink3);font-weight:700;padding-left:2px;}
+/* tuần theo khung giờ */
+.wkgrid{flex:1;display:grid;grid-template-columns:52px repeat(7,1fr);gap:4px;margin-top:10px;min-height:0;grid-auto-rows:auto;}
+.wkhead{font-size:11.5px;font-weight:800;text-align:center;padding:5px 2px;color:var(--ink2);border-radius:8px;}
+.wkhead.today{background:var(--brand-soft);color:var(--brand);}
+.wkhead .d{font-size:14px;}
+.wkhr{font-size:10.5px;color:var(--ink3);font-weight:700;text-align:right;padding:6px 5px 0 0;}
+.wkcell{border:1px solid #eceae2;border-radius:8px;background:#fff;min-height:38px;padding:2px 3px;display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0;}
+.wkcell:hover{border-color:var(--brand3);}
+.wkcell.today{background:#f4faf7;}
 
 /* pay panel */
 .payline{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px dashed #eeeee9;font-size:13.5px;}
@@ -198,7 +232,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div style="display:flex;flex-direction:column;gap:14px;">
 <!-- ==== HẸN HÔM NAY ==== -->
 <div class="card">
-<div class="hd"><h2>🗓 Lịch hẹn</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="henCount"></span><button class="qbtn call" onclick="openDatHen()">📅 Đặt hẹn</button></div>
+<div class="hd"><h2>🗓 Lịch hẹn</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="henCount"></span><button class="qbtn" onclick="openCal()">🗓 Xem lịch</button><button class="qbtn call" onclick="openDatHen()">📅 Đặt hẹn</button></div>
 <div class="bd" id="henBox"></div>
 </div>
 <!-- ==== QUEUE ==== -->
@@ -238,6 +272,22 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#8a6205;font-weight:700;margin-right:auto;cursor:pointer;"><input type="checkbox" id="rcUuTien" style="width:15px;height:15px;accent-color:var(--warn);">⬆ Ưu tiên khám trước</label>
 <button class="btn btn-brand" id="rcSaveBtn" onclick="rcSave()">✓ Tiếp nhận vào hàng chờ</button>
 </div>
+</div></div>
+
+<!-- ===== modal: lịch hẹn dạng calendar ===== -->
+<div class="ovl" id="calOvl"><div class="modal calmodal">
+<div class="mh"><h3>🗓 Lịch hẹn</h3>
+<div class="caltools" style="margin-left:14px;flex:1;">
+<div class="calseg"><button id="calBtnM" class="on" onclick="calSet('month')">Tháng</button><button id="calBtnW" onclick="calSet('week')">Tuần</button></div>
+<div class="spacer"></div>
+<button class="calnav" onclick="calMove(-1)">‹</button>
+<span class="lbl num" id="calLbl"></span>
+<button class="calnav" onclick="calMove(1)">›</button>
+<button class="calnav" onclick="calMove(0)">Hôm nay</button>
+<span style="font-size:11px;color:var(--ink3);">bấm ô ngày để đặt hẹn · bấm tên để mở bệnh án</span>
+</div>
+<button class="mclose" onclick="hide('calOvl')">✕</button></div>
+<div class="mb" id="calBody"></div>
 </div></div>
 
 <!-- ===== modal: đặt hẹn ===== -->
@@ -667,12 +717,89 @@ return `<div class="henrow"><span class="gio num">${d.slice(8,10)}/${d.slice(5,7
 }).join('');
 }
 }
+/* ---- LỊCH DẠNG CALENDAR (Tháng ↔ Tuần) ---- */
+let calMode='month', calAnchor=new Date();
+const DOW = ['T2','T3','T4','T5','T6','T7','CN'];
+function ymdStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function openCal(){ calAnchor=new Date(); show('calOvl'); renderCal(); }
+function calSet(m){ calMode=m; $('calBtnM').className=(m==='month'?'on':''); $('calBtnW').className=(m==='week'?'on':''); renderCal(); }
+function calMove(d){
+if (d===0) calAnchor=new Date();
+else if (calMode==='month') calAnchor=new Date(calAnchor.getFullYear(), calAnchor.getMonth()+d, 1);
+else calAnchor=new Date(calAnchor.getTime()+d*7*86400000);
+renderCal();
+}
+function hensByDay(){
+const map={};
+rowsToObj('LICH_HEN').filter(h=>String(h.TRANG_THAI||'')!=='Hủy').forEach(h=>{
+const d=String(h.NGAY_HEN).slice(0,10); if(!d) return; (map[d]=map[d]||[]).push(h);
+});
+Object.values(map).forEach(a=>a.sort((x,y)=>String(fmtT(x.GIO_HEN)).localeCompare(String(fmtT(y.GIO_HEN)))));
+return map;
+}
+function calHenChip(h){
+const arrived = h.TRANG_THAI==='Đã đến';
+const past = String(h.NGAY_HEN).slice(0,10) < todayStr() && !arrived;
+const tt = ((h.LY_DO||'')+(h.BS_PHU_TRACH?(' · '+h.BS_PHU_TRACH):'')).replace(/"/g,'&quot;');
+return `<div class="calhen${arrived?' ok':''}${past?' past':''}" title="${tt}" onclick="event.stopPropagation();openProfile('${h.MA_BN}')">${fmtT(h.GIO_HEN)?('<b class="num">'+fmtT(h.GIO_HEN)+'</b> '):''}${bnName(h.MA_BN)}</div>`;
+}
+function renderCal(){
+const map = hensByDay(), today = todayStr();
+if (calMode==='month'){
+const y=calAnchor.getFullYear(), m=calAnchor.getMonth();
+$('calLbl').textContent = 'Tháng '+(m+1)+' · '+y;
+const first = new Date(y,m,1);
+const start = new Date(first); start.setDate(1-((first.getDay()+6)%7)); // bắt đầu Thứ 2
+let html = '<div class="calgrid" style="grid-auto-rows:auto;flex:none;">'+DOW.map(d=>'<div class="caldow">'+d+'</div>').join('')+'</div>';
+html += '<div class="calgrid">';
+for (let i=0;i<42;i++){
+const d = new Date(start.getTime()+i*86400000);
+const key = ymdStr(d);
+const hs = map[key]||[];
+const dim = d.getMonth()!==m;
+html += `<div class="calday${dim?' dim':''}${key===today?' today':''}" onclick="hide('calOvl');openDatHen(null,'${key}')" title="Bấm để đặt hẹn ngày ${key.split('-').reverse().join('/')}">
+<div class="dnum"><span class="num">${d.getDate()}</span>${hs.length?('<span class="cnt num">'+hs.length+'</span>'):''}</div>
+${hs.slice(0,4).map(calHenChip).join('')}
+${hs.length>4?('<div class="calmore">+'+(hs.length-4)+' hẹn khác</div>'):''}
+</div>`;
+}
+html += '</div>';
+$('calBody').innerHTML = html;
+} else {
+const ws = new Date(calAnchor); ws.setDate(ws.getDate()-((ws.getDay()+6)%7));
+const days = Array.from({length:7},(_,i)=>new Date(ws.getTime()+i*86400000));
+$('calLbl').textContent = days[0].getDate()+'/'+(days[0].getMonth()+1)+' – '+days[6].getDate()+'/'+(days[6].getMonth()+1)+' · '+days[6].getFullYear();
+const hours = Array.from({length:12},(_,i)=>7+i); // 07h → 18h
+let html = '<div class="wkgrid"><div></div>'+days.map(d=>{
+const key=ymdStr(d);
+return `<div class="wkhead${key===today?' today':''}">${DOW[(d.getDay()+6)%7]}<div class="d num">${d.getDate()}/${d.getMonth()+1}</div></div>`;
+}).join('');
+// hàng "chưa có giờ"
+const noTime = key => (map[key]||[]).filter(h=>!fmtT(h.GIO_HEN));
+if (days.some(d=>noTime(ymdStr(d)).length)){
+html += '<div class="wkhr">—</div>'+days.map(d=>{
+const key=ymdStr(d);
+return `<div class="wkcell${key===today?' today':''}" onclick="hide('calOvl');openDatHen(null,'${key}')">${noTime(key).map(calHenChip).join('')}</div>`;
+}).join('');
+}
+hours.forEach(hr=>{
+html += `<div class="wkhr num">${String(hr).padStart(2,'0')}:00</div>`+days.map(d=>{
+const key=ymdStr(d);
+const hs=(map[key]||[]).filter(h=>{ const t=fmtT(h.GIO_HEN); return t && parseInt(t.slice(0,2),10)===hr; });
+return `<div class="wkcell${key===today?' today':''}" onclick="hide('calOvl');openDatHen(null,'${key}','${String(hr).padStart(2,'0')}:00')">${hs.map(calHenChip).join('')}</div>`;
+}).join('');
+});
+html += '</div>';
+$('calBody').innerHTML = html;
+}
+}
+
 /* ---- đặt hẹn tại quầy ---- */
 let dhBN = null;
-function openDatHen(maBN){
+function openDatHen(maBN, ngay, gio){
 dhBN = maBN||null;
 $('dhPk').value = dhBN ? (bnName(dhBN)+' ('+dhBN+')') : '';
-$('dhNgay').value=''; $('dhGio').value=''; $('dhLydo').value='';
+$('dhNgay').value=ngay||''; $('dhGio').value=gio||''; $('dhLydo').value='';
 $('dhBs').innerHTML = '<option value="">—</option>' + rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có').map(b=>`<option>${b.TEN_BS}</option>`).join('');
 show('dhOvl');
 }
@@ -1031,7 +1158,7 @@ show('shiftOvl');
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ renderHen(); renderQueue(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
+function renderAll(){ renderHen(); renderQueue(); if ($('calOvl') && $('calOvl').classList.contains('on')) renderCal(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
 
 /* hồ sơ 360°: nút hành động của trang này */
 window.PKHooks = { reception: openReception, addSvc: openSvc, datHen: openDatHen };
