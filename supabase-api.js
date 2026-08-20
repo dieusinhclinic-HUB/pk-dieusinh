@@ -168,6 +168,31 @@ window.SB_API = async function(action, extra){
   }
 };
 
+/* ==== Bổ sung TÊN HIỂN THỊ cho phiên đăng nhập cũ (trước khi có tính năng tên) ==== */
+(function(){
+  var t = setInterval(async function(){
+    try{
+      var raw = localStorage.getItem('pk_sess'); if (!raw) return;
+      var s = JSON.parse(raw);
+      if (s.ho_ten){ clearInterval(t); return; }
+      if (!(await hasSession())) return;
+      clearInterval(t);
+      var u = await sb.auth.getUser();
+      var em = u.data && u.data.user && u.data.user.email; if (!em) return;
+      var q = await sb.from('NGUOI_DUNG').select('HO_TEN').ilike('EMAIL', em).limit(1);
+      var ten = q.data && q.data[0] && String(q.data[0].HO_TEN||'').trim();
+      if (!ten) return;
+      s.ho_ten = ten;
+      localStorage.setItem('pk_sess', JSON.stringify(s));
+      var chip = document.querySelector('header .userchip');
+      if (chip && chip.textContent.indexOf('·') !== -1){
+        var role = chip.textContent.split('·').pop().trim();
+        chip.textContent = '👤 ' + ten + ' · ' + role;
+      }
+    }catch(e){}
+  }, 1500);
+})();
+
 /* ==== CHUYỂN GIAO DIỆN NHANH (chỉ Quản lý) — nút cạnh tên đăng nhập ==== */
 (function(){
   if (window.top !== window) return; // đang chạy trong hub (iframe) → hub đã có thanh tab riêng
