@@ -496,13 +496,33 @@ const cardBN = `<div class="card">
 ${b.TIEN_SU?('<div class="allergy">⚠️ '+b.TIEN_SU+'</div>'):''}
 </div>
 ${(reqTxt||order.GHI_CHU)?`<div class="reqbox">📥 <b>Tiếp nhận:</b> ${reqTxt?('yêu cầu '+reqTxt):''}${order.GHI_CHU?((reqTxt?' · ':'')+order.GHI_CHU):''}${order.GIO_TIEP_NHAN?(' · lúc '+fmtT(order.GIO_TIEP_NHAN)):''}</div>`:''}
-${preg ? `<div class="preg"><b style="color:#a2385f;">🤰 Thai kỳ</b>
-<div class="chips">
-${preg.weeks!==null?('<span class="chip">Tuổi thai: '+preg.weeks+' tuần '+preg.days+' ngày</span>'):''}
-${preg.edd?('<span class="chip">Dự sinh: '+preg.edd.toLocaleDateString('vi-VN')+'</span>'):''}
-</div>
-<div class="kv">${Object.entries(preg.o).filter(([k,v])=>v!=='' && v!=null).map(([k,v])=>k+': <b>'+v+'</b>').join(' · ')}</div>
-</div>` : ''}
+</div></div>`;
+
+/* ---- 1b · THAI KỲ (luôn hiện với mọi bệnh nhân) ---- */
+const tks = rowsToObj('THAI_KY').filter(t=>t.MA_BN===cur.maBN);
+const tkActive = tks.find(t=>String(t.TRANG_THAI||'').trim()!=='Kết thúc');
+function tkRow(t){
+const lmp = t.KINH_CUOI ? new Date(String(t.KINH_CUOI).slice(0,10)) : null;
+let tuoi='—', ds='—';
+if (lmp && !isNaN(lmp)){
+const diff = Math.floor((new Date()-lmp)/86400000);
+tuoi = Math.floor(diff/7)+' tuần '+(diff%7)+' ngày';
+ds = new Date(lmp.getTime()+280*86400000).toLocaleDateString('vi-VN');
+}
+const active = String(t.TRANG_THAI||'').trim()!=='Kết thúc';
+return `<tr style="${active?'':'opacity:.55;'}"><td class="num">${t.KINH_CUOI?String(t.KINH_CUOI).slice(0,10):'—'}</td><td>${active?tuoi:'—'}</td><td class="num">${ds}</td><td style="font-weight:700;color:${active?'#a2385f':'var(--ink3)'};">${t.TRANG_THAI||'Đang theo dõi'}</td><td>${t.GHI_CHU||''}</td></tr>`;
+}
+const cardTK = `<div class="card">
+<div class="hd"><h2>🤰 Theo dõi thai kỳ</h2><div class="spacer"></div>${tkActive?`<span class="chip" style="border-color:#f3c6da;">${(preg&&preg.weeks!==null)?('Tuổi thai: '+preg.weeks+' tuần '+preg.days+' ngày'):'Đang theo dõi'}</span>${(preg&&preg.edd)?('<span class="chip" style="border-color:#f3c6da;">Dự sinh: '+preg.edd.toLocaleDateString('vi-VN')+'</span>'):''}`:'<span style="font-size:11.5px;color:var(--ink3);">không theo dõi</span>'}</div>
+<div class="bd">
+${tks.length ? `<table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+<tr style="text-align:left;color:var(--ink3);font-size:11px;text-transform:uppercase;letter-spacing:.4px;"><th style="padding:4px 6px;">Kinh cuối</th><th style="padding:4px 6px;">Tuổi thai</th><th style="padding:4px 6px;">Dự sinh</th><th style="padding:4px 6px;">Trạng thái</th><th style="padding:4px 6px;">Ghi chú</th></tr>
+${tks.slice().reverse().map(tkRow).join('')}
+</table>` : '<div class="empty">Bệnh nhân này hiện <b>không theo dõi thai kỳ</b>.</div>'}
+${tkActive ? '' : `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px;">
+<label style="font-size:12px;color:var(--ink2);">Kinh cuối:</label><input type="date" id="bkTkLmp" style="font-size:12.5px;">
+<button class="qbtn ok" onclick="bkTkStart()">＋ Bắt đầu theo dõi thai kỳ</button>
+</div>`}
 </div></div>`;
 
 /* ---- 2 · DỊCH VỤ & CHỈ ĐỊNH ---- */
@@ -551,9 +571,20 @@ const cardLS = `<div class="card">
 ${visits.length?visits.map(v=>`<div class="histrow"><span class="num">${String(v.NGAY).slice(0,10)}</span><span style="flex:1;padding:0 8px;">${v.TEN_DV}${v.GHI_CHU?' — <i>'+v.GHI_CHU+'</i>':''}</span><span class="num">${fmtD(v.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">Chưa có</div>'}
 </div></div>`;
 
-ws.innerHTML = cardBN + cardDV + cardToa + cardKL + cardLS;
+ws.innerHTML = cardBN + cardTK + cardDV + cardToa + cardKL + cardLS;
 // trả lại con trỏ nếu đang gõ dở
 if (aeId){ const el2 = $(aeId); if (el2){ el2.focus(); if (aePos!=null && el2.setSelectionRange){ try{ el2.setSelectionRange(aePos, aePos); }catch(e){} } if (aeId==='dvSearch') dvSuggest(); } }
+}
+
+/* bắt đầu theo dõi thai kỳ ngay tại bàn khám */
+async function bkTkStart(){
+if (!cur) return;
+const d = $('bkTkLmp') ? $('bkTkLmp').value : '';
+if (!d){ toast('⚠️ Chọn ngày kinh cuối trước'); return; }
+const ma = 'TK' + String(nextNum('TK','THAI_KY','MA_TK')).padStart(5,'0');
+const j = await api('append', {table:'THAI_KY', row:{MA_TK:ma, MA_BN:cur.maBN, KINH_CUOI:d, TRANG_THAI:'Đang theo dõi', GHI_CHU:'Tạo tại bàn khám — '+myBS()}});
+if (j.ok){ ver=j.v; toast('✓ Bắt đầu theo dõi thai kỳ cho <b>'+bn(cur.maBN).HO_TEN+'</b>'); loadAll(true); }
+else toast('⚠️ '+(j.error||'lỗi'));
 }
 
 /* ---- tìm kiếm dịch vụ ---- */
