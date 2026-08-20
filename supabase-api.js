@@ -25,11 +25,12 @@ var COLS = {
   LICH_HEN:   ['MA_HEN','NGAY_HEN','GIO_HEN','MA_BN','LY_DO','BS_PHU_TRACH','TRANG_THAI','GHI_CHU','LOAI','TU_DONG'],
   THAI_KY:    ['MA_TK','MA_BN','KINH_CUOI','TRANG_THAI','GHI_CHU'],
   THUOC:      ['MA_THUOC','TEN_THUOC','HOAT_CHAT','DVT','NHOM','GIA_VON','GIA_BAN','TON_TOI_THIEU','CON_AP_DUNG','GHI_CHU'],
-  KHO_GD:     ['MA_GD','NGAY','MA_THUOC','LOAI','SO_LUONG','LO','HSD','GHI_CHU']
+  KHO_GD:     ['MA_GD','NGAY','MA_THUOC','LOAI','SO_LUONG','LO','HSD','GHI_CHU'],
+  PHAN_CONG:  ['MA_PC','NGAY','EMAIL_TK','DS_BS','GHI_CHU']
 };
 var PK = { NGUOI_DUNG:'EMAIL', BENH_NHAN:'MA_BN', BAC_SI:'MA_BS', DICH_VU:'MA_DV', HANG_CHO:'MA_CHO',
   SO_KHAM:'MA_LUOT', THANH_TOAN:'MA_TT', LICH_HEN:'MA_HEN', THAI_KY:'MA_TK', THUOC:'MA_THUOC', KHO_GD:'MA_GD',
-  TOA_THUOC:'MA_TOA', TOA_CT:'MA_CT' };
+  TOA_THUOC:'MA_TOA', TOA_CT:'MA_CT', PHAN_CONG:'MA_PC' };
 
 var sb = window.supabase.createClient(SB_URL, SB_ANON, { auth: { persistSession: true, autoRefreshToken: true } });
 window.sbClient = sb;

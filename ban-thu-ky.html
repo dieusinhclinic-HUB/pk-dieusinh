@@ -144,7 +144,8 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <div class="wrap">
 <div>
 <div class="ttabs">
-<button class="ttab on" data-p="t-sokham">🩺 Nhập sổ khám</button>
+<button class="ttab on" data-p="t-dangkham">🧑‍⚕️ Đang khám <span id="dkBadge"></span></button>
+<button class="ttab" data-p="t-sokham">🩺 Nhập sổ khám</button>
 <button class="ttab" data-p="t-hoso">👩 Hồ sơ BN <span id="hsBadge"></span></button>
 <button class="ttab" data-p="t-thaiky">🤰 Thai kỳ</button>
 <button class="ttab" data-p="t-lichhen">📅 Lịch hẹn</button>
@@ -153,7 +154,11 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <div class="tbody">
 
 <!-- ==== NHẬP SỔ KHÁM ==== -->
-<div class="tpane on" id="t-sokham">
+<div class="tpane on" id="t-dangkham">
+<div id="dkBox"></div>
+</div>
+
+<div class="tpane" id="t-sokham">
 <div class="sect-label">Bệnh nhân</div>
 <div class="pk"><input id="skPk" placeholder="🔍 Tìm BN — tên, SĐT hoặc mã…" oninput="pkSearch('sk')" autocomplete="off"><div class="pkResults" id="skPkR"></div></div>
 <div id="skSel" class="empty" style="margin-top:6px;">Chưa chọn bệnh nhân.</div>
@@ -233,6 +238,10 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <!-- ==== RAIL ==== -->
 <div style="display:flex;flex-direction:column;gap:14px;">
 <div class="card">
+<div class="hd"><h2>👥 Ca của tôi hôm nay</h2><div class="spacer"></div><span style="font-size:11px;color:var(--ink3);">bấm để nhận / nhả ca</span></div>
+<div class="bd" id="caBox"></div>
+</div>
+<div class="card">
 <div class="hd"><h2>📌 Việc hôm nay</h2></div>
 <div class="bd" id="todoBox"></div>
 </div>
@@ -252,7 +261,7 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN','TOA_THUOC','TOA_CT'];
+const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN','TOA_THUOC','TOA_CT','PHAN_CONG'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null;
 let skBN=null, skList=[], hsBN=null, tkBN=null, lhBN=null, kdBN=null;
@@ -408,6 +417,9 @@ $('skLines').innerHTML = skList.length ? skList.map((l,i)=>`
 }
 async function skSave(){
 if (!skBN || !skList.length){ toast('⚠️ Chọn BN và thêm ít nhất 1 dịch vụ'); return; }
+// cảnh báo nếu ghi cho bác sĩ thuộc ca của thư ký khác
+const bsSet = {}; skList.forEach(l=>{ if(l.bsTh) bsSet[l.bsTh]=1; if(l.bsCd) bsSet[l.bsCd]=1; });
+for (const ten of Object.keys(bsSet)){ if (!zoneWarn(ten)) return; }
 $('loading').classList.add('on');
 try{
 let base = nextNum('L','SO_KHAM','MA_LUOT');
@@ -556,7 +568,7 @@ const qv = q.filter(r=>!['Đã thu','Hủy'].includes(String(r.TRANG_THAI).trim(
 const qPaid = q.filter(r=>String(r.TRANG_THAI).trim()==='Đã thu');
 $('queueBox').innerHTML = (qv.length ? qv.map(r=>`
 <div class="qrow ${cls[r.TRANG_THAI]||''}"><div class="stt num">${r.STT||'–'}</div>
-<div style="flex:1;">${pname(r.MA_BN)}<div style="font-size:11px;color:var(--ink2);">${r.TRANG_THAI==='Xong khám'?'Hoàn tất khám':r.TRANG_THAI}${r.BS_KHAM?(' · '+r.BS_KHAM):''}</div></div></div>`).join('') : '<div class="empty">— trống —</div>')
+<div style="flex:1;">${pname(r.MA_BN)}<div style="font-size:11px;color:var(--ink2);">${r.TRANG_THAI==='Xong khám'?'Hoàn tất khám':r.TRANG_THAI}${r.BS_KHAM?(' · '+r.BS_KHAM):''}${(()=>{const t=String(r.BS_KHAM||'').trim(); if(!t) return ''; const o=bsOwner(t); if(!o) return ''; return o.toLowerCase()===(me?me.email.toLowerCase():'') ? ' · <b style=\"color:#0a7a0a;\">ca của tôi</b>' : (' · ca của '+tkName(o));})()}</div></div></div>`).join('') : '<div class="empty">— trống —</div>')
 + (qPaid.length ? ('<div class="sect-label">✅ Đã thanh toán ('+qPaid.length+')</div><div class="empty" style="color:var(--ink2);">'+qPaid.map(r=>pname(r.MA_BN)).join(' · ')+'</div>') : '');
 $('qCount').textContent = q.length + ' lượt';
 
@@ -571,6 +583,7 @@ $('todoBox').innerHTML = `
 
 /* ================== KÊ ĐƠN ================== */
 function kdOpen(){
+if (!zoneWarn($('kdBs').value)) return;
 if (!kdBN){ toast('⚠️ Chọn bệnh nhân trước'); return; }
 if (!$('kdBs').value){ toast('⚠️ Chọn bác sĩ kê toa'); $('kdBs').focus(); return; }
 const order = rowsToObj('HANG_CHO').find(x=>sameDay(x.NGAY) && x.MA_BN===kdBN && !['Hủy'].includes(String(x.TRANG_THAI).trim()));
@@ -596,14 +609,15 @@ const nm = p.split('/').pop().split('_').slice(2).join('_') || 'tệp';
 return `<span onclick="SB_FILES.open('${p}')" title="Mở tệp kết quả" style="cursor:pointer;background:#fff;border:1px solid #b8d2f5;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">📎 ${nm}</span>`;
 }).join('') + '</div>';
 }
-function kqEdit(maLuot){
-const host = document.getElementById('kq_'+maLuot); if (!host) return;
+function kqEdit(maLuot, hp){
+hp = hp || 'kq_';
+const host = document.getElementById(hp+maLuot); if (!host) return;
 const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
 host.innerHTML = `<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:8px;background:#fffdf3;border-radius:9px;margin:4px 0;">
 <input id="kqi_${maLuot}" style="flex:1;min-width:180px;font-size:12.5px;" placeholder="Kết quả dịch vụ — vd: thai 12 tuần, tim thai (+)…" value="${String(l.KET_QUA||'').replace(/"/g,'&quot;')}">
 <input type="file" id="kqf_${maLuot}" multiple accept="image/*,.pdf" style="font-size:11px;max-width:230px;">
 <button class="qbtn" id="kqb_${maLuot}" onclick="kqSave('${maLuot}')" style="background:var(--good-soft);color:#0a7a0a;">💾 Lưu kết quả</button>
-<button class="qbtn" onclick="document.getElementById('kq_${maLuot}').innerHTML=''">Đóng</button>
+<button class="qbtn" onclick="document.getElementById('${hp}${maLuot}').innerHTML=''">Đóng</button>
 ${kqFileChips(l)}
 <div style="width:100%;font-size:10.5px;color:var(--ink3);">📎 Đính kèm ảnh siêu âm / phiếu xét nghiệm (ảnh hoặc PDF, tối đa 15MB/tệp) — lưu vĩnh viễn vào bệnh án.</div>
 </div>`;
@@ -633,7 +647,125 @@ else toast('⚠️ ' + (j.error||'lỗi'));
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ renderSkSel(); renderSkLines(); renderSkToday(); renderHsWorklist(); if(hsBN) renderHsEdit(); renderTk(); renderLh(); renderKd(); renderRail(); }
+/* ================== CA TRỰC TRỢ LÝ (PHAN_CONG) ================== */
+function fmtT(v){
+if (v==null || v==='') return '';
+const m = String(v).match(/^(\d{1,2}):(\d{2})/);
+return m ? (m[1].padStart(2,'0')+':'+m[2]) : '';
+}
+function pcToday(){ return rowsToObj('PHAN_CONG').filter(p=>sameDay(p.NGAY)); }
+function myPC(){ const e = me?me.email.toLowerCase():''; return pcToday().find(p=>String(p.EMAIL_TK||'').toLowerCase()===e); }
+function myBSList(){ const p = myPC(); return p ? String(p.DS_BS||'').split('|').filter(Boolean) : []; }
+function bsOwner(ten){ const p = pcToday().find(x=>String(x.DS_BS||'').split('|').indexOf(ten)!==-1); return p ? p.EMAIL_TK : null; }
+function tkName(email){ return String(email||'').split('@')[0]; }
+async function pcToggle(ten){
+const meEmail = me?me.email:'';
+const owner = bsOwner(ten);
+if (owner && owner.toLowerCase()!==meEmail.toLowerCase()){
+toast('🔒 <b>'+ten+'</b> đang do <b>'+tkName(owner)+'</b> phụ trách — nhờ bạn ấy nhả ca (hoặc Quản lý sửa).');
+return;
+}
+const p = myPC();
+let list = p ? String(p.DS_BS||'').split('|').filter(Boolean) : [];
+const adding = list.indexOf(ten)===-1;
+if (adding) list.push(ten); else list = list.filter(x=>x!==ten);
+let j;
+if (p) j = await api('update', {table:'PHAN_CONG', keyCol:'MA_PC', keyVal:p.MA_PC, row:{DS_BS:list.join('|')}});
+else j = await api('append', {table:'PHAN_CONG', row:{MA_PC: todayStr()+'~'+meEmail, NGAY: todayStr(), EMAIL_TK: meEmail, DS_BS: list.join('|'), GHI_CHU:''}});
+if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
+ver = j.v;
+toast(adding ? ('✓ Đã nhận ca: <b>'+ten+'</b> — bệnh nhân của bác sĩ này sẽ tự hiện ở tab Đang khám') : ('✓ Đã nhả ca: <b>'+ten+'</b>'));
+loadAll(true);
+}
+function renderCa(){
+const box = $('caBox'); if (!box) return;
+const bss = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
+const mine = myBSList(); const meEmail = me?me.email.toLowerCase():'';
+box.innerHTML = bss.map(b=>{
+const ten = String(b.TEN_BS).trim();
+const owner = bsOwner(ten);
+const isMine = mine.indexOf(ten)!==-1;
+const other = owner && owner.toLowerCase()!==meEmail;
+const st = isMine ? 'background:var(--good-soft);color:#0a7a0a;border:1.5px solid #9fd89f;' : (other ? 'background:#f1f1ec;color:var(--ink3);border:1.5px solid var(--hair);' : 'background:#fff;color:var(--ink);border:1.5px solid var(--hair);');
+return `<button class="qbtn" style="margin:0 6px 6px 0;${st}" onclick="pcToggle('${ten}')" title="${other?('Đang do '+tkName(owner)+' phụ trách'):(isMine?'Bấm để nhả ca':'Bấm để nhận ca')}">${isMine?'✓ ':''}${other?'🔒 ':''}${ten}${other?(' <span style=\'font-size:10px;\'>'+tkName(owner)+'</span>'):''}</button>`;
+}).join('') + ((mine.length||!bss.length)?'':'<div class="empty" style="margin-top:4px;">Chưa nhận ca — bấm tên bác sĩ bạn hỗ trợ hôm nay. Hai thư ký không thể trùng bác sĩ.</div>');
+}
+/* cảnh báo thao tác ngoài vùng ca */
+function zoneWarn(bsTen){
+bsTen = String(bsTen||'').trim();
+if (!bsTen || !me) return true;
+const owner = bsOwner(bsTen);
+if (owner && owner.toLowerCase()!==me.email.toLowerCase()){
+return confirm('⚠️ '+bsTen+' hôm nay do '+tkName(owner)+' phụ trách.\nBạn vẫn muốn thao tác trên ca của bạn ấy?');
+}
+return true;
+}
+
+/* ================== TAB: ĐANG KHÁM (đồng bộ với bàn bác sĩ) ================== */
+let dkSel = null;
+function dkOrders(){
+const mine = myBSList();
+return rowsToObj('HANG_CHO').filter(r=>sameDay(r.NGAY) && r.TRANG_THAI==='Đang khám' && mine.indexOf(String(r.BS_KHAM||'').trim())!==-1);
+}
+function renderDk(){
+const box = $('dkBox'); if (!box) return;
+const mine = myBSList();
+const q = dkOrders();
+const bd = $('dkBadge'); if (bd) bd.innerHTML = q.length ? ('<span style="background:#d03b3b;color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;">'+q.length+'</span>') : '';
+if (!mine.length){ box.innerHTML = '<div class="empty">Bạn chưa nhận ca bác sĩ nào hôm nay.<br>Nhận ca ở khối <b>👥 Ca của tôi</b> (cột phải) — khi bác sĩ của bạn gọi bệnh nhân vào phòng, hồ sơ sẽ TỰ HIỆN ở đây và đồng bộ trực tiếp với màn bác sĩ.</div>'; return; }
+if (!q.length){ box.innerHTML = '<div class="empty">Đang hỗ trợ: <b>'+mine.join(' · ')+'</b><br>Chưa có bệnh nhân trong phòng — khi bác sĩ gọi số, hồ sơ tự hiện ở đây (không cần bấm gì).</div>'; return; }
+if (!dkSel || !q.some(r=>r.MA_CHO===dkSel)) dkSel = q[0].MA_CHO;
+const tabs = q.length>1 ? ('<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">'+q.map(r=>`<button class="qbtn" style="${r.MA_CHO===dkSel?'background:var(--brand);color:#fff;':''}" onclick="dkSel='${r.MA_CHO}';renderDk();">🩺 ${String(r.BS_KHAM||'').trim()} — ${bn(r.MA_BN).HO_TEN} (số ${r.STT||'?'})</button>`).join('')+'</div>') : '';
+const r = q.find(x=>x.MA_CHO===dkSel);
+const b = bn(r.MA_BN);
+const lines = rowsToObj('SO_KHAM').filter(l=>String(l.MA_CHO||'')===r.MA_CHO && String(l.TRANG_THAI_DV||'').trim()!=='Hủy');
+const pend = lines.filter(l=>String(l.TRANG_THAI_DV||'').trim()==='Chỉ định');
+const done = lines.filter(l=>pend.indexOf(l)===-1);
+const toas = rowsToObj('TOA_THUOC').filter(t=>String(t.MA_CHO||'')===r.MA_CHO && t.TRANG_THAI!=='Hủy');
+box.innerHTML = tabs + `
+<div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+<div style="flex:1;min-width:200px;">
+<div style="font-size:18px;font-weight:800;color:var(--brand);cursor:pointer;" onclick="PKProfile.open('${b.MA_BN}')">${b.HO_TEN} <span class="num" style="font-size:12px;color:var(--ink3);font-weight:600;">${b.MA_BN}</span></div>
+<div style="font-size:12.5px;color:var(--ink2);margin-top:3px;">🩺 ${r.BS_KHAM} · số ${r.STT||'?'}${r.GIO_GOI?(' · vào phòng '+fmtT(r.GIO_GOI)):''}${b.SDT?(' · 📞 '+b.SDT):''}</div>
+</div>
+${b.TIEN_SU?('<div style="background:var(--crit-soft);color:var(--crit);border-radius:9px;padding:6px 11px;font-size:12.5px;font-weight:700;">⚠️ '+b.TIEN_SU+'</div>'):''}
+<button class="qbtn" onclick="PKProfile.open('${b.MA_BN}')">📂 Bệnh án</button>
+</div>
+${r.GHI_CHU?('<div style="background:#e7f0fd;border:1px solid #b8d2f5;border-radius:10px;padding:8px 11px;font-size:12.5px;color:#2456a8;margin-bottom:4px;">📥 '+r.GHI_CHU+'</div>'):''}
+<div class="sect-label">🧾 Dịch vụ lượt khám — đồng bộ trực tiếp với màn bác sĩ</div>
+${pend.map(l=>`<div class="histrow" style="background:#fffdf3;border-radius:8px;padding:7px 8px;"><span style="flex:1;">⏳ ${l.TEN_DV} <span style="font-size:11px;color:#8a6205;">(chỉ định — chưa thực hiện)</span></span><button class="qbtn" style="background:var(--good-soft);color:#0a7a0a;" onclick="dkConfirm('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn" style="background:var(--crit-soft);color:var(--crit);" onclick="dkCancel('${l.MA_LUOT}')">✕ Không làm</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="dkq_${l.MA_LUOT}"></div>`).join('')}
+${done.map(l=>`<div class="histrow"><span style="flex:1;">${l.TEN_DV}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div style="margin-top:3px;background:#eef4fd;border-left:3px solid #2456a8;border-radius:0 8px 8px 0;padding:4px 8px;font-size:12px;color:#1c3f7a;">'+(String(l.KET_QUA||'').trim()?('🧾 '+l.KET_QUA):'📎 Tệp kết quả')+kqFileChips(l)+'</div>'):''}</span><span style="font-size:11px;color:var(--good);font-weight:700;">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" onclick="kqEdit('${l.MA_LUOT}','dkq_')">✎ KQ</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="dkq_${l.MA_LUOT}"></div>`).join('')}
+${lines.length?'':'<div class="empty">Chưa có dịch vụ cho lượt khám này.</div>'}
+<div class="sect-label">💊 Toa thuốc</div>
+${toas.map(t=>{
+const n = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===t.MA_TOA).length;
+return `<div style="display:flex;gap:9px;align-items:center;padding:7px 10px;border:1px solid #ddd0f2;background:#f4f0fb;border-radius:10px;margin-bottom:6px;font-size:12.5px;flex-wrap:wrap;"><b style="color:#5b2fa0;">💊 ${t.MA_TOA}</b><span>${n} thuốc · ${t.BS_KE}${t.GIO_KE?(' · '+fmtT(t.GIO_KE)):''}</span><span style="font-weight:700;">${t.TRANG_THAI}</span><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')" style="margin-left:auto;">🖨 In toa</button></div>`;
+}).join('')||'<div class="empty">Chưa kê toa.</div>'}
+<button class="btn btn-soft" style="margin-top:6px;" onclick="dkKeToa()">💊 Kê toa hộ ${r.BS_KHAM}</button>`;
+}
+async function dkConfirm(maLuot){
+const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
+const r = dkOrders().find(x=>x.MA_CHO===String(l.MA_CHO||''));
+const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{
+TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime(),
+BS_THUC_HIEN: String(l.BS_THUC_HIEN||'').trim() || (r?String(r.BS_KHAM||'').trim():'') }});
+if (j.ok){ ver=j.v; toast('✓ Đã xác nhận: <b>'+l.TEN_DV+'</b> — nhập kết quả bên dưới'); await loadAll(true); kqEdit(maLuot,'dkq_'); }
+else toast('⚠️ ' + (j.error||'lỗi'));
+}
+async function dkCancel(maLuot){
+const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
+if (!confirm('Không thực hiện "'+l.TEN_DV+'"? Dòng này sẽ không tính tiền.')) return;
+const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{TRANG_THAI_DV:'Hủy'}});
+if (j.ok){ ver=j.v; toast('✓ Đã hủy dịch vụ: '+l.TEN_DV); loadAll(true); }
+else toast('⚠️ ' + (j.error||'lỗi'));
+}
+function dkKeToa(){
+const r = dkOrders().find(x=>x.MA_CHO===dkSel); if(!r) return;
+PKToa.openCompose({ maBN: r.MA_BN, tenBN: bn(r.MA_BN).HO_TEN, maCho: r.MA_CHO, bsKe: String(r.BS_KHAM||'').trim(), nguoiNhap: me?me.email:'',
+onDone: function(maToa, fail){ toast(fail ? ('⚠️ Toa '+maToa+' lưu thiếu '+fail+' dòng') : ('✓ Đã kê toa <b>'+maToa+'</b> hộ '+r.BS_KHAM+' — gửi Dược sỹ')); loadAll(true); } });
+}
+
+function renderAll(){ renderSkSel(); renderSkLines(); renderSkToday(); renderHsWorklist(); if(hsBN) renderHsEdit(); renderTk(); renderLh(); renderKd(); renderRail(); renderCa(); renderDk(); }
 
 /* hồ sơ 360°: nút hành động của trang này */
 window.PKHooks = {
