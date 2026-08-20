@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bàn khám — PK Diệu Sinh</title>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -503,15 +505,18 @@ if (pend.length){ if(!confirm('Còn '+pend.length+' dịch vụ chỉ định CH
 $('loading').classList.add('on');
 try{
 let base = nextNum('L','SO_KHAM','MA_LUOT');
-for (let i=0;i<lines.length;i++){
-const l = lines[i];
-const row = { MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:cur.maBN, TEN_DV:l.dv.TEN_DV,
+const newRows = lines.map((l,i)=>({ MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:cur.maBN, TEN_DV:l.dv.TEN_DV,
 BS_THUC_HIEN:myBS(), BS_CHI_DINH:myBS(), DON_GIA:l.gia, SO_LUONG:l.qty, THANH_TIEN:l.gia*l.qty,
 GHI_CHU:(i===0 && examNote)?examNote:'', ANH_KET_QUA:'',
-MA_CHO:cur.maCho, TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() };
-const j = await api('append', {table:'SO_KHAM', row});
-if (!j.ok){ toast('⚠️ Lỗi ghi sổ: '+(j.error||'')); $('loading').classList.remove('on'); return; }
-ver = j.v;
+MA_CHO:cur.maCho, TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() }));
+// ghi SONG SONG để nhanh
+const rs = await Promise.all(newRows.map(row=>api('append', {table:'SO_KHAM', row}).catch(e=>({ok:false, error:String(e&&e.message||e)}))));
+rs.forEach(j=>{ if (j && j.ok && j.v!=null) ver = Math.max(Number(ver)||0, Number(j.v)||0); });
+const fails = rs.filter(j=>!(j&&j.ok)).length;
+if (fails){
+lines = lines.filter((_,i)=>!(rs[i]&&rs[i].ok)); // giữ lại đúng các dòng chưa ghi được để bấm lại không bị trùng
+toast('⚠️ '+fails+' dịch vụ chưa ghi được vào Sổ khám — thử bấm Hoàn tất khám lần nữa.');
+$('loading').classList.remove('on'); loadAll(true); return;
 }
 const patch = {TRANG_THAI:'Xong khám', GIO_XONG: nowTime()};
 if (!lines.length && examNote){

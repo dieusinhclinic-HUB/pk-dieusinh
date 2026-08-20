@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bàn thư ký — PK Diệu Sinh</title>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -402,18 +404,21 @@ if (!skBN || !skList.length){ toast('⚠️ Chọn BN và thêm ít nhất 1 d�
 $('loading').classList.add('on');
 try{
 let base = nextNum('L','SO_KHAM','MA_LUOT');
-for (let i=0;i<skList.length;i++){
-const l = skList[i];
 const order = rowsToObj('HANG_CHO').find(x=>sameDay(x.NGAY) && x.MA_BN===skBN && !['Đã thu','Hủy'].includes(String(x.TRANG_THAI).trim()));
-const row = { MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:skBN, TEN_DV:l.dv.TEN_DV,
+const rows = skList.map((l,i)=>({ MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:skBN, TEN_DV:l.dv.TEN_DV,
 BS_THUC_HIEN:l.bsTh, BS_CHI_DINH:l.bsCd, DON_GIA:l.gia, SO_LUONG:l.qty, THANH_TIEN:l.gia*l.qty,
 GHI_CHU:(i===0?$('skNote').value.trim():''), ANH_KET_QUA:'',
-MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() };
-const j = await api('append', {table:'SO_KHAM', row});
-if (!j.ok){ toast('⚠️ Lỗi: '+(j.error||'')); return; }
-ver = j.v;
+MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() }));
+// ghi SONG SONG để nhanh
+const rs = await Promise.all(rows.map(row=>api('append', {table:'SO_KHAM', row}).catch(e=>({ok:false, error:String(e&&e.message||e)}))));
+rs.forEach(j=>{ if (j && j.ok && j.v!=null) ver = Math.max(Number(ver)||0, Number(j.v)||0); });
+const okCount = rs.filter(j=>j&&j.ok).length;
+if (okCount < skList.length){
+skList = skList.filter((_,i)=>!(rs[i]&&rs[i].ok)); renderSkLines();
+toast('⚠️ '+(skList.length)+' dòng chưa ghi được — bấm Ghi lại để thử tiếp.');
+loadAll(true); return;
 }
-toast('✓ Đã ghi '+skList.length+' dòng vào Sổ khám cho <b>'+bn(skBN).HO_TEN+'</b>');
+toast('✓ Đã ghi '+okCount+' dòng vào Sổ khám cho <b>'+bn(skBN).HO_TEN+'</b>');
 skList=[]; $('skNote').value=''; renderSkLines(); loadAll(true);
 } finally { $('loading').classList.remove('on'); }
 }

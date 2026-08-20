@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quầy thu ngân — PK Diệu Sinh</title>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -516,12 +518,10 @@ try{
 const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:ccCho, row:{TRANG_THAI:'Hủy', LY_DO_HUY:reason}});
 if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
 ver=j.v;
-// hủy các dòng DV còn 'Chỉ định' của đơn này
+// hủy các dòng DV còn 'Chỉ định' của đơn này — song song
 const pend = rowsToObj('SO_KHAM').filter(l=>String(l.MA_CHO||'')===ccCho && String(l.TRANG_THAI_DV||'').trim()==='Chỉ định');
-for (const l of pend){
-const j2 = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:l.MA_LUOT, row:{TRANG_THAI_DV:'Hủy'}});
-if (j2.ok) ver=j2.v;
-}
+const rs2 = await Promise.all(pend.map(l=>api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:l.MA_LUOT, row:{TRANG_THAI_DV:'Hủy'}}).catch(e=>({ok:false}))));
+rs2.forEach(j2=>{ if (j2 && j2.ok && j2.v!=null) ver = Math.max(Number(ver)||0, Number(j2.v)||0); });
 hide('ccOvl');
 toast('✓ Đã hủy tiếp nhận — <b>'+bnName(r.MA_BN)+'</b>'+(pend.length?(' (hủy kèm '+pend.length+' dịch vụ chưa thực hiện)'):''));
 ccCho=null; loadAll(true);
@@ -592,23 +592,23 @@ LY_DO_HUY:'', GIO_TIEP_NHAN:nowTime(), GIO_GOI:'', GIO_XONG:'', GIO_THU:'' };
 const j = await api('append', {table:'HANG_CHO', row});
 if (!j.ok){ toast('⚠️ ' + (j.error||'lỗi')); return; }
 ver=j.v;
-// ghi các dòng Sổ khám trạng thái 'Chỉ định'
+// ghi các dòng Sổ khám 'Chỉ định' — SONG SONG để nhanh (mỗi dòng đã có mã riêng)
 const dvs = rowsToObj('DICH_VU');
 let base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1),10);
-for (let i=0;i<dvIds.length;i++){
-const d = dvs.find(x=>x.MA_DV===dvIds[i]); if(!d) continue;
+const skRows = dvIds.map((id,i)=>{
+const d = dvs.find(x=>x.MA_DV===id); if(!d) return null;
 const gia = Number(d.DON_GIA)||0;
-const skRow = { MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:rcBN, TEN_DV:d.TEN_DV,
+return { MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:rcBN, TEN_DV:d.TEN_DV,
 BS_THUC_HIEN:'', BS_CHI_DINH:bs, DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:'', ANH_KET_QUA:'',
 MA_CHO:maCho, TRANG_THAI_DV:'Chỉ định', NGUOI_XAC_NHAN:'', GIO_XAC_NHAN:'' };
-const j2 = await api('append', {table:'SO_KHAM', row:skRow});
-if (j2.ok) ver=j2.v; else { toast('⚠️ Lỗi ghi dịch vụ: '+(j2.error||'')); break; }
-}
-// nếu check-in từ hẹn → đánh dấu Đã đến
-if (rcHen){
-const j3 = await api('update', {table:'LICH_HEN', keyCol:'MA_HEN', keyVal:rcHen.MA_HEN, row:{TRANG_THAI:'Đã đến'}});
-if (j3.ok) ver=j3.v;
-}
+}).filter(Boolean);
+const calls = skRows.map(r=>api('append', {table:'SO_KHAM', row:r}).catch(e=>({ok:false, error:String(e&&e.message||e)})));
+// nếu check-in từ hẹn → đánh dấu Đã đến (chạy cùng lượt)
+if (rcHen) calls.push(api('update', {table:'LICH_HEN', keyCol:'MA_HEN', keyVal:rcHen.MA_HEN, row:{TRANG_THAI:'Đã đến'}}).catch(e=>({ok:false})));
+const rs = await Promise.all(calls);
+rs.forEach(j2=>{ if (j2 && j2.ok && j2.v!=null) ver = Math.max(Number(ver)||0, Number(j2.v)||0); });
+const fails = rs.filter(j2=>!(j2&&j2.ok)).length;
+if (fails) toast('⚠️ '+fails+' mục chưa ghi được — kiểm tra lại hàng chờ và Sổ khám.');
 hide('rcOvl');
 chime();
 toast('✓ Đã tiếp nhận <b>'+bnName(rcBN)+'</b> — số thứ tự <b>'+stt+'</b>'+(dvIds.length?(' · '+dvIds.length+' dịch vụ yêu cầu'):''));
@@ -902,16 +902,14 @@ const order = queueToday().find(x=>x.MA_BN===svcBN && !['Đã thu','Hủy'].incl
 const base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1), 10);
 let okCount = 0, sum = 0;
 try{
-for (let i=0; i<items.length; i++){
-const x = items[i];
-const row = { MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
+const rows = items.map((x,i)=>({ x, row:{ MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
 BS_THUC_HIEN: x.bsTh, BS_CHI_DINH: x.bsCd, DON_GIA: x.gia, SO_LUONG: x.qty,
 THANH_TIEN: x.tien, GHI_CHU: (who + (x.note?'. '+x.note:'')).trim(), ANH_KET_QUA: '',
-MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() };
-const j = await api('append', {table:'SO_KHAM', row});
-if (j.ok){ ver=j.v; okCount++; sum += x.tien; }
-else { toast('⚠️ Dòng '+(i+1)+': '+(j.error||'lỗi')+' — đã lưu '+okCount+'/'+items.length); break; }
-}
+MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() } }));
+// ghi SONG SONG để nhanh
+const rs = await Promise.all(rows.map(r=>api('append', {table:'SO_KHAM', row:r.row}).catch(e=>({ok:false, error:String(e&&e.message||e)}))));
+rs.forEach((j,i)=>{ if (j && j.ok){ if (j.v!=null) ver = Math.max(Number(ver)||0, Number(j.v)||0); okCount++; sum += rows[i].x.tien; } });
+if (okCount < items.length) toast('⚠️ '+(items.length-okCount)+' dòng chưa ghi được — đã lưu '+okCount+'/'+items.length+'. Kiểm tra lại Sổ khám.');
 } finally { btn.disabled = false; btn.textContent = '✓ Thêm vào Sổ khám'; }
 if (okCount === items.length){
 hide('svcOvl');

@@ -165,19 +165,40 @@ function render(maBN, D){
   document.getElementById('pkpFoot').style.display = f ? 'flex' : 'none';
 }
 
+var curMa = null;
 window.PKProfile = {
   open: async function(maBN){
     if (!maBN) return;
+    curMa = maBN;
     ovl.classList.add('on');
-    document.getElementById('pkpTitle').textContent = 'Hồ sơ bệnh nhân';
-    document.getElementById('pkpBody').innerHTML = '<div class="pkpLoad">⏳ Đang mở hồ sơ…</div>';
-    document.getElementById('pkpFoot').innerHTML = '';
+    /* 1) MỞ TỨC THÌ từ dữ liệu trang đang có trong máy (nếu đủ) */
+    var instant = false;
+    try{
+      var pageDB = (typeof DB !== 'undefined' && DB) ? DB : window.DB;
+      if (pageDB && pageDB.BENH_NHAN){
+        var D = {};
+        TBLS.forEach(function(t){ if (pageDB[t]) D[t] = pageDB[t]; });
+        if (obj(D,'BENH_NHAN').some(function(x){ return x.MA_BN===maBN; })){
+          render(maBN, D);
+          instant = true;
+        }
+      }
+    }catch(e){}
+    if (!instant){
+      document.getElementById('pkpTitle').textContent = 'Hồ sơ bệnh nhân';
+      document.getElementById('pkpBody').innerHTML = '<div class="pkpLoad">⏳ Đang mở hồ sơ…</div>';
+      document.getElementById('pkpFoot').innerHTML = '';
+    }
+    /* 2) Làm tươi ngầm từ máy chủ (bổ sung bảng trang này không tải, vd thai kỳ) */
     try{
       var j = await window.api('readAll', {tables: TBLS});
-      if (!j || !j.ok){ document.getElementById('pkpBody').innerHTML = '<div class="pkpEmpty">Không tải được hồ sơ — ' + esc((j&&j.error)||'kiểm tra kết nối mạng') + '.</div>'; return; }
-      render(maBN, j.tables);
+      if (j && j.ok){
+        if (curMa===maBN && ovl.classList.contains('on')) render(maBN, j.tables);
+      } else if (!instant){
+        document.getElementById('pkpBody').innerHTML = '<div class="pkpEmpty">Không tải được hồ sơ — ' + esc((j&&j.error)||'kiểm tra kết nối mạng') + '.</div>';
+      }
     }catch(e){
-      document.getElementById('pkpBody').innerHTML = '<div class="pkpEmpty">Không tải được hồ sơ — kiểm tra kết nối mạng.</div>';
+      if (!instant) document.getElementById('pkpBody').innerHTML = '<div class="pkpEmpty">Không tải được hồ sơ — kiểm tra kết nối mạng.</div>';
     }
   },
   close: function(){ ovl.classList.remove('on'); },
