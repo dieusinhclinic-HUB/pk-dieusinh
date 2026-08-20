@@ -42,7 +42,8 @@
   .hbtn{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .hbtn:hover{background:rgba(255,255,255,.25);}
   #frameWrap{flex:1;position:relative;background:var(--brand-bg);}
-  #frame{width:100%;height:100%;border:none;display:block;background:var(--brand-bg);}
+  .frame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;background:var(--brand-bg);}
+  .frame.on{display:block;}
   #frameLoad{position:absolute;inset:0;display:grid;place-items:center;background:var(--brand-bg);font-size:13px;color:var(--ink3);pointer-events:none;opacity:0;transition:opacity .15s;}
   #frameLoad.on{opacity:1;}
   .spin{width:26px;height:26px;border:3px solid var(--brand-soft);border-top-color:var(--brand3);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 8px;}
@@ -85,7 +86,6 @@
     <button class="hbtn" onclick="logout()">Thoát</button>
   </header>
   <div id="frameWrap">
-    <iframe id="frame" title="Màn hình làm việc"></iframe>
     <div id="frameLoad"><div><div class="spin"></div>Đang mở…</div></div>
   </div>
 </div>
@@ -143,28 +143,58 @@ function enterApp(){
   const app=$('app'); app.style.display='flex'; app.classList.add('ready');
   const last = localStorage.getItem(LAST_KEY);
   go(scr.some(s=>s.id===last) ? last : scr[0].id);
+  preloadRest();
   startWatch();
+}
+/* ===== mỗi màn hình sống trong iframe riêng — chuyển tab tức thì =====
+   Màn hình ẨN thì tạm dừng polling (hub tắt/mở giúp qua contentWindow),
+   quay lại tab → làm mới 1 lần rồi polling tiếp. */
+const frames = {};   // id -> iframe
+
+function pausePoll(ifr){
+  try{ const w = ifr.contentWindow; if (w && w.pollTimer) w.clearInterval(w.pollTimer); }catch(e){}
+}
+function resumePoll(ifr){
+  try{
+    const w = ifr.contentWindow;
+    if (w && typeof w.startPoll === 'function'){ w.startPoll(); if (typeof w.loadAll === 'function') w.loadAll(true); }
+  }catch(e){}
+}
+function getFrame(id){
+  if (frames[id]) return frames[id];
+  const s = SCREENS.find(x=>x.id===id);
+  const ifr = document.createElement('iframe');
+  ifr.className = 'frame'; ifr.title = s.label;
+  ifr.addEventListener('load', () => {
+    try{
+      const d = ifr.contentDocument;
+      const hd = d && d.querySelector('header.bar, header');
+      if (hd) hd.style.display='none';                    // hub đã có thanh chung
+    }catch(e){}
+    if (current && current.id === id) $('frameLoad').classList.remove('on');
+    if (!current || current.id !== id) setTimeout(()=>pausePoll(ifr), 800); // màn nền: ngủ ngay
+  });
+  ifr.src = s.file;
+  $('frameWrap').appendChild(ifr);
+  frames[id] = ifr;
+  return ifr;
 }
 function go(id){
   const s = myScreens().find(x=>x.id===id); if(!s) return;
-  current = s;
+  const prev = current; current = s;
   try{ localStorage.setItem(LAST_KEY, id); }catch(e){}
   document.querySelectorAll('.navtab').forEach(b=>b.classList.toggle('on', b.dataset.id===id));
-  $('frameLoad').classList.add('on');
-  $('frame').src = s.file;
+  if (prev && frames[prev.id]){ frames[prev.id].classList.remove('on'); pausePoll(frames[prev.id]); }
+  const first = !frames[id];
+  const ifr = getFrame(id);
+  ifr.classList.add('on');
+  if (first) $('frameLoad').classList.add('on');
+  else resumePoll(ifr);                                    // đã mở trước đó → hiện NGAY + làm mới nền
 }
-$('frame').addEventListener('load', () => {
-  $('frameLoad').classList.remove('on');
-  tidyFrame();
-});
-/* Ẩn thanh tiêu đề riêng của màn hình con — hub đã có thanh chung */
-function tidyFrame(){
-  try{
-    const d = $('frame').contentDocument;
-    if (!d) return;
-    const hd = d.querySelector('header.bar, header');
-    if (hd) hd.style.display='none';
-  }catch(e){}
+/* Nạp trước các màn hình còn lại để lần chuyển đầu tiên cũng tức thì */
+function preloadRest(){
+  const rest = myScreens().filter(s => !frames[s.id]);
+  rest.forEach((s, i) => setTimeout(()=>{ if(!frames[s.id]) getFrame(s.id); }, 2000 + i*1500));
 }
 function openWindow(){ if (current) window.open(current.file, '_blank'); }
 
@@ -173,7 +203,8 @@ function startWatch(){
   clearInterval(watchTimer);
   watchTimer = setInterval(() => {
     try{
-      const d = $('frame').contentDocument; if (!d) return;
+      const ifr = current && frames[current.id]; if (!ifr) return;
+      const d = ifr.contentDocument; if (!d) return;
       const lv = d.getElementById('loginView');
       if (lv && lv.style.display !== 'none' && !loadSess()){
         clearInterval(watchTimer); location.reload();
