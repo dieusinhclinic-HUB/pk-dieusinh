@@ -167,4 +167,34 @@ window.SB_API = async function(action, extra){
     return { ok:false, error: m };
   }
 };
+
+/* ==== CHUYỂN GIAO DIỆN NHANH (chỉ Quản lý) — nút cạnh tên đăng nhập ==== */
+(function(){
+  if (window.top !== window) return; // đang chạy trong hub (iframe) → hub đã có thanh tab riêng
+  var P = [['tong-quan.html','📊 Tổng quan'],['thu-ngan.html','💵 Thu ngân'],['ban-kham.html','🩺 Bàn khám'],['ban-thu-ky.html','📋 Thư ký'],['duoc-sy.html','💊 Dược sỹ']];
+  var cur = (location.pathname.split('/').pop()||'').toLowerCase();
+  var here = false;
+  for (var i=0;i<P.length;i++) if (P[i][0]===cur) here = true;
+  if (!here) return;
+  var t = setInterval(function(){
+    try{
+      var chip = document.querySelector('header .userchip');
+      if (!chip) return;
+      var txt = chip.textContent || '';
+      if (txt.indexOf('·') === -1) return;           // chưa đăng nhập xong
+      clearInterval(t);
+      if (txt.indexOf('Quản lý') === -1) return;      // vai trò khác: không hiện
+      if (document.getElementById('pnlSwitch')) return;
+      var sel = document.createElement('select');
+      sel.id = 'pnlSwitch';
+      sel.title = 'Chuyển giao diện (chỉ Quản lý thấy)';
+      sel.style.cssText = 'border:none;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
+      var html = '';
+      for (var j=0;j<P.length;j++) html += '<option value="'+P[j][0]+'"'+(P[j][0]===cur?' selected':'')+'>'+P[j][1]+'</option>';
+      sel.innerHTML = html;
+      sel.onchange = function(){ if (sel.value && sel.value !== cur) location.href = sel.value; };
+      chip.parentNode.insertBefore(sel, chip);
+    }catch(e){}
+  }, 600);
+})();
 })();
