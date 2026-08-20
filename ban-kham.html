@@ -260,13 +260,13 @@ tryResume();
 });
 function tryResume(){
 const s = loadSess(); if (!s) return false;
-token = s.sess; me = {email:s.email, role:s.role};
-$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+token = s.sess; me = {email:s.email, role:s.role, ho_ten:s.ho_ten||''};
+$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
 const warm = !!(snap && snap.DB);
 if (warm){ DB = snap.DB; ver = snap.ver; renderAll(); fillBsSel(); }
-loadAll(warm).then(()=>{ fillBsSel(); if (!cur){ openMine(); renderAll(); } }); startPoll();
+loadAll(warm).then(()=>{ fillBsSel(); lockDoctor(); if (!cur){ openMine(); renderAll(); } }); startPoll();
 return true;
 }
 async function onCredential(resp){
@@ -276,11 +276,12 @@ try{
 const w = await api('login');
 if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền.' : ('Lỗi: '+w.error); token=null; return; }
 me = w;
-if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
-$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
+$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 await loadAll();
 fillBsSel();
+lockDoctor();
 if (!cur){ openMine(); renderAll(); }
 startPoll();
 toast('✓ Xin chào — vai trò: ' + me.role);
@@ -300,8 +301,22 @@ $('bsSel').innerHTML = bss.map(b => `<option>${b.TEN_BS}</option>`).join('');
 if (keep && bss.some(b=>String(b.TEN_BS).trim()===keep)) $('bsSel').value = keep;
 }
 const myBS = () => $('bsSel').value;
+/* Tài khoản VAI TRÒ 'Bác sĩ': khóa cứng vào đúng bàn của mình (tên hiển thị = tên trong DS bác sĩ) */
+let DOC_LOCK = false;
+function lockDoctor(){
+DOC_LOCK = false;
+if (!me || String(me.role).trim() !== 'Bác sĩ') return;
+const ten = String(me.ho_ten||'').trim();
+const hit = rowsToObj('BAC_SI').find(b=>String(b.TEN_BS).trim() === ten);
+if (!hit){ toast('⚠️ Tài khoản bác sĩ nhưng tên hiển thị "'+(ten||'—')+'" chưa khớp danh sách bác sĩ — nhờ Quản lý sửa trong Nhân sự.'); return; }
+$('bsSel').value = ten;
+$('bsSel').disabled = true;
+$('bsSel').title = 'Tài khoản bác sĩ — cố định bàn của mình';
+DOC_LOCK = true;
+}
 /* chuyển bàn bác sĩ: nhớ lựa chọn của máy này + mở ngay BN đang khám của bác sĩ đó */
 function bsSwitch(){
+if (DOC_LOCK){ const ten=String(me.ho_ten||'').trim(); if ($('bsSel').value!==ten) $('bsSel').value=ten; toast('🔒 Tài khoản bác sĩ chỉ làm việc tại bàn của mình.'); return; }
 if (lines.length && !confirm('Đang có dịch vụ mới thêm CHƯA lưu — chuyển bàn sẽ bỏ các dòng này. Tiếp tục?')){ $('bsSel').value = localStorage.getItem('pk_bs_bk') || $('bsSel').value; return; }
 try{ localStorage.setItem('pk_bs_bk', $('bsSel').value); }catch(e){}
 openMine();
@@ -434,6 +449,7 @@ await loadAll(true);
 }
 function openPatient(maCho){
 const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
+if (DOC_LOCK && String(r.BS_KHAM||'').trim() && String(r.BS_KHAM||'').trim() !== myBS()){ toast('🔒 Bệnh nhân này đang ở phòng '+r.BS_KHAM+' — tài khoản bác sĩ chỉ xem ca của mình.'); return; }
 if (cur && cur.maCho !== maCho && lines.length){ toast('⚠️ Đang có dịch vụ chưa lưu — bấm Hoàn tất khám trước khi mở ca khác.'); return; }
 if (!cur || cur.maCho !== maCho){ cur = {maCho, maBN:r.MA_BN}; lines=[]; examNote=''; }
 renderWorkspace();

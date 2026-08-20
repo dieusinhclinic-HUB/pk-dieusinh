@@ -140,7 +140,7 @@ function enterApp(){
     try{ localStorage.removeItem(SESS_KEY); }catch(e){}
     token=null; return;
   }
-  $('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+  $('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
   $('nav').innerHTML = scr.map(s =>
     `<button class="navtab" data-id="${s.id}" onclick="go('${s.id}')">${s.label}</button>`).join('');
   $('loginView').style.display='none';
@@ -234,13 +234,13 @@ async function onCredential(resp){
       token=null; return;
     }
     me = w;
-    if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
+    if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
     enterApp();
   }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
 }
 function tryResume(){
   const s = loadSess(); if (!s) return false;
-  token = s.sess; me = {email:s.email, role:s.role};
+  token = s.sess; me = {email:s.email, role:s.role, ho_ten:s.ho_ten||''};
   enterApp();
   return !!$('nav').children.length;
 }

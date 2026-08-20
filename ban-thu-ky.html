@@ -331,8 +331,8 @@ document.addEventListener('click', e => { if (!e.target.closest('.pk')) document
 });
 function tryResume(){
 const s = loadSess(); if (!s) return false;
-token = s.sess; me = {email:s.email, role:s.role};
-$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+token = s.sess; me = {email:s.email, role:s.role, ho_ten:s.ho_ten||''};
+$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
 const warm = !!(snap && snap.DB);
@@ -347,8 +347,8 @@ try{
 const w = await api('login');
 if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền.' : ('Lỗi: '+w.error); token=null; return; }
 me = w;
-if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
-$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
+$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 await loadAll(); fillSelects(); startPoll();
 toast('✓ Xin chào — vai trò: ' + me.role);

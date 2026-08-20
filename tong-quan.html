@@ -128,6 +128,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div><h1>📊 Tổng quan</h1><div class="sub" id="hdDate"></div></div>
 <div class="spacer"></div>
 <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
+<button class="hbtn" id="nsBtn" style="display:none;" onclick="nsOpen()">👥 Nhân sự</button>
 <span class="userchip" id="userChip">…</span>
 <button class="hbtn" onclick="location.reload()">Thoát</button>
 </header>
@@ -188,7 +189,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU','THUOC','TOA_THUOC','TOA_CT'];
+const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU','THUOC','TOA_THUOC','TOA_CT','NGUOI_DUNG'];
 const ALLOWED = ['Quản lý','Kế toán'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null, range='7', selBS=null;
@@ -246,8 +247,8 @@ tryResume();
 function tryResume(){
 const s = loadSess(); if (!s) return false;
 if (!ALLOWED.includes(s.role)) return false;
-token = s.sess; me = {email:s.email, role:s.role};
-$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+token = s.sess; me = {email:s.email, role:s.role, ho_ten:s.ho_ten||''};
+$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
 const warm = !!(snap && snap.DB);
@@ -263,8 +264,8 @@ const w = await api('login');
 if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền.' : ('Lỗi: '+w.error); token=null; return; }
 if (!ALLOWED.includes(w.role)){ $('loginMsg').className='err'; $('loginMsg').textContent='Vai trò "'+w.role+'" không được xem Tổng quan (chỉ Quản lý & Kế toán).'; token=null; return; }
 me = w;
-if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, exp:w.exp})); }catch(e){} }
-$('userChip').textContent = '👤 ' + me.email.split('@')[0] + ' · ' + me.role;
+if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
+$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 await loadAll(); startPoll();
 }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ.'; }
@@ -435,6 +436,84 @@ a.click();
 toast('✓ Đã xuất CSV thanh toán (mở được bằng Excel)');
 }
 function renderAll(){ renderKpis(); renderPipe(); renderNhom(); renderChart(); renderMethods(); renderBS(); renderFlags(); }
+</script>
+
+<!-- ===== NHÂN SỰ (chỉ Quản lý) ===== -->
+<div id="nsOvl" style="position:fixed;inset:0;background:rgba(20,30,25,.45);display:none;align-items:center;justify-content:center;z-index:120;padding:16px;">
+<div style="background:#fff;border-radius:16px;width:min(940px,97vw);max-height:90vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);">
+<div style="padding:13px 18px;border-bottom:1px solid var(--hair);display:flex;align-items:center;position:sticky;top:0;background:#fff;z-index:2;">
+<h3 style="font-size:15px;color:var(--brand);">👥 Nhân sự — tài khoản đăng nhập</h3>
+<div style="flex:1;"></div>
+<button onclick="document.getElementById('nsOvl').style.display='none'" style="border:none;background:#f1f1ec;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:14px;">✕</button>
+</div>
+<div style="padding:15px 18px;">
+<div style="font-size:12px;color:var(--ink3);margin-bottom:10px;">Email = tài khoản Google nhân viên dùng để đăng nhập · <b>Tên hiển thị</b> thay cho email trên thanh đầu trang · tài khoản vai trò <b>Bác sĩ</b> phải chọn đúng tên trong danh sách bác sĩ để tự khóa vào bàn của mình.</div>
+<div id="nsList"></div>
+<div style="margin-top:14px;padding:12px;border:1.5px dashed var(--brand3);border-radius:12px;">
+<div style="font-size:11.5px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">➕ Thêm tài khoản mới</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+<input id="nsEmail" placeholder="email@gmail.com" style="flex:2;min-width:200px;">
+<select id="nsRole" style="flex:1;min-width:110px;" onchange="nsNameField()"></select>
+<span id="nsNameHost" style="flex:2;min-width:160px;display:inline-flex;"></span>
+<button class="hbtn" style="background:var(--brand2);" onclick="nsAdd()">✓ Thêm</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+(function(){
+var ROLES = ['Quản lý','Bác sĩ','Thư ký','Thu ngân','Lễ tân','Dược sỹ','Kế toán'];
+function esc(v){ return String(v==null?'':v).replace(/"/g,'&quot;'); }
+function bsNames(){ return rowsToObj('BAC_SI').map(function(b){ return String(b.TEN_BS).trim(); }); }
+function nameInput(id, role, val){
+if (String(role).trim()==='Bác sĩ'){
+return '<select id="'+id+'" style="width:100%;">'+bsNames().map(function(n){ return '<option'+(n===val?' selected':'')+'>'+n+'</option>'; }).join('')+'</select>';
+}
+return '<input id="'+id+'" style="width:100%;" placeholder="Tên hiển thị — vd: Khang Đặng, Trợ lý Lan" value="'+esc(val)+'">';
+}
+window.nsNameField = function(){
+var host = $('nsNameHost'); if (host) host.innerHTML = nameInput('nsName', $('nsRole').value, '');
+};
+window.nsOpen = function(){
+$('nsRole').innerHTML = ROLES.map(function(r){ return '<option>'+r+'</option>'; }).join('');
+nsNameField();
+nsRender();
+$('nsOvl').style.display = 'flex';
+};
+window.nsRender = function(){
+var rows = rowsToObj('NGUOI_DUNG');
+$('nsList').innerHTML = rows.length ? rows.map(function(u, i){
+var em = String(u.EMAIL||'');
+return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:1px solid var(--hair);border-radius:11px;padding:9px 11px;margin-bottom:7px;">'
++ '<span class="num" style="min-width:220px;font-size:12.5px;color:var(--ink2);">'+em+'</span>'
++ '<select id="nsr_'+i+'" style="width:120px;" onchange="document.getElementById(\'nsnh_'+i+'\').innerHTML = nsNI(\'nsn_'+i+'\', this.value, document.getElementById(\'nsn_'+i+'\')?document.getElementById(\'nsn_'+i+'\').value:\'\');">'
++ ROLES.map(function(r){ return '<option'+(r===String(u.VAI_TRO).trim()?' selected':'')+'>'+r+'</option>'; }).join('') + '</select>'
++ '<span id="nsnh_'+i+'" style="flex:1;min-width:170px;display:inline-flex;">'+nameInput('nsn_'+i, u.VAI_TRO, String(u.HO_TEN||''))+'</span>'
++ '<button class="hbtn" style="background:var(--brand2);" onclick="nsSave(\''+esc(em)+'\', '+i+')">💾 Lưu</button>'
++ '</div>';
+}).join('') : '<div style="color:var(--ink3);font-size:12.5px;">Chưa có tài khoản nào.</div>';
+};
+window.nsNI = nameInput;
+window.nsSave = async function(email, i){
+var role = $('nsr_'+i).value, ten = $('nsn_'+i).value.trim();
+if (!ten){ toast('⚠️ Nhập tên hiển thị'); return; }
+var j = await api('update', {table:'NGUOI_DUNG', keyCol:'EMAIL', keyVal:email, row:{HO_TEN:ten, VAI_TRO:role}});
+if (j.ok){ ver=j.v; toast('✓ Đã lưu: <b>'+ten+'</b> · '+role); await loadAll(true); nsRender(); }
+else toast('⚠️ '+(j.error||'lỗi'));
+};
+window.nsAdd = async function(){
+var em = $('nsEmail').value.trim().toLowerCase(), role = $('nsRole').value, ten = $('nsName').value.trim();
+if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ toast('⚠️ Email chưa đúng'); return; }
+if (!ten){ toast('⚠️ Nhập tên hiển thị'); return; }
+var j = await api('append', {table:'NGUOI_DUNG', row:{EMAIL:em, HO_TEN:ten, VAI_TRO:role, MA_NV:'', GHI_CHU:''}});
+if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+ten+'</b> ('+role+') — người này đăng nhập được ngay'); $('nsEmail').value=''; $('nsName').value=''; await loadAll(true); nsRender(); }
+else toast('⚠️ '+(j.error||'lỗi'));
+};
+var t = setInterval(function(){
+try{ if (typeof me!=='undefined' && me && me.role){ clearInterval(t); if (String(me.role).trim()==='Quản lý') $('nsBtn').style.display='inline-block'; } }catch(e){}
+}, 700);
+})();
 </script>
 </body>
 </html>
