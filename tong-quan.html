@@ -535,7 +535,7 @@ if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+ten+'</b> ('+role+') — người
 else toast('⚠️ '+(j.error||'lỗi'));
 };
 var t = setInterval(function(){
-try{ if (typeof me!=='undefined' && me && me.role){ clearInterval(t); if (String(me.role).trim()==='Quản lý') $('nsBtn').style.display='inline-block'; } }catch(e){}
+try{ if (typeof me!=='undefined' && me && me.role){ clearInterval(t); if (String(me.role).trim()==='Quản lý'){ $('nsBtn').style.display='inline-block'; if (location.hash === '#nhansu'){ history.replaceState(null,'',location.pathname); setTimeout(function(){ try{ nsOpen(); }catch(e){} }, 400); } } } }catch(e){}
 }, 700);
 })();
 </script>

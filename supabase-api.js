@@ -223,6 +223,19 @@ window.SB_API = async function(action, extra){
       sel.innerHTML = html;
       sel.onchange = function(){ if (sel.value && sel.value !== cur) location.href = sel.value; };
       chip.parentNode.insertBefore(sel, chip);
+      /* nút Nhân sự dùng được từ MỌI màn hình (chỉ Quản lý) */
+      if (!document.getElementById('nsGlobalBtn')){
+        var nb = document.createElement('button');
+        nb.id = 'nsGlobalBtn';
+        nb.textContent = '👥 Nhân sự';
+        nb.title = 'Quản lý tài khoản nhân viên';
+        nb.style.cssText = 'border:none;border-radius:9px;padding:6px 11px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
+        nb.onclick = function(){
+          if (cur === 'tong-quan.html' && typeof window.nsOpen === 'function') window.nsOpen();
+          else location.href = 'tong-quan.html#nhansu';
+        };
+        chip.parentNode.insertBefore(nb, sel);
+      }
     }catch(e){}
   }, 600);
 })();
