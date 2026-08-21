@@ -176,15 +176,18 @@ Bố cục hồ sơ (modal lớn, các khối):
 
 ## 4. THỨ TỰ XÂY (mỗi đợt = 1 commit + 1 deploy, xong đợt này mới sang đợt sau)
 
-| Đợt | Nội dung | Đụng vào |
-|---|---|---|
-| **A** | Chuỗi đơn dịch vụ: cột mới HANG_CHO/SO_KHAM · check-in từ hẹn + vãng lai cùng 1 đường · nhãn 🗓/🚶 + nút ⬆ Ưu tiên · chọn DV+BS lúc tiếp nhận · checklist xác nhận ở bàn khám · hóa đơn theo dòng Hoàn thành + **mẫu in hóa đơn A5** · timestamps · hủy đơn · PIPELINE ở Tổng quan | API v0.5, thu-ngan, ban-kham, ban-thu-ky, tong-quan |
-| **B** | Chấm công: LICH_LAM_VIEC + CHAM_CONG + cham-cong.html (máy quầy) + **nhập file máy vân tay** + cột MA_NV + trạng thái khả dụng lúc chọn BS + board vào ca + giờ công & cảnh báo lệch ở Tổng quan | API, cham-cong (mới), thu-ngan, ban-kham, tong-quan, hub |
-| **C** | Cận lâm sàng (Chờ kết quả) · Hẹn tái khám 1 chạm · Mẫu ghi chú | ban-kham, ban-thu-ky, thu-ngan |
-| **D** | Toa thuốc: kê ở bàn khám → dược phát → kho tự trừ → in toa | API, ban-kham, duoc-sy |
-| **E** | TV phòng chờ + chuông gọi số + in số thứ tự (P3 cũ) | tv.html (mới), thu-ngan |
+**SẮP XẾP LẠI 20/8/2026 (chốt với anh Khang):** ✅ A, DB, D đã xong · **CHẤM CÔNG KIỂU CŨ BỎ HẲN** (không máy quầy Vào/Ra ca, không nhập máy vân tay) — thay bằng Đợt B-mới "Lịch + Hiện diện" · iPad check-in: bỏ · TV kéo lên làm ngay.
 
-| **D** *(bổ sung)* | Toa thuốc dùng **mẫu in A5 theo TT52** (mockup_toa_thuoc.html đã duyệt) | ban-kham, duoc-sy |
+| Đợt | Trạng thái | Nội dung |
+|---|---|---|
+| **A** | ✅ xong 20/8 | Chuỗi đơn dịch vụ, check-in, ưu tiên, phiếu A5, pipeline |
+| **DB** | ✅ xong 20/8 | Chuyển Supabase (schema, RLS, realtime, migrate, mirror đêm) |
+| **D** | ✅ xong 20/8 | Toa thuốc: kê → soạn → thu → phát, kho tự trừ, in TT26, gộp tiền thuốc |
+| **E-TV** | 🔨 đang làm | **tv.html — TV phòng chờ**: khung to mỗi phòng BS đang khám hiện SỐ (KHÔNG tên — chốt 20/8, kín đáo cho PK phụ sản), dải "sắp tới" các số chờ, chuông + ĐỌC LOA từ TV khi gọi số (loa phát ở phòng chờ), banner "MỜI SỐ X VÀO PHÒNG BS Y" ~10s, realtime ~1s, đồng hồ + tên PK; nút 🔊 bấm 1 lần khi mở TV để mở khóa âm thanh (quy định trình duyệt); đăng nhập tài khoản phòng khám bất kỳ |
+| **F-Vật tư** | ⏳ kế tiếp | **Kho vật tư tiêu hao + danh mục thiết bị** (chưa có trong bản 1.0 — anh Khang bổ sung 20/8, dược sỹ kiêm quản): bảng VAT_TU (mã, tên, ĐVT, nhóm, tồn tối thiểu) + VT_GD (nhập/xuất/kiểm kê — tồn tự tính, giống kho thuốc) · bảng THIET_BI (mã, tên, ngày mua, giá, bảo hành đến, chu kỳ bảo trì, lần bảo trì gần nhất, tình trạng, ghi chú) + nhắc đến hạn bảo trì trên Tổng quan · tab mới trong duoc-sy.html |
+| **B-mới** | ⏳ chờ tài khoản BS | **Lịch + Hiện diện** (thay chấm công): LICH_LAM_VIEC (thứ, giờ vào/ra từng người — Quản lý sửa trong hệ thống) · bảng HIEN_DIEN (EMAIL, LAST_SEEN — trang tự đánh dấu mỗi ~60s khi đăng nhập) · BS "có mặt" = đúng lịch hôm nay + đang đăng nhập → chọn BS lúc tiếp nhận/gọi vào phòng hiện 🟢 có mặt / ⚪ chưa đến (theo lịch) / 🔴 nghỉ; điều phối siêu âm chỉ đề xuất BS siêu âm ĐANG CÓ MẶT · CẦN TRƯỚC: Gmail riêng từng BS nhập vào tab Nhân sự |
+| **C** | ⏳ sau B | Cận lâm sàng (Chờ kết quả) · Hẹn tái khám 1 chạm · Mẫu ghi chú |
+| **E-còn lại** | ⏳ cuối | In số thứ tự + phiếu in nhiệt 80mm |
 
 Việc còn chờ chị: **BANK_INFO** (ô chuyển khoản) · **email nhân viên** vào NGUOI_DUNG (kèm vai trò: Thu ngân/Lễ tân/Bác sĩ/Thư ký/Dược sỹ/Kế toán) · **lịch làm việc** của từng người (để đổ vào LICH_LAM_VIEC) · **GIA_BAN** thuốc nào khác giá vốn · **logo** (cho mẫu in) · **duyệt 2 mẫu in** (hóa đơn + toa thuốc) · nếu đã có/định mua **máy chấm công vân tay**: cho biết hãng/model để em khớp định dạng file xuất.
 

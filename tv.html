@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TV phòng chờ — PK Diệu Sinh</title>
+<link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-api.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+--brand:#0a5240; --brand2:#0f6e56; --brand3:#12836a;
+--ink:#eaf4ef; --dim:#9fc3b5; --warn:#fab219; --blue:#7db8ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#07231b;color:var(--ink);overflow:hidden;font-size:16px;}
+.num{font-variant-numeric:tabular-nums;}
+
+/* login */
+#loginView{min-height:100vh;display:grid;place-items:center;padding:20px;}
+.logincard{background:#0c2f25;border:1px solid #1d4a3c;border-radius:20px;padding:40px 46px;text-align:center;max-width:440px;}
+.logincard h1{font-size:22px;margin-bottom:6px;color:#fff;}
+.logincard .sub{color:var(--dim);font-size:13.5px;margin-bottom:22px;}
+#gbtn{display:flex;justify-content:center;margin-bottom:14px;min-height:44px;}
+#loginMsg{font-size:12.5px;color:var(--dim);}
+#loginMsg.err{color:#ff8a8a;font-weight:600;}
+
+/* app */
+#app{display:none;height:100vh;flex-direction:column;}
+header{display:flex;align-items:center;gap:18px;padding:1.2vh 2.2vw;background:linear-gradient(135deg,var(--brand),var(--brand2));}
+header .logo{font-size:2.6vh;font-weight:800;color:#fff;letter-spacing:.5px;}
+header .sub{font-size:1.6vh;color:#cfe6de;}
+.spacer{flex:1;}
+#clock{font-size:3.2vh;font-weight:800;color:#fff;}
+#dateTxt{font-size:1.6vh;color:#cfe6de;text-align:right;}
+
+main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-height:0;}
+.roomsWrap{flex:1;display:grid;gap:1.4vw;min-height:0;align-content:center;}
+.room{background:#0c2f25;border:2px solid #1d4a3c;border-radius:1.6vw;padding:2vh 1.2vw;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:1vh;min-height:0;}
+.room .rname{font-size:2.6vh;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;}
+.room .rnum{font-size:12vh;font-weight:900;color:#fff;line-height:1;}
+.room .rnum.empty{color:#2c5949;font-size:7vh;font-weight:700;}
+.room.called{border-color:var(--warn);background:#123a2e;animation:pulse 1s ease infinite alternate;}
+.room.called .rnum{color:var(--warn);}
+@keyframes pulse{from{box-shadow:0 0 0 0 rgba(250,178,25,.35);}to{box-shadow:0 0 3.2vh .6vh rgba(250,178,25,.28);}}
+
+.waitBar{background:#0c2f25;border:2px solid #1d4a3c;border-radius:1.4vw;padding:1.6vh 1.6vw;display:flex;align-items:center;gap:1.6vw;}
+.waitBar .lbl{font-size:2.2vh;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
+.waitNums{display:flex;gap:1vw;flex-wrap:wrap;align-items:center;flex:1;}
+.wnum{background:#123a2e;border:2px solid #2c5949;color:#fff;border-radius:1vw;min-width:6.5vh;padding:.9vh 1.4vh;font-size:3.4vh;font-weight:800;text-align:center;}
+.wempty{color:#2c5949;font-size:2.2vh;font-weight:700;}
+.payNums .wnum{border-color:#3d5a8a;background:#16304a;color:var(--blue);}
+
+/* banner gọi số */
+#callBanner{position:fixed;inset:0;background:rgba(4,26,20,.93);display:none;align-items:center;justify-content:center;z-index:100;text-align:center;}
+#callBanner.on{display:flex;}
+#callBanner .box{padding:4vh 5vw;}
+#callBanner .t1{font-size:5vh;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.15em;}
+#callBanner .t2{font-size:26vh;font-weight:900;color:var(--warn);line-height:1.05;}
+#callBanner .t3{font-size:6vh;font-weight:800;color:#fff;}
+
+/* nút mở âm thanh */
+#sndBtn{position:fixed;right:2vw;bottom:2.4vh;z-index:90;border:none;border-radius:99px;padding:1.4vh 2.4vh;font-size:2vh;font-weight:800;cursor:pointer;background:var(--warn);color:#3a2a00;box-shadow:0 6px 24px rgba(0,0,0,.4);}
+#sndBtn.ok{background:#123a2e;color:var(--dim);border:1px solid #2c5949;box-shadow:none;font-size:1.5vh;padding:.8vh 1.5vh;}
+#syncTag{position:fixed;left:2vw;bottom:2.4vh;font-size:1.5vh;color:#2c5949;z-index:90;}
+#syncTag.off{color:#ff8a8a;}
+</style>
+</head>
+<body>
+
+<div id="loginView">
+<div class="logincard">
+<div style="font-size:42px;">📺</div>
+<h1>TV phòng chờ — PK Diệu Sinh</h1>
+<div class="sub">Đăng nhập một lần bằng tài khoản Google của phòng khám, sau đó để nguyên trên TV.</div>
+<div id="gbtn"></div>
+<div id="loginMsg">Đang tải đăng nhập Google…</div>
+</div>
+</div>
+
+<div id="app">
+<header>
+<div><div class="logo">🌿 PHÒNG KHÁM DIỆU SINH</div><div class="sub">Kính chúc quý khách sức khỏe — vui lòng theo dõi số thứ tự</div></div>
+<div class="spacer"></div>
+<div><div id="clock" class="num">--:--</div><div id="dateTxt"></div></div>
+</header>
+<main>
+<div class="roomsWrap" id="roomsWrap"></div>
+<div class="waitBar"><span class="lbl">⏳ Số đang chờ</span><div class="waitNums" id="waitNums"></div></div>
+<div class="waitBar payNums"><span class="lbl">💳 Mời thanh toán</span><div class="waitNums" id="payNums"></div></div>
+</main>
+</div>
+
+<div id="callBanner"><div class="box">
+<div class="t1">Kính mời số</div>
+<div class="t2 num" id="cbNum">4</div>
+<div class="t3" id="cbRoom">vào phòng khám</div>
+</div></div>
+
+<button id="sndBtn" onclick="sndOn()">🔊 Bấm để bật âm thanh</button>
+<div id="syncTag">●</div>
+
+<script>
+const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
+const POLL_MS = 1000;
+const TABLES = ['HANG_CHO','BAC_SI'];
+let token=null, me=null, DB={}, ver=-1, pollTimer=null;
+let sndReady=false, lastCalls={}, firstLoad=true, bannerTimer=null, bannerQueue=[];
+
+const $ = id => document.getElementById(id);
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const sameDay = v => String(v).slice(0,10) === todayStr();
+
+/* ==== API ==== */
+const SESS_KEY='pk_sess';
+function loadSess(){ try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); return (s && s.sess && s.exp > Date.now()+60000) ? s : null; }catch(e){ return null; } }
+async function api(action, extra){
+const j = await SB_API(action, Object.assign({token}, extra||{}));
+if (j && j.error === 'AUTH_REQUIRED'){ sessionExpired(); throw new Error('AUTH_REQUIRED'); }
+return j;
+}
+function rowsToObj(t){
+const d = DB[t]; if(!d) return [];
+return d.rows.map(r => { const o={}; d.header.forEach((h,i)=>o[String(h).trim()]=r[i]); return o; });
+}
+async function loadAll(){
+try{
+const j = await api('readAll', {tables: TABLES});
+if (j.ok){ DB = j.tables; ver = j.v; render(); setSync(true); }
+else setSync(false);
+}catch(e){ setSync(false); }
+}
+function startPoll(){
+clearInterval(pollTimer);
+pollTimer = setInterval(async () => {
+try{
+const j = await api('version');
+if (j.ok){ setSync(true); if (j.v !== ver){ ver = j.v; loadAll(); } }
+else setSync(false);
+}catch(e){}
+}, POLL_MS);
+}
+function setSync(ok){ const t=$('syncTag'); t.className = ok?'':'off'; t.textContent = ok?'●':'● mất kết nối'; }
+
+/* ==== LOGIN ==== */
+function gisInit(){
+google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential });
+google.accounts.id.renderButton($('gbtn'), { theme:'filled_blue', size:'large', shape:'pill', width:280 });
+$('loginMsg').textContent = 'Dùng đúng Gmail đã được phòng khám khai báo.';
+}
+window.addEventListener('load', () => {
+const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
+setTimeout(()=>clearInterval(t), 10000);
+setInterval(tick, 1000); tick();
+tryResume();
+});
+function tick(){
+const d = new Date();
+$('clock').textContent = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+$('dateTxt').textContent = d.toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+}
+function tryResume(){
+const s = loadSess(); if (!s) return false;
+token = s.sess; me = {email:s.email, role:s.role};
+$('loginView').style.display='none'; $('app').style.display='flex';
+loadAll(); startPoll();
+return true;
+}
+async function onCredential(resp){
+token = resp.credential;
+$('loginMsg').className=''; $('loginMsg').textContent='Đang kiểm tra quyền…';
+try{
+const w = await api('login');
+if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền.' : ('Lỗi: '+w.error); token=null; return; }
+me = w;
+if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
+$('loginView').style.display='none'; $('app').style.display='flex';
+await loadAll();
+startPoll();
+}catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
+}
+function sessionExpired(){
+clearInterval(pollTimer); token=null;
+$('app').style.display='none'; $('loginView').style.display='grid';
+$('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập hết hạn — đăng nhập lại.';
+}
+
+/* ==== ÂM THANH ==== */
+function sndOn(){
+sndReady = true;
+try{ const c=new (window.AudioContext||window.webkitAudioContext)(); const o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); g.gain.value=.06; o.frequency.value=880; o.start(); o.stop(c.currentTime+.15); }catch(e){}
+const b=$('sndBtn'); b.className='ok'; b.textContent='🔊 Âm thanh: BẬT';
+}
+function chime(){
+if (!sndReady) return;
+try{const c=new (window.AudioContext||window.webkitAudioContext)();[[880,0],[1174,.18],[1568,.36]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;g.gain.setValueAtTime(.25,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.5);o.start(c.currentTime+d);o.stop(c.currentTime+d+.55);});}catch(e){}
+}
+function speak(stt, phong){
+if (!sndReady) return;
+const ph = String(phong||'').replace(/^BS\.?\s*/i,'bác sĩ ');
+const msg = 'Kính mời số '+stt+', vào phòng khám '+ph;
+try{
+const a = new Audio('https://bhixwqpyvspmtumbvbhc.supabase.co/functions/v1/loa?q='+encodeURIComponent(msg));
+const p = a.play();
+if (p && p.catch) p.catch(function(){ annFallback(msg); });
+a.onerror = function(){ annFallback(msg); };
+}catch(e){ annFallback(msg); }
+}
+function annFallback(msg){
+try{
+const u = new SpeechSynthesisUtterance(msg);
+u.lang='vi-VN'; u.rate=0.95; u.pitch=1.05;
+const vi = speechSynthesis.getVoices().filter(v=>String(v.lang).toLowerCase().indexOf('vi')===0);
+const pick = vi.find(v=>/hoaimy|female/i.test(v.name)) || vi.find(v=>/google/i.test(v.name)) || vi[0];
+if (pick) u.voice = pick;
+speechSynthesis.speak(u);
+}catch(e){}
+}
+
+/* ==== BANNER GỌI SỐ ==== */
+function showBanner(stt, phong){
+bannerQueue.push({stt, phong});
+if (!bannerTimer) nextBanner();
+}
+function nextBanner(){
+const b = bannerQueue.shift();
+if (!b){ $('callBanner').classList.remove('on'); bannerTimer=null; return; }
+$('cbNum').textContent = b.stt;
+$('cbRoom').textContent = 'vào ' + (String(b.phong||'').trim() ? ('phòng ' + b.phong) : 'phòng khám');
+$('callBanner').classList.add('on');
+chime();
+speak(b.stt, b.phong);
+bannerTimer = setTimeout(()=>{ nextBanner(); }, 9000);
+}
+
+/* ==== RENDER ==== */
+function render(){
+const q = rowsToObj('HANG_CHO').filter(r=>sameDay(r.NGAY) && r.TRANG_THAI!=='Hủy');
+const bss = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
+/* phát hiện GỌI MỚI: mã đơn mới chuyển sang Đang khám hoặc đổi giờ gọi */
+const calls = {};
+q.filter(r=>r.TRANG_THAI==='Đang khám').forEach(r=>{ calls[r.MA_CHO] = String(r.GIO_GOI||'') + '~' + String(r.BS_KHAM||''); });
+if (!firstLoad){
+Object.keys(calls).forEach(ma=>{
+if (lastCalls[ma] !== calls[ma]){
+const r = q.find(x=>x.MA_CHO===ma);
+if (r && r.STT) showBanner(r.STT, String(r.BS_KHAM||'').trim());
+}
+});
+}
+lastCalls = calls; firstLoad = false;
+
+/* phòng: chỉ hiện các BS đang có bệnh nhân + BS đang làm việc có phòng */
+const active = bss.map(b=>{
+const ten = String(b.TEN_BS).trim();
+const cur = q.find(r=>r.TRANG_THAI==='Đang khám' && String(r.BS_KHAM||'').trim()===ten);
+return {ten, stt: cur ? (cur.STT||'—') : null, called: cur ? (Date.now() - 0) : 0, gio: cur ? cur.GIO_GOI : ''};
+});
+const showRooms = active.filter(a=>a.stt !== null);
+const rooms = showRooms.length ? showRooms : active.slice(0,4);
+const n = Math.max(rooms.length, 1);
+const cols = n<=2 ? n : (n<=4 ? 2 : 3);
+const rw = $('roomsWrap');
+rw.style.gridTemplateColumns = 'repeat('+cols+',1fr)';
+rw.innerHTML = rooms.map(a=>{
+/* phòng vừa gọi trong ~60s thì viền vàng nhấp nháy */
+let recent = false;
+if (a.gio){
+const m = String(a.gio).match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+if (m){ const d=new Date(); const called=new Date(); called.setHours(+m[1],+m[2],+(m[3]||0),0); recent = (d-called) < 60000 && (d-called) > -60000; }
+}
+return `<div class="room${recent?' called':''}">
+<div class="rname">Phòng ${a.ten}</div>
+<div class="rnum num${a.stt===null?' empty':''}">${a.stt===null?'—':a.stt}</div>
+</div>`;
+}).join('') || '<div class="room"><div class="rname">Phòng khám</div><div class="rnum empty">Chưa mở ca</div></div>';
+
+/* số đang chờ theo thứ tự */
+const waits = q.filter(r=>r.TRANG_THAI==='Chờ khám').sort((a,b)=>{
+const ua = String(a.UU_TIEN||'').trim()==='Có'?0:1, ub = String(b.UU_TIEN||'').trim()==='Có'?0:1;
+if (ua!==ub) return ua-ub;
+return (Number(a.STT)||0)-(Number(b.STT)||0);
+});
+$('waitNums').innerHTML = waits.length ? waits.slice(0,12).map(r=>`<span class="wnum num">${r.STT||'?'}</span>`).join('') + (waits.length>12?('<span class="wempty">+'+(waits.length-12)+'</span>'):'') : '<span class="wempty">— không có số chờ —</span>';
+
+/* mời thanh toán */
+const pays = q.filter(r=>r.TRANG_THAI==='Xong khám').sort((a,b)=>(Number(a.STT)||0)-(Number(b.STT)||0));
+$('payNums').innerHTML = pays.length ? pays.map(r=>`<span class="wnum num">${r.STT||'?'}</span>`).join('') : '<span class="wempty">— chưa có —</span>';
+}
+</script>
+</body>
+</html>
