@@ -132,6 +132,7 @@
       <button class="ttab" data-p="paneTon">📦 Tồn kho</button>
       <button class="ttab" data-p="paneGd">↕️ Nhập / Xuất / Kiểm kê</button>
       <button class="ttab" data-p="paneVt">🧴 Vật tư</button>
+      <button class="ttab" data-p="paneScan">📷 Quét mã</button>
       <button class="ttab" data-p="paneTb">🔧 Thiết bị</button>
       <button class="ttab" data-p="paneLs">🕘 Lịch sử</button>
     </div>
@@ -223,6 +224,36 @@
       <div class="card">
         <div class="sect">🕘 Giao dịch vật tư gần nhất</div>
         <div id="vtLsBox"></div>
+      </div>
+    </div>
+
+    <!-- ===== QUÉT MÃ VẠCH ===== -->
+    <div class="tpane" id="paneScan">
+      <div class="card">
+        <div class="sect">📷 Quét mã vạch — cắm súng quét USB là dùng được ngay (súng gõ mã như bàn phím)</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+          <div style="display:flex;border:1.5px solid var(--brand3);border-radius:10px;overflow:hidden;">
+            <button id="scanModeX" class="ttab on" style="border:none;border-radius:0;" onclick="scanMode('Xuất')">➖ XUẤT kho</button>
+            <button id="scanModeN" class="ttab" style="border:none;border-radius:0;" onclick="scanMode('Nhập')">➕ NHẬP kho</button>
+          </div>
+          <span class="hint" style="flex:1;">Mỗi lần quét = +1 đơn vị (sửa được số lượng bên dưới). Quét xong hết thì bấm nút xác nhận.</span>
+        </div>
+        <input id="scanIn" placeholder="🔫 Bấm vào đây rồi quét — hoặc gõ mã vạch và Enter" autocomplete="off"
+          style="width:100%;font-size:17px;padding:13px 15px;border:2px solid var(--brand3);border-radius:12px;font-weight:700;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();handleScan(this.value.trim());this.value='';}">
+        <div id="scanLink" style="display:none;margin-top:10px;background:#fdf3dc;border:1.5px solid #eed77e;border-radius:11px;padding:11px 13px;">
+          <div style="font-size:13px;font-weight:700;color:#8a6205;margin-bottom:7px;">Mã vạch <span id="scanLinkCode" class="num"></span> chưa gắn với mặt hàng nào — chọn một lần, các lần sau tự nhận:</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <select id="scanLinkSel" style="flex:1;min-width:240px;"></select>
+            <button class="qbtn" style="color:#0a7a0a;" onclick="scanLinkSave()">✓ Gắn mã vạch</button>
+            <button class="qbtn" onclick="$('scanLink').style.display='none'">Bỏ qua</button>
+          </div>
+        </div>
+        <div id="scanList" style="margin-top:12px;"></div>
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;">
+          <button class="btn btn-brand" id="scanGo" onclick="scanConfirm()">✓ Ghi 0 giao dịch</button>
+          <button class="btn btn-ghost" onclick="scanPending={};renderScan();">Xóa danh sách</button>
+        </div>
       </div>
     </div>
 
@@ -324,9 +355,11 @@ window.addEventListener('load', () => {
   setTimeout(()=>clearInterval(t), 10000);
   $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
   document.querySelectorAll('.ttab').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
+    if (!b.dataset.p) return; // nút phụ (vd chế độ quét) không phải tab
+    document.querySelectorAll('.ttab[data-p]').forEach(x=>x.classList.remove('on'));
     document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
     b.classList.add('on'); $(b.dataset.p).classList.add('on');
+    if (b.dataset.p === 'paneScan'){ setTimeout(()=>{ const el=$('scanIn'); if(el) el.focus(); }, 60); }
   }));
   tryResume();
 });
@@ -787,7 +820,126 @@ async function tbAdd(){
   else toast('⚠️ '+(j.error||'lỗi'));
 }
 
-function renderAll(){ renderToa(); renderToaHx(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); renderVt(); fillVgSelect(); vgInfo(); renderVtLs(); renderTb(); }
+/* ================== QUÉT MÃ VẠCH ================== */
+let scanPending = {}, scanDir = 'Xuất', scanLastCode = '';
+function scanMode(m){
+  scanDir = m;
+  $('scanModeX').classList.toggle('on', m==='Xuất');
+  $('scanModeN').classList.toggle('on', m==='Nhập');
+  renderScan();
+  $('scanIn').focus();
+}
+function scanBeep(ok){
+  try{
+    const c = new (window.AudioContext||window.webkitAudioContext)();
+    const o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.frequency.value = ok ? 1320 : 260;
+    g.gain.setValueAtTime(.2, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, c.currentTime + (ok?.12:.35));
+    o.start(); o.stop(c.currentTime + (ok?.15:.4));
+  }catch(e){}
+}
+function scanFind(code){
+  const vt = vtList().find(x=>String(x.MA_VACH||'').trim()===code || String(x.MA_VT)===code);
+  if (vt) return {type:'VT', ma:vt.MA_VT, ten:vt.TEN_VT, dvt:vt.DVT||''};
+  const th = drugList().find(x=>String(x.MA_VACH||'').trim()===code || String(x.MA_THUOC)===code);
+  if (th) return {type:'THUOC', ma:th.MA_THUOC, ten:th.TEN_THUOC, dvt:th.DVT||''};
+  return null;
+}
+function handleScan(code){
+  if (!code) return;
+  const hit = scanFind(code);
+  if (!hit){
+    scanBeep(false);
+    scanLastCode = code;
+    $('scanLinkCode').textContent = code;
+    $('scanLinkSel').innerHTML =
+      '<optgroup label="🧴 Vật tư">' + vtList().map(t=>`<option value="VT|${t.MA_VT}">${t.MA_VT} · ${t.TEN_VT}</option>`).join('') + '</optgroup>' +
+      '<optgroup label="💊 Thuốc">' + drugList().map(t=>`<option value="THUOC|${t.MA_THUOC}">${t.MA_THUOC} · ${t.TEN_THUOC}</option>`).join('') + '</optgroup>';
+    $('scanLink').style.display = 'block';
+    return;
+  }
+  $('scanLink').style.display = 'none';
+  scanBeep(true);
+  const key = hit.type + '|' + hit.ma;
+  if (!scanPending[key]) scanPending[key] = Object.assign({qty:0}, hit);
+  scanPending[key].qty++;
+  renderScan();
+}
+async function scanLinkSave(){
+  const v = $('scanLinkSel').value; if (!v || !scanLastCode) return;
+  const [type, ma] = v.split('|');
+  const j = await api('update', type==='VT'
+    ? {table:'VAT_TU', keyCol:'MA_VT', keyVal:ma, row:{MA_VACH: scanLastCode}}
+    : {table:'THUOC', keyCol:'MA_THUOC', keyVal:ma, row:{MA_VACH: scanLastCode}});
+  if (j.ok){
+    ver = j.v;
+    toast('✓ Đã gắn mã vạch <b>'+scanLastCode+'</b> — từ giờ quét là tự nhận');
+    $('scanLink').style.display = 'none';
+    await loadAll(true);
+    handleScan(scanLastCode);
+    $('scanIn').focus();
+  } else toast('⚠️ '+(j.error||'lỗi'));
+}
+function scanQty(key, d){
+  if (!scanPending[key]) return;
+  scanPending[key].qty += d;
+  if (scanPending[key].qty <= 0) delete scanPending[key];
+  renderScan();
+}
+function renderScan(){
+  const box = $('scanList'); if (!box) return;
+  const items = Object.entries(scanPending);
+  const stV = vtStockMap(), stT = stockMap();
+  box.innerHTML = items.length ? items.map(([key,it])=>{
+    const ton = it.type==='VT' ? (stV[it.ma]||0) : (stT[it.ma]||0);
+    const over = scanDir==='Xuất' && it.qty > ton;
+    return `<div class="histrow" style="${over?'background:var(--crit-soft);border-radius:8px;':''}">
+    <span class="tag ${it.type==='VT'?'open':'in'}">${it.type==='VT'?'Vật tư':'Thuốc'}</span>
+    <span style="flex:1;"><b>${it.ten}</b> <span class="hint">(tồn ${ton} ${it.dvt})</span>${over?' <b style="color:var(--crit);">— quá tồn!</b>':''}</span>
+    <button class="qbtn" onclick="scanQty('${key}',-1)">➖</button>
+    <b class="num" style="font-size:16px;min-width:34px;text-align:center;">${it.qty}</b>
+    <button class="qbtn" onclick="scanQty('${key}',1)">➕</button>
+    <span>${it.dvt}</span>
+    </div>`;
+  }).join('') : '<div class="empty">Chưa quét mặt hàng nào.</div>';
+  const go = $('scanGo');
+  if (go) go.textContent = (scanDir==='Xuất'?'➖ Ghi XUẤT ':'➕ Ghi NHẬP ') + items.length + ' mặt hàng';
+}
+async function scanConfirm(){
+  const items = Object.entries(scanPending);
+  if (!items.length){ toast('⚠️ Chưa quét mặt hàng nào'); return; }
+  const stV = vtStockMap(), stT = stockMap();
+  for (const [key,it] of items){
+    const ton = it.type==='VT' ? (stV[it.ma]||0) : (stT[it.ma]||0);
+    if (scanDir==='Xuất' && it.qty > ton){ toast('⚠️ <b>'+it.ten+'</b> chỉ còn '+ton+' — giảm số lượng trước khi ghi'); return; }
+  }
+  const go = $('scanGo'); if (go.disabled) return;
+  go.disabled = true;
+  try{
+    let ok = 0, fail = 0;
+    let baseV = parseInt(nextId('VG',5,'VT_GD','MA_GD').slice(2),10);
+    let baseK = parseInt(nextId('K',5,'KHO_GD','MA_GD').slice(1),10);
+    for (const [key,it] of items){
+      const note = 'Quét mã vạch — bởi ' + (me?me.email.split('@')[0]:'');
+      let j;
+      if (it.type==='VT'){
+        j = await api('append', {table:'VT_GD', row:{MA_GD:'VG'+String(baseV++).padStart(5,'0'), NGAY:todayStr(), MA_VT:it.ma, LOAI:scanDir, SO_LUONG:it.qty, LO:'', HSD:'', GHI_CHU:note}});
+      } else {
+        j = await api('append', {table:'KHO_GD', row:{MA_GD:'K'+String(baseK++).padStart(5,'0'), NGAY:todayStr(), MA_THUOC:it.ma, LOAI:scanDir, SO_LUONG:it.qty, LO:'', HSD:'', GHI_CHU:note}});
+      }
+      if (j.ok){ ok++; ver=j.v; delete scanPending[key]; } else fail++;
+    }
+    if (fail) toast('⚠️ '+ok+' mặt hàng đã ghi, '+fail+' lỗi — thử lại phần còn lại');
+    else toast('✓ Đã ghi <b>'+scanDir+'</b> '+ok+' mặt hàng từ quét mã');
+    renderScan();
+    loadAll(true);
+    $('scanIn').focus();
+  } finally { go.disabled = false; }
+}
+
+function renderAll(){ renderToa(); renderToaHx(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); renderVt(); fillVgSelect(); vgInfo(); renderVtLs(); renderTb(); renderScan(); }
 function renderKpis(){
   const st = stockMap(), ds = drugList();
   let units=0, val=0, low=0;
