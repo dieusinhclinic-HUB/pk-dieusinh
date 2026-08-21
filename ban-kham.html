@@ -340,6 +340,7 @@ toast('🩺 Đang làm việc tại bàn: <b>'+myBS()+'</b>');
 function openMine(){
 const mine = queueToday().find(r=>r.TRANG_THAI==='Đang khám' && String(r.BS_KHAM||'').trim()===myBS());
 cur = mine ? {maCho:mine.MA_CHO, maBN:mine.MA_BN} : null;
+lastDeskCho = mine ? mine.MA_CHO : null;
 lines=[]; examNote='';
 }
 /* đọc loa mời bệnh nhân */
@@ -558,7 +559,7 @@ ${tkActive ? '' : `<div style="display:flex;gap:8px;align-items:center;flex-wrap
 /* ---- 2 · DỊCH VỤ & CHỈ ĐỊNH ---- */
 const linesHtml =
 pendLines.map(l=>`<div class="oline pending"><span class="dv">⏳ ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">(chỉ định — chưa thực hiện)</span></span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`).join('')
-+ doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div class="kqbox">'+(String(l.KET_QUA||'').trim()?('🧾 '+l.KET_QUA):'📎 Tệp kết quả đính kèm')+kqFileChips(l)+'</div>'):''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${l.MA_LUOT}')">✎ KQ</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="kq_${l.MA_LUOT}"></div>`).join('')
++ doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div class="kqbox">'+(String(l.KET_QUA||'').trim()?('🧾 '+l.KET_QUA):'📎 Tệp kết quả đính kèm')+kqFileChips(l)+'</div>'):''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${l.MA_LUOT}')">✎ KQ</button><button class="x" title="Bỏ dịch vụ này (không tính tiền)" onclick="cancelLine('${l.MA_LUOT}')">✕</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="kq_${l.MA_LUOT}"></div>`).join('')
 + lines.map((l,i)=>`<div class="oline"><span class="dv">${l.dv.TEN_DV}${l.qty>1?' ×'+l.qty:''} <span style="font-size:11px;color:var(--ink3);">(mới thêm — sẽ ghi khi hoàn tất)</span></span><span class="num">${fmtD(l.gia*l.qty)}</span><button class="x" onclick="delLine(${i})">✕</button></div>`).join('');
 const cardDV = `<div class="card">
 <div class="hd"><h2>🧾 Dịch vụ & chỉ định</h2><div class="spacer"></div><span class="num" style="font-size:14.5px;font-weight:800;color:var(--brand);">${fmtD(total)}</span></div>
@@ -656,12 +657,16 @@ rowsToObj('SO_KHAM').forEach(l=>{ const t=String(l.TEN_DV||'').trim(); if(t) cnt
 return dvAll().slice().sort((a,b)=>(cnt[b.TEN_DV]||0)-(cnt[a.TEN_DV]||0)).slice(0, n||6);
 }
 
-function addLine(maDV){
+async function addLine(maDV){
 const d = rowsToObj('DICH_VU').find(x=>x.MA_DV===maDV); if(!d) return;
-const ex = lines.find(l=>l.dv.MA_DV===maDV);
-if (ex) ex.qty++;
-else lines.push({dv:d, gia:Number(d.DON_GIA)||0, qty:1});
-renderWorkspace();
+if (!cur){ toast('⚠️ Mở bệnh nhân trước khi thêm dịch vụ'); return; }
+const gia = Number(d.DON_GIA)||0;
+const maLuot = 'L'+String(nextNum('L','SO_KHAM','MA_LUOT')).padStart(5,'0');
+const j = await api('append', {table:'SO_KHAM', row:{ MA_LUOT:maLuot, NGAY:todayStr(), MA_BN:cur.maBN, TEN_DV:d.TEN_DV,
+BS_THUC_HIEN:myBS(), BS_CHI_DINH:myBS(), DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:'', ANH_KET_QUA:'',
+MA_CHO:cur.maCho, TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() }});
+if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+d.TEN_DV+'</b> — đồng bộ ngay mọi màn hình'); loadAll(true); }
+else toast('⚠️ '+(j.error||'lỗi'));
 }
 function delLine(i){ lines.splice(i,1); renderWorkspace(); }
 
@@ -787,7 +792,26 @@ else toast('⚠️ '+(j.error||'lỗi'));
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ renderQueue(); renderWorkspace(); }
+/* Tự bám theo bàn: bác sĩ (hoặc thư ký) gọi ca mới → mọi màn hình đứng bàn đó tự mở đúng bệnh nhân */
+let lastDeskCho = null;
+function autoFollow(){
+try{
+const deskCur = queueToday().find(r=>r.TRANG_THAI==='Đang khám' && String(r.BS_KHAM||'').trim()===myBS());
+const key = deskCur ? deskCur.MA_CHO : null;
+if (key !== lastDeskCho){
+lastDeskCho = key;
+if (deskCur && (!cur || cur.maCho !== deskCur.MA_CHO)){
+if (String(examNote||'').trim()){
+toast('👀 Bàn '+myBS()+' vừa gọi ca mới — bạn đang có ghi chú chưa lưu nên màn hình không tự chuyển. Bấm ca mới trong hàng chờ khi sẵn sàng.');
+} else {
+cur = {maCho: deskCur.MA_CHO, maBN: deskCur.MA_BN};
+examNote = '';
+}
+}
+}
+}catch(e){}
+}
+function renderAll(){ autoFollow(); renderQueue(); renderWorkspace(); }
 </script>
 <script src="profile.js"></script>
 <script src="toa.js"></script>
