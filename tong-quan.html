@@ -189,7 +189,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU','THUOC','TOA_THUOC','TOA_CT','NGUOI_DUNG'];
+const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU','THUOC','TOA_THUOC','TOA_CT','NGUOI_DUNG','VAT_TU','VT_GD','THIET_BI'];
 const ALLOWED = ['Quản lý','Kế toán'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null, range='7', selBS=null;
@@ -423,6 +423,30 @@ const note = String(p.GHI_CHU||'');
 if (cl>0) flags.push({cls:'crit', html:`💰 <b>Thu thiếu ${fmtD(cl)}</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})${p.THU_NGAN?(' · thu ngân: '+String(p.THU_NGAN).split('@')[0]):''}${note?('<br><i>'+note+'</i>'):''}`});
 else if (/Giảm/i.test(note)) flags.push({cls:'warn', html:`🏷️ <b>Giảm giá</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})<br><i>${note}</i>`});
 });
+/* thiết bị đến hạn bảo trì / hết bảo hành */
+const now = new Date();
+rowsToObj('THIET_BI').forEach(t=>{
+if (String(t.TINH_TRANG||'').trim()==='Ngừng dùng') return;
+const ck = Number(t.CHU_KY_BT)||0;
+const last = String(t.BAO_TRI_GAN_NHAT||'').slice(0,10) || String(t.NGAY_MUA||'').slice(0,10);
+if (ck && last){
+const d = new Date(last);
+if (!isNaN(d)){
+d.setMonth(d.getMonth()+ck);
+const days = Math.ceil((d - now)/86400000);
+if (days < 0) flags.push({cls:'crit', html:`🔧 <b>${t.TEN_TB}</b> QUÁ HẠN bảo trì ${-days} ngày (hạn ${d.toLocaleDateString('vi-VN')})`});
+else if (days <= 14) flags.push({cls:'warn', html:`🔧 <b>${t.TEN_TB}</b> đến hạn bảo trì trong ${days} ngày (${d.toLocaleDateString('vi-VN')})`});
+}
+}
+if (String(t.TINH_TRANG||'').trim()==='Hỏng') flags.push({cls:'crit', html:`🔧 <b>${t.TEN_TB}</b> đang ghi nhận <b>Hỏng</b>`});
+});
+/* vật tư dưới tồn tối thiểu */
+(function(){
+const m = {};
+rowsToObj('VT_GD').forEach(g=>{ const ma=String(g.MA_VT||'').trim(); if(!ma) return; const sl=Number(g.SO_LUONG)||0; if(!(ma in m)) m[ma]=0; if(String(g.LOAI||'').trim()==='Xuất') m[ma]-=sl; else m[ma]+=sl; });
+const low = rowsToObj('VAT_TU').filter(t=>String(t.CON_AP_DUNG||'').trim()!=='Không' && (m[t.MA_VT]||0) <= (Number(t.TON_TOI_THIEU)||0) && (Number(t.TON_TOI_THIEU)||0) > 0);
+if (low.length) flags.push({cls:'warn', html:`🧴 <b>${low.length} vật tư</b> chạm mức tồn tối thiểu: ${low.slice(0,5).map(t=>t.TEN_VT).join(', ')}${low.length>5?'…':''}`});
+})();
 $('flagBox').innerHTML = flags.length ? flags.map(f=>`<div class="flag ${f.cls}">${f.html}</div>`).join('') : '<div class="empty">🎉 Không có mục cần đối soát trong kỳ.</div>';
 }
 function exportCSV(){

@@ -131,6 +131,8 @@
       <button class="ttab" data-p="paneToaHx">🗂 Toa đã phát</button>
       <button class="ttab" data-p="paneTon">📦 Tồn kho</button>
       <button class="ttab" data-p="paneGd">↕️ Nhập / Xuất / Kiểm kê</button>
+      <button class="ttab" data-p="paneVt">🧴 Vật tư</button>
+      <button class="ttab" data-p="paneTb">🔧 Thiết bị</button>
       <button class="ttab" data-p="paneLs">🕘 Lịch sử</button>
     </div>
 
@@ -188,6 +190,62 @@
       </div>
     </div>
 
+    <!-- ===== VẬT TƯ TIÊU HAO ===== -->
+    <div class="tpane" id="paneVt">
+      <div class="card">
+        <div class="sect">Vật tư tiêu hao — tồn tự tính từ nhập / xuất / kiểm kê (giống kho thuốc)</div>
+        <input id="vtSearch" placeholder="🔍 Tìm vật tư — tên hoặc mã…" style="width:100%;margin-bottom:10px;" oninput="renderVt()" autocomplete="off">
+        <table class="tk"><thead><tr><th>Mã</th><th>Tên vật tư</th><th>ĐVT</th><th>Nhóm</th><th class="r">Tồn</th><th class="r"></th></tr></thead><tbody id="vtBody"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="sect">↕️ Ghi giao dịch vật tư</div>
+        <div class="fgrid">
+          <div class="full"><label>Vật tư *</label><select id="vgVt" style="width:100%;" onchange="vgInfo()"></select></div>
+          <div><label>Loại *</label><select id="vgLoai" style="width:100%;" onchange="vgInfo()"><option>Nhập</option><option>Xuất</option><option>Kiểm kê</option></select></div>
+          <div><label id="vgSlLabel">Số lượng *</label><input type="number" id="vgSl" min="0" value="1"></div>
+          <div><label>Lô (tùy chọn)</label><input id="vgLo" placeholder="số lô"></div>
+          <div><label>Hạn dùng (tùy chọn)</label><input type="date" id="vgHsd"></div>
+          <div class="full"><label>Ghi chú</label><input id="vgGhiChu" placeholder="bắt buộc khi kiểm kê"></div>
+        </div>
+        <div class="hint" id="vgHint">—</div>
+        <div style="margin-top:12px;"><button class="btn btn-brand" id="vgSave" onclick="saveVg()">✓ Ghi giao dịch</button></div>
+      </div>
+      <div class="card">
+        <div class="sect">➕ Thêm vật tư mới vào danh mục</div>
+        <div class="fgrid">
+          <div class="full"><label>Tên vật tư *</label><input id="vtNewTen" placeholder="vd: Găng tay y tế size M"></div>
+          <div><label>Đơn vị tính</label><input id="vtNewDvt" placeholder="hộp, cái, chai…"></div>
+          <div><label>Nhóm</label><input id="vtNewNhom" placeholder="vd: Tiêu hao, Xét nghiệm, Vệ sinh"></div>
+          <div><label>Tồn tối thiểu (cảnh báo)</label><input type="number" id="vtNewMin" min="0" value="0"></div>
+        </div>
+        <div style="margin-top:12px;"><button class="btn btn-ghost" onclick="vtAdd()">➕ Thêm vật tư</button></div>
+      </div>
+      <div class="card">
+        <div class="sect">🕘 Giao dịch vật tư gần nhất</div>
+        <div id="vtLsBox"></div>
+      </div>
+    </div>
+
+    <!-- ===== THIẾT BỊ ===== -->
+    <div class="tpane" id="paneTb">
+      <div class="card">
+        <div class="sect">Danh mục thiết bị — bảo hành &amp; lịch bảo trì (đỏ = quá hạn · vàng = đến hạn trong 14 ngày)</div>
+        <div id="tbBox"></div>
+      </div>
+      <div class="card">
+        <div class="sect">➕ Thêm thiết bị</div>
+        <div class="fgrid">
+          <div class="full"><label>Tên thiết bị *</label><input id="tbNewTen" placeholder="vd: Máy siêu âm GE Voluson"></div>
+          <div><label>Ngày mua</label><input type="date" id="tbNewMua"></div>
+          <div><label>Giá mua (đ)</label><input type="number" id="tbNewGia" min="0" value="0"></div>
+          <div><label>Bảo hành đến</label><input type="date" id="tbNewBh"></div>
+          <div><label>Chu kỳ bảo trì (tháng)</label><input type="number" id="tbNewCk" min="0" value="0" placeholder="0 = không định kỳ"></div>
+          <div class="full"><label>Ghi chú</label><input id="tbNewGc" placeholder="serial, nơi mua, người liên hệ bảo trì…"></div>
+        </div>
+        <div style="margin-top:12px;"><button class="btn btn-ghost" onclick="tbAdd()">➕ Thêm thiết bị</button></div>
+      </div>
+    </div>
+
     <!-- ===== LỊCH SỬ ===== -->
     <div class="tpane" id="paneLs">
       <div class="card">
@@ -206,7 +264,7 @@
 const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES    = ['THUOC','KHO_GD','TOA_THUOC','TOA_CT','BENH_NHAN','HANG_CHO'];
+const TABLES    = ['THUOC','KHO_GD','TOA_THUOC','TOA_CT','BENH_NHAN','HANG_CHO','VAT_TU','VT_GD','THIET_BI'];
 const ALLOWED   = ['Quản lý','Dược sỹ'];
 
 /* ================== TRẠNG THÁI ================== */
@@ -460,7 +518,184 @@ function renderToaHx(){
   if (toas.length > 200) html += '<div class="hint">Hiển thị 200 toa gần nhất — dùng ô lọc để tìm toa cũ hơn.</div>';
   box.innerHTML = html;
 }
-function renderAll(){ renderToa(); renderToaHx(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); }
+/* ================== VẬT TƯ TIÊU HAO ================== */
+function vtStockMap(){
+  const m = {};
+  rowsToObj('VT_GD').forEach(g => {
+    const ma = String(g.MA_VT||'').trim(); if(!ma) return;
+    const sl = Number(g.SO_LUONG)||0;
+    if (!(ma in m)) m[ma] = 0;
+    if (String(g.LOAI||'').trim() === 'Xuất') m[ma] -= sl; else m[ma] += sl;
+  });
+  return m;
+}
+function vtList(){ return rowsToObj('VAT_TU').filter(t => String(t.CON_AP_DUNG||'').trim() !== 'Không'); }
+function renderVt(){
+  const body = $('vtBody'); if (!body) return;
+  const q = strip($('vtSearch').value);
+  const st = vtStockMap();
+  const rows = vtList()
+    .filter(t => !q || strip(t.TEN_VT).includes(q) || strip(t.MA_VT).includes(q))
+    .map(t => {
+      const ton = st[t.MA_VT]||0;
+      const min = Number(t.TON_TOI_THIEU)||0;
+      const badge = ton<=0 ? '<span class="badge zero">hết</span>' : (ton<=min ? '<span class="badge low">'+ton+'</span>' : '<span class="badge ok">'+ton+'</span>');
+      return `<tr>
+        <td class="num" style="color:var(--ink3);">${t.MA_VT}</td>
+        <td><b>${t.TEN_VT}</b></td>
+        <td>${t.DVT||''}</td>
+        <td>${t.NHOM||''}</td>
+        <td class="r">${badge}</td>
+        <td class="r"><button class="qbtn" title="Nhập" onclick="quickVg('${t.MA_VT}','Nhập')">➕</button> <button class="qbtn" title="Xuất" onclick="quickVg('${t.MA_VT}','Xuất')">➖</button></td>
+      </tr>`;
+    });
+  body.innerHTML = rows.join('') || '<tr><td colspan="6" class="empty">Chưa có vật tư nào — thêm ở khối bên dưới.</td></tr>';
+}
+function fillVgSelect(){
+  const el = $('vgVt'); if (!el) return;
+  const st = vtStockMap();
+  const cur = el.value;
+  el.innerHTML = '<option value="">— chọn vật tư —</option>' + vtList().map(t =>
+    `<option value="${t.MA_VT}">${t.MA_VT} · ${t.TEN_VT} (tồn ${st[t.MA_VT]||0} ${t.DVT||''})</option>`).join('');
+  if (cur) el.value = cur;
+}
+function quickVg(ma, loai){
+  document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
+  document.querySelector('.ttab[data-p="paneVt"]').classList.add('on');
+  $('paneVt').classList.add('on');
+  $('vgVt').value = ma; $('vgLoai').value = loai; vgInfo();
+  $('vgSl').focus();
+}
+function vgInfo(){
+  const ma = $('vgVt').value, loai = $('vgLoai').value;
+  const t = vtList().find(x=>x.MA_VT===ma);
+  const ton = (vtStockMap()[ma])||0;
+  $('vgSlLabel').textContent = loai==='Kiểm kê' ? 'Số lượng THỰC ĐẾM *' : 'Số lượng *';
+  if (!t){ $('vgHint').textContent = 'Chọn vật tư để xem tồn hiện tại.'; return; }
+  if (loai==='Kiểm kê') $('vgHint').innerHTML = 'Tồn trên hệ thống: <b>'+ton+' '+(t.DVT||'')+'</b> — nhập số thực đếm, hệ thống tự ghi chênh lệch. <b>Bắt buộc ghi lý do.</b>';
+  else if (loai==='Xuất') $('vgHint').innerHTML = 'Tồn hiện tại: <b>'+ton+' '+(t.DVT||'')+'</b> — không xuất quá số tồn.';
+  else $('vgHint').innerHTML = 'Tồn hiện tại: <b>'+ton+' '+(t.DVT||'')+'</b>.';
+}
+async function saveVg(){
+  const ma = $('vgVt').value;
+  const t = vtList().find(x=>x.MA_VT===ma);
+  if (!t){ toast('⚠️ Chọn vật tư trước'); return; }
+  const loai = $('vgLoai').value;
+  const sl = Number($('vgSl').value);
+  const note = $('vgGhiChu').value.trim();
+  const ton = (vtStockMap()[ma])||0;
+  if (isNaN(sl) || sl < 0){ toast('⚠️ Số lượng không hợp lệ'); return; }
+  let qty = sl, noteGhi = note;
+  if (loai === 'Xuất'){
+    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
+    if (sl > ton){ toast('⚠️ Chỉ còn <b>'+ton+'</b> '+(t.DVT||'')+' — không xuất được '+sl); return; }
+  } else if (loai === 'Nhập'){
+    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
+  } else {
+    if (!note){ toast('⚠️ Kiểm kê bắt buộc ghi lý do (vd: rách, hết hạn, đếm lại)'); return; }
+    qty = sl - ton;
+    if (qty === 0){ toast('✓ Số đếm khớp hệ thống — không cần điều chỉnh'); return; }
+    noteGhi = 'Thực đếm '+sl+', hệ thống '+ton+' → chênh '+(qty>0?'+':'')+qty+'. '+note;
+  }
+  const btn = $('vgSave'); if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Đang ghi…';
+  try{
+    const row = { MA_GD: nextId('VG',5,'VT_GD','MA_GD'), NGAY: todayStr(), MA_VT: ma, LOAI: loai,
+      SO_LUONG: qty, LO: $('vgLo').value.trim(), HSD: $('vgHsd').value||'',
+      GHI_CHU: (noteGhi + ' — bởi ' + (me?me.email.split('@')[0]:'')).trim() };
+    const j = await api('append', {table:'VT_GD', row});
+    if (j.ok){
+      ver = j.v;
+      toast('✓ Đã ghi <b>'+loai+'</b> '+Math.abs(qty)+' '+(t.DVT||'')+' — <b>'+t.TEN_VT+'</b>');
+      $('vgSl').value = loai==='Kiểm kê' ? '' : 1; $('vgGhiChu').value=''; $('vgLo').value=''; $('vgHsd').value='';
+      loadAll(true);
+    } else toast('⚠️ ' + (j.error||'lỗi'));
+  } finally { btn.disabled=false; btn.textContent='✓ Ghi giao dịch'; }
+}
+async function vtAdd(){
+  const ten = $('vtNewTen').value.trim();
+  if (!ten){ toast('⚠️ Nhập tên vật tư'); return; }
+  const row = { MA_VT: nextId('VT',4,'VAT_TU','MA_VT'), TEN_VT: ten, DVT: $('vtNewDvt').value.trim(),
+    NHOM: $('vtNewNhom').value.trim(), TON_TOI_THIEU: Number($('vtNewMin').value)||0, CON_AP_DUNG:'Có', GHI_CHU:'' };
+  const j = await api('append', {table:'VAT_TU', row});
+  if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+ten+'</b> ('+row.MA_VT+') — giờ ghi Nhập để có tồn'); $('vtNewTen').value=''; $('vtNewDvt').value=''; $('vtNewNhom').value=''; $('vtNewMin').value=0; loadAll(true); }
+  else toast('⚠️ '+(j.error||'lỗi'));
+}
+function renderVtLs(){
+  const box = $('vtLsBox'); if (!box) return;
+  const vts = rowsToObj('VAT_TU');
+  const rows = rowsToObj('VT_GD').slice(-30).reverse().map(g=>{
+    const t = vts.find(x=>x.MA_VT===g.MA_VT) || {TEN_VT:g.MA_VT};
+    const cls = g.LOAI==='Nhập' ? 'in' : (g.LOAI==='Xuất' ? 'out' : 'adj');
+    return `<div class="histrow"><span class="num" style="color:var(--ink3);">${String(g.NGAY).slice(0,10)}</span><span class="tag ${cls}">${g.LOAI}</span><span style="flex:1;">${t.TEN_VT}</span><b class="num">${Number(g.SO_LUONG)>0?'+':''}${g.SO_LUONG}</b><span style="color:var(--ink3);font-size:11.5px;max-width:40%;">${g.GHI_CHU||''}</span></div>`;
+  });
+  box.innerHTML = rows.join('') || '<div class="empty">Chưa có giao dịch vật tư.</div>';
+}
+
+/* ================== THIẾT BỊ ================== */
+function tbNextDue(t){
+  const ck = Number(t.CHU_KY_BT)||0;
+  const last = String(t.BAO_TRI_GAN_NHAT||'').slice(0,10) || String(t.NGAY_MUA||'').slice(0,10);
+  if (!ck || !last) return null;
+  const d = new Date(last); if (isNaN(d)) return null;
+  d.setMonth(d.getMonth()+ck);
+  return d;
+}
+function renderTb(){
+  const box = $('tbBox'); if (!box) return;
+  const now = new Date();
+  const rows = rowsToObj('THIET_BI').map(t=>{
+    const due = tbNextDue(t);
+    let dueTxt = '—', dueCls = '';
+    if (due){
+      const days = Math.ceil((due - now)/86400000);
+      dueTxt = due.toLocaleDateString('vi-VN') + (days<0 ? (' (quá '+(-days)+' ngày)') : (' (còn '+days+' ngày)'));
+      dueCls = days<0 ? 'style="color:var(--crit);font-weight:800;"' : (days<=14 ? 'style="color:#8a6205;font-weight:800;"' : '');
+    }
+    const bh = String(t.BAO_HANH_DEN||'').slice(0,10);
+    const bhOk = bh && new Date(bh) >= now;
+    return `<div style="border:1px solid var(--hair);border-radius:12px;padding:11px 13px;margin-bottom:9px;">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <b style="font-size:14px;">${t.TEN_TB}</b>
+      <span class="num" style="color:var(--ink3);font-size:11.5px;">${t.MA_TB}</span>
+      <select id="tbst_${t.MA_TB}" style="font-size:12px;padding:4px 8px;">${['Đang dùng','Sửa chữa','Hỏng','Ngừng dùng'].map(x=>'<option'+(x===String(t.TINH_TRANG||'Đang dùng').trim()?' selected':'')+'>'+x+'</option>').join('')}</select>
+      <button class="qbtn" onclick="tbSaveSt('${t.MA_TB}')">💾 Lưu</button>
+      <button class="qbtn" style="color:#0a7a0a;" onclick="tbBaoTri('${t.MA_TB}')">🔧 Đã bảo trì hôm nay</button>
+    </div>
+    <div style="font-size:12.5px;color:var(--ink2);margin-top:6px;display:flex;gap:16px;flex-wrap:wrap;">
+      <span>Mua: <b class="num">${t.NGAY_MUA?String(t.NGAY_MUA).slice(0,10):'—'}</b>${Number(t.GIA_MUA)?(' · '+fmtD(Number(t.GIA_MUA))):''}</span>
+      <span>Bảo hành: <b>${bh||'—'}</b> ${bh?(bhOk?'<span class="badge ok">còn</span>':'<span class="badge low">hết</span>'):''}</span>
+      <span>Bảo trì kế tiếp: <b ${dueCls}>${dueTxt}</b>${Number(t.CHU_KY_BT)?(' · chu kỳ '+t.CHU_KY_BT+' tháng'):''}</span>
+      ${t.GHI_CHU?('<span style="color:var(--ink3);">'+t.GHI_CHU+'</span>'):''}
+    </div></div>`;
+  });
+  box.innerHTML = rows.join('') || '<div class="empty">Chưa có thiết bị nào — thêm ở khối bên dưới.</div>';
+}
+async function tbSaveSt(ma){
+  const el = $('tbst_'+ma); if (!el) return;
+  const j = await api('update', {table:'THIET_BI', keyCol:'MA_TB', keyVal:ma, row:{TINH_TRANG: el.value}});
+  if (j.ok){ ver=j.v; toast('✓ Đã lưu tình trạng: <b>'+el.value+'</b>'); loadAll(true); }
+  else toast('⚠️ '+(j.error||'lỗi'));
+}
+async function tbBaoTri(ma){
+  if (!confirm('Ghi nhận thiết bị này vừa được bảo trì HÔM NAY?')) return;
+  const j = await api('update', {table:'THIET_BI', keyCol:'MA_TB', keyVal:ma, row:{BAO_TRI_GAN_NHAT: todayStr()}});
+  if (j.ok){ ver=j.v; toast('✓ Đã ghi bảo trì hôm nay — hạn kế tiếp tự dời theo chu kỳ'); loadAll(true); }
+  else toast('⚠️ '+(j.error||'lỗi'));
+}
+async function tbAdd(){
+  const ten = $('tbNewTen').value.trim();
+  if (!ten){ toast('⚠️ Nhập tên thiết bị'); return; }
+  const row = { MA_TB: nextId('TB',3,'THIET_BI','MA_TB'), TEN_TB: ten, NGAY_MUA: $('tbNewMua').value||'',
+    GIA_MUA: Number($('tbNewGia').value)||0, BAO_HANH_DEN: $('tbNewBh').value||'',
+    CHU_KY_BT: Number($('tbNewCk').value)||0, BAO_TRI_GAN_NHAT: '', TINH_TRANG:'Đang dùng', GHI_CHU: $('tbNewGc').value.trim() };
+  const j = await api('append', {table:'THIET_BI', row});
+  if (j.ok){ ver=j.v; toast('✓ Đã thêm thiết bị <b>'+ten+'</b> ('+row.MA_TB+')'); ['tbNewTen','tbNewMua','tbNewBh','tbNewGc'].forEach(i=>$(i).value=''); $('tbNewGia').value=0; $('tbNewCk').value=0; loadAll(true); }
+  else toast('⚠️ '+(j.error||'lỗi'));
+}
+
+function renderAll(){ renderToa(); renderToaHx(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); renderVt(); fillVgSelect(); vgInfo(); renderVtLs(); renderTb(); }
 function renderKpis(){
   const st = stockMap(), ds = drugList();
   let units=0, val=0, low=0;
