@@ -156,8 +156,12 @@ async function save(){
     });
     var rs = await Promise.all(calls);
     var fail = rs.filter(function(x){ return !(x&&x.ok); }).length;
+    if (ctx.editToa){ // sửa toa = hủy toa cũ, thay bằng toa mới
+      try{ await window.api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:ctx.editToa, row:{TRANG_THAI:'Hủy', GHI_CHU:'Sửa lại — thay bằng '+maToa}}); }catch(e){}
+    }
+    var cb = ctx ? ctx.onDone : null;
     PKToa.close();
-    if (typeof ctx.onDone === 'function') ctx.onDone(maToa, fail);
+    if (typeof cb === 'function') cb(maToa, fail);
   }catch(e){
     alert('Không lưu được toa: ' + String(e&&e.message||e));
   } finally { btn.disabled=false; btn.textContent='💊 Lưu toa — gửi Dược sỹ'; }
@@ -167,7 +171,7 @@ window.PKToa = {
   openCompose: async function(o){
     ctx = o || {};
     ovl.classList.add('on');
-    document.getElementById('tkTitle').textContent = '💊 Kê toa thuốc — ' + (o.tenBN||o.maBN||'');
+    document.getElementById('tkTitle').textContent = (o.editToa ? ('✎ Sửa toa '+o.editToa+' — ') : '💊 Kê toa thuốc — ') + (o.tenBN||o.maBN||'');
     document.getElementById('tkBody').innerHTML = '<div class="tkLoad">⏳ Đang tải danh mục thuốc & tồn kho…</div>';
     document.getElementById('tkFoot').innerHTML = '';
     try{
@@ -190,7 +194,23 @@ window.PKToa = {
         '<button class="tkBtn pri" id="tkSave">💊 Lưu toa — gửi Dược sỹ</button>';
       document.getElementById('tkAdd').addEventListener('click', addRow);
       document.getElementById('tkSave').addEventListener('click', save);
-      addRow();
+      if (o.prefill && o.prefill.length){
+        o.prefill.forEach(function(l){
+          addRow();
+          var rows = document.querySelectorAll('#tkRows .tkRow');
+          var div = rows[rows.length-1];
+          div.querySelector('.tThuoc').value = String(l.MA_THUOC||'');
+          div.querySelector('.tLieu').value = l.LIEU_LAN||'';
+          div.querySelector('.tLan').value = l.LAN_NGAY||'';
+          div.querySelector('.tNgay').value = l.SO_NGAY||'';
+          div.querySelector('.tTd').value = l.THOI_DIEM||'';
+          div.dispatchEvent(new Event('change'));
+          if (l.SO_LUONG) div.querySelector('.tSl').value = l.SO_LUONG;
+        });
+        if (o.ghiChuCu) document.getElementById('tkGc').value = o.ghiChuCu;
+      } else {
+        addRow();
+      }
     }catch(e){
       document.getElementById('tkBody').innerHTML = '<div class="tkLoad" style="color:var(--crit,#d03b3b);">Không tải được: '+esc(String(e&&e.message||e))+'</div>';
     }

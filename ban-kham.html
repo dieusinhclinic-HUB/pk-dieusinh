@@ -186,7 +186,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN','TOA_THUOC','TOA_CT'];
+const TABLES = ['BENH_NHAN','BAC_SI','DICH_VU','SO_KHAM','THANH_TOAN','HANG_CHO','THAI_KY','LICH_HEN','TOA_THUOC','TOA_CT','PHAN_CONG'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null;
 let cur=null; // {maCho, maBN}
@@ -266,7 +266,7 @@ $('loginView').style.display='none'; $('app').style.display='block';
 let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
 const warm = !!(snap && snap.DB);
 if (warm){ DB = snap.DB; ver = snap.ver; renderAll(); fillBsSel(); }
-loadAll(warm).then(()=>{ fillBsSel(); lockDoctor(); if (!cur){ openMine(); renderAll(); } }); startPoll();
+loadAll(warm).then(()=>{ fillBsSel(); lockDoctor(); tkLock(); if (!cur){ openMine(); renderAll(); } }); startPoll();
 return true;
 }
 async function onCredential(resp){
@@ -282,6 +282,7 @@ $('loginView').style.display='none'; $('app').style.display='block';
 await loadAll();
 fillBsSel();
 lockDoctor();
+tkLock();
 if (!cur){ openMine(); renderAll(); }
 startPoll();
 toast('✓ Xin chào — vai trò: ' + me.role);
@@ -313,6 +314,19 @@ $('bsSel').value = ten;
 $('bsSel').disabled = true;
 $('bsSel').title = 'Tài khoản bác sĩ — cố định bàn của mình';
 DOC_LOCK = true;
+}
+/* Tài khoản THƯ KÝ: làm việc như bác sĩ mình hỗ trợ — ô chọn bàn giới hạn theo ca đã nhận (PHAN_CONG) */
+function tkLock(){
+if (!me || String(me.role).trim() !== 'Thư ký') return;
+const em = String(me.email||'').toLowerCase();
+const p = rowsToObj('PHAN_CONG').find(x=>sameDay(x.NGAY) && String(x.EMAIL_TK||'').toLowerCase()===em);
+const list = p ? String(p.DS_BS||'').split('|').filter(Boolean) : [];
+if (!list.length){ toast('💡 Chưa nhận ca hôm nay — vào Bàn thư ký bấm nhận bác sĩ, ô chọn bàn sẽ chỉ hiện bác sĩ của bạn.'); return; }
+const sel = $('bsSel');
+sel.innerHTML = list.map(t=>`<option>${t}</option>`).join('');
+const keep = localStorage.getItem('pk_bs_bk') || '';
+if (keep && list.indexOf(keep)!==-1) sel.value = keep;
+sel.title = 'Ca của bạn hôm nay: ' + list.join(', ');
 }
 /* chuyển bàn bác sĩ: nhớ lựa chọn của máy này + mở ngay BN đang khám của bác sĩ đó */
 function bsSwitch(){
@@ -565,7 +579,8 @@ const cardToa = `<div class="card">
 <div class="bd">
 ${toas.map(t=>{
 const n = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===t.MA_TOA).length;
-return `<div class="toaline"><b>💊 ${t.MA_TOA}</b><span>${n} thuốc · ${t.BS_KE}${t.GIO_KE?(' · '+fmtT(t.GIO_KE)):''}</span><span style="font-weight:700;">${t.TRANG_THAI}</span><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')" style="margin-left:auto;">🖨 In toa</button></div>`;
+const choSoan = String(t.TRANG_THAI).trim()==='Chờ soạn';
+return `<div class="toaline"><b>💊 ${t.MA_TOA}</b><span>${n} thuốc · ${t.BS_KE}${t.GIO_KE?(' · '+fmtT(t.GIO_KE)):''}</span><span style="font-weight:700;">${t.TRANG_THAI}</span><span style="margin-left:auto;display:flex;gap:6px;">${choSoan?`<button class="qbtn" onclick="suaToa('${t.MA_TOA}')">✎ Sửa toa</button><button class="qbtn crit" onclick="huyToa('${t.MA_TOA}')">✕ Hủy</button>`:''}<button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In toa</button></span></div>`;
 }).join('')||'<div class="empty">Chưa kê toa cho lượt khám này.</div>'}
 </div></div>`;
 
@@ -753,6 +768,22 @@ function keToa(){
 if (!cur) return;
 PKToa.openCompose({ maBN: cur.maBN, tenBN: bn(cur.maBN).HO_TEN, maCho: cur.maCho, bsKe: myBS(), nguoiNhap: me?me.email:'',
 onDone: function(maToa, fail){ toast(fail ? ('⚠️ Toa '+maToa+' lưu thiếu '+fail+' dòng — kiểm tra lại') : ('✓ Đã kê toa <b>'+maToa+'</b> — gửi Dược sỹ soạn')); loadAll(true); } });
+}
+function suaToa(maToa){
+const t = rowsToObj('TOA_THUOC').find(x=>x.MA_TOA===maToa); if(!t) return;
+if (String(t.TRANG_THAI).trim()!=='Chờ soạn'){ toast('⚠️ Toa đã được Dược sỹ soạn — không sửa được nữa. Cần đổi thì nhờ Dược sỹ hoặc kê toa mới.'); return; }
+const lines = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===maToa);
+PKToa.openCompose({ maBN: t.MA_BN, tenBN: bn(t.MA_BN).HO_TEN, maCho: t.MA_CHO, bsKe: t.BS_KE, nguoiNhap: me?me.email:'',
+editToa: maToa, prefill: lines, ghiChuCu: t.GHI_CHU||'',
+onDone: function(ma, fail){ toast(fail ? ('⚠️ Toa '+ma+' lưu thiếu '+fail+' dòng') : ('✓ Đã sửa toa — toa mới <b>'+ma+'</b> thay '+maToa)); loadAll(true); } });
+}
+async function huyToa(maToa){
+const t = rowsToObj('TOA_THUOC').find(x=>x.MA_TOA===maToa); if(!t) return;
+if (String(t.TRANG_THAI).trim()!=='Chờ soạn'){ toast('⚠️ Toa đã được Dược sỹ soạn — không hủy từ bàn khám được.'); return; }
+if (!confirm('Hủy toa '+maToa+'? Dược sỹ sẽ không soạn toa này nữa.')) return;
+const j = await api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:maToa, row:{TRANG_THAI:'Hủy', GHI_CHU:'Hủy tại bàn khám — '+(me?me.email.split('@')[0]:'')}});
+if (j.ok){ ver=j.v; toast('✓ Đã hủy toa '+maToa); loadAll(true); }
+else toast('⚠️ '+(j.error||'lỗi'));
 }
 
 /* ================== RENDER ================== */
