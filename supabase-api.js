@@ -252,7 +252,7 @@ window.SB_API = async function(action, extra){
         chip.parentNode.insertBefore(tb, chip);
       }
       /* nút Nhân sự — chỉ Quản lý */
-      if (role === 'Quản lý' && !document.getElementById('nsGlobalBtn')){
+      if (role === 'Quản lý' && !document.getElementById('nsGlobalBtn') && !document.getElementById('nsBtn')){
         var nb = document.createElement('button');
         nb.id = 'nsGlobalBtn';
         nb.textContent = '👥 Nhân sự';
