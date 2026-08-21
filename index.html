@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PK Diệu Sinh — Hệ thống phòng khám</title>
-<link rel="preconnect" href="https://script.google.com">
-<link rel="preconnect" href="https://script.googleusercontent.com">
+<title>PK Diệu Sinh — Đăng nhập</title>
 <link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-api.js"></script>
@@ -15,16 +13,11 @@
     --brand:#0a5240; --brand2:#0f6e56; --brand3:#12836a;
     --brand-soft:#e3f2ed; --brand-bg:#f0f8f5;
     --ink:#20241f; --ink2:#5c635a; --ink3:#8a9187;
-    --surface:#fcfcfb; --hair:#e1e0d9;
-    --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
-    --good-soft:#e8f7e8; --warn-soft:#fdf3dc; --crit-soft:#fbe9e9;
+    --crit:#d03b3b;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--brand-bg);color:var(--ink);font-size:14px;}
-  button{font-family:inherit;}
-
-  /* ===== màn hình đăng nhập ===== */
   #loginView{display:grid;place-items:center;min-height:100vh;padding:20px;}
   .logincard{background:#fff;border-radius:20px;box-shadow:0 10px 36px rgba(10,82,64,.13);padding:38px 42px;width:min(420px,100%);text-align:center;}
   .logincard .logo{font-size:40px;}
@@ -33,205 +26,65 @@
   #gbtn{display:flex;justify-content:center;margin-bottom:14px;}
   #loginMsg{font-size:12.5px;color:var(--ink3);min-height:18px;}
   #loginMsg.err{color:var(--crit);font-weight:600;}
-
-  /* ===== khung làm việc ===== */
-  #app{display:none;height:100vh;flex-direction:column;}
-  header.bar{background:var(--brand);color:#fff;padding:0 14px;display:flex;align-items:center;gap:6px;height:52px;flex:0 0 auto;}
-  .brandName{font-size:15.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;display:flex;align-items:center;gap:8px;padding-right:10px;}
-  nav{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;}
-  nav::-webkit-scrollbar{display:none;}
-  .navtab{border:none;background:transparent;color:#cfe6de;font-size:13px;font-weight:700;padding:8px 13px;border-radius:10px;cursor:pointer;white-space:nowrap;}
-  .navtab:hover{background:rgba(255,255,255,.12);color:#fff;}
-  .navtab.on{background:#fff;color:var(--brand);}
-  .userchip{background:rgba(255,255,255,.14);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;white-space:nowrap;}
-  .hbtn{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
-  .hbtn:hover{background:rgba(255,255,255,.25);}
-  #frameWrap{flex:1;position:relative;background:var(--brand-bg);}
-  .frame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;background:var(--brand-bg);}
-  .frame.on{display:block;}
-  #frameLoad{position:absolute;inset:0;display:grid;place-items:center;background:var(--brand-bg);font-size:13px;color:var(--ink3);pointer-events:none;opacity:0;transition:opacity .15s;}
-  #frameLoad.on{opacity:1;}
-  .spin{width:26px;height:26px;border:3px solid var(--brand-soft);border-top-color:var(--brand3);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 8px;}
+  .spin{width:26px;height:26px;border:3px solid var(--brand-soft);border-top-color:var(--brand3);border-radius:50%;animation:sp 1s linear infinite;margin:14px auto 0;display:none;}
+  #loginView.busy .spin{display:block;}
   @keyframes sp{to{transform:rotate(360deg)}}
-
-  /* chuyển động mượt */
-  @media (prefers-reduced-motion: no-preference){
-    .navtab,.hbtn{transition:background .15s ease,color .15s ease,transform .1s ease;}
-    .navtab:active,.hbtn:active{transform:scale(.96);}
-    #app.ready{animation:fadeIn .25s ease;}
-  }
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-  @media (max-width:720px){
-    .brandName span.txt{display:none;}
-    .userchip{display:none;}
-  }
 </style>
 </head>
 <body>
 
-<!-- ===== đăng nhập ===== -->
 <div id="loginView">
   <div class="logincard">
     <div class="logo">🌿</div>
     <h1>Phòng khám Diệu Sinh</h1>
-    <div class="sub">Hệ thống quản lý phòng khám — đăng nhập một lần, vào đúng màn hình theo vai trò của bạn.</div>
+    <div class="sub">Đăng nhập bằng tài khoản Google được cấp quyền.<br>Hệ thống sẽ tự mở màn hình làm việc của bạn.</div>
     <div id="gbtn"></div>
-    <div id="loginMsg">Dùng đúng Gmail đã được phòng khám khai báo.</div>
-  </div>
-</div>
-
-<!-- ===== khung làm việc ===== -->
-<div id="app">
-  <header class="bar">
-    <div class="brandName">🌿 <span class="txt">PK Diệu Sinh</span></div>
-    <nav id="nav"></nav>
-    <button class="hbtn" id="hubNsBtn" style="display:none;" onclick="hubNhanSu()" title="Quản lý tài khoản nhân viên">👥 Nhân sự</button>
-    <span class="userchip" id="userChip">…</span>
-    <button class="hbtn" onclick="openWindow()" title="Mở màn hình này ở cửa sổ riêng">⧉</button>
-    <button class="hbtn" onclick="logout()">Thoát</button>
-  </header>
-  <div id="frameWrap">
-    <div id="frameLoad"><div><div class="spin"></div>Đang mở…</div></div>
+    <div id="loginMsg"></div>
+    <div class="spin"></div>
   </div>
 </div>
 
 <script>
 /* ================== CẤU HÌNH ================== */
-const API_URL   = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
-const SESS_KEY  = 'pk_sess';           // dùng CHUNG với 4 màn hình → đăng nhập 1 lần
-const LAST_KEY  = 'pk_hub_last';
+const SESS_KEY  = 'pk_sess';           // dùng CHUNG với các màn hình → đăng nhập 1 lần
 
-/* Màn hình theo vai trò — Quản lý thấy tất cả */
-const SCREENS = [
-  { id:'tong-quan',  file:'tong-quan.html',  label:'📊 Tổng quan', roles:['Quản lý','Kế toán'] },
-  { id:'thu-ngan',   file:'thu-ngan.html',   label:'💵 Thu ngân',  roles:['Quản lý','Thu ngân','Lễ tân'] },
-  { id:'ban-kham',   file:'ban-kham.html',   label:'🩺 Bàn khám',  roles:['Quản lý','Bác sĩ','Thư ký'] },
-  { id:'ban-thu-ky', file:'ban-thu-ky.html', label:'📋 Thư ký',    roles:['Quản lý','Thư ký'] },
-  { id:'duoc-sy',    file:'duoc-sy.html',    label:'💊 Dược sỹ',   roles:['Quản lý','Dược sỹ'] },
-];
+/* Màn hình theo VAI TRÒ — trang đầu tiên là trang mặc định của vai trò */
+const ROLE_PAGES = {
+  'Quản lý':  ['tong-quan.html','thu-ngan.html','ban-kham.html','ban-thu-ky.html','duoc-sy.html'],
+  'Kế toán':  ['tong-quan.html'],
+  'Thu ngân': ['thu-ngan.html'],
+  'Lễ tân':   ['thu-ngan.html'],
+  'Bác sĩ':   ['ban-kham.html'],
+  'Thư ký':   ['ban-thu-ky.html','ban-kham.html'],
+  'Dược sỹ':  ['duoc-sy.html']
+};
 
-/* ================== TRẠNG THÁI ================== */
-let token=null, me=null, current=null, watchTimer=null;
+let token = null;
 const $ = id => document.getElementById(id);
 
-/* ================== API ================== */
-async function api(action, extra){
-  return SB_API(action, Object.assign({token}, extra||{}));
-}
 function loadSess(){
-  try{ const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null');
+  try{ const s = JSON.parse(localStorage.getItem(SESS_KEY)||'null');
     return (s && s.sess && s.exp > Date.now()+60000) ? s : null;
   }catch(e){ return null; }
 }
 
-/* Mở bảng Nhân sự (nằm trong màn Tổng quan) từ thanh chung của hub */
-function hubNhanSu(){
-  go('tong-quan');
-  const t = setInterval(() => {
-    try{
-      const w = frames['tong-quan'] && frames['tong-quan'].contentWindow;
-      if (w && typeof w.nsOpen === 'function' && w.document && w.document.getElementById('nsList') !== null){
-        clearInterval(t); w.nsOpen();
-      }
-    }catch(e){}
-  }, 400);
-  setTimeout(() => clearInterval(t), 10000);
-}
-
-/* ================== VAI TRÒ → MÀN HÌNH ================== */
-function myScreens(){
-  const role = String(me.role||'').trim();
-  return SCREENS.filter(s => s.roles.includes(role));
-}
-
-/* ================== KHUNG LÀM VIỆC ================== */
-function enterApp(){
-  const scr = myScreens();
-  if (!scr.length){
-    $('loginMsg').className='err';
-    $('loginMsg').textContent='Vai trò "'+me.role+'" chưa được gán màn hình — liên hệ quản trị.';
+/* ================== CHUYỂN VÀO MÀN HÌNH LÀM VIỆC ================== */
+function enterApp(role){
+  const pages = ROLE_PAGES[String(role||'').trim()] || [];
+  if (!pages.length){
+    $('loginMsg').className = 'err';
+    $('loginMsg').textContent = 'Vai trò "'+role+'" chưa được gán màn hình — liên hệ quản trị.';
     try{ localStorage.removeItem(SESS_KEY); }catch(e){}
-    token=null; return;
+    document.getElementById('loginView').classList.remove('busy');
+    token = null; return;
   }
-  $('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
-  if (String(me.role||'').trim() === 'Quản lý') $('hubNsBtn').style.display = 'inline-block';
-  $('nav').innerHTML = scr.map(s =>
-    `<button class="navtab" data-id="${s.id}" onclick="go('${s.id}')">${s.label}</button>`).join('');
-  $('loginView').style.display='none';
-  const app=$('app'); app.style.display='flex'; app.classList.add('ready');
-  const last = localStorage.getItem(LAST_KEY);
-  go(scr.some(s=>s.id===last) ? last : scr[0].id);
-  preloadRest();
-  startWatch();
-}
-/* ===== mỗi màn hình sống trong iframe riêng — chuyển tab tức thì =====
-   Màn hình ẨN thì tạm dừng polling (hub tắt/mở giúp qua contentWindow),
-   quay lại tab → làm mới 1 lần rồi polling tiếp. */
-const frames = {};   // id -> iframe
-
-function pausePoll(ifr){
-  // pollTimer là biến let trong trang con → phải dừng qua eval trong ngữ cảnh của nó
-  try{ ifr.contentWindow.eval('if (typeof pollTimer!=="undefined" && pollTimer){ clearInterval(pollTimer); pollTimer=null; }'); }catch(e){}
-}
-function resumePoll(ifr){
+  let target = pages[0];
   try{
-    const w = ifr.contentWindow;
-    if (w && typeof w.startPoll === 'function'){ w.startPoll(); if (typeof w.loadAll === 'function') w.loadAll(true); }
+    const last = localStorage.getItem('pk_last_page');
+    if (last && pages.indexOf(last) !== -1) target = last;
   }catch(e){}
-}
-function getFrame(id){
-  if (frames[id]) return frames[id];
-  const s = SCREENS.find(x=>x.id===id);
-  const ifr = document.createElement('iframe');
-  ifr.className = 'frame'; ifr.title = s.label;
-  ifr.addEventListener('load', () => {
-    try{
-      const d = ifr.contentDocument;
-      const hd = d && d.querySelector('header.bar, header');
-      if (hd) hd.style.display='none';                    // hub đã có thanh chung
-    }catch(e){}
-    if (current && current.id === id) $('frameLoad').classList.remove('on');
-    if (!current || current.id !== id) setTimeout(()=>pausePoll(ifr), 800); // màn nền: ngủ ngay
-  });
-  ifr.src = s.file;
-  $('frameWrap').appendChild(ifr);
-  frames[id] = ifr;
-  return ifr;
-}
-function go(id){
-  const s = myScreens().find(x=>x.id===id); if(!s) return;
-  const prev = current; current = s;
-  try{ localStorage.setItem(LAST_KEY, id); }catch(e){}
-  document.querySelectorAll('.navtab').forEach(b=>b.classList.toggle('on', b.dataset.id===id));
-  if (prev && frames[prev.id]){ frames[prev.id].classList.remove('on'); pausePoll(frames[prev.id]); }
-  const first = !frames[id];
-  const ifr = getFrame(id);
-  ifr.classList.add('on');
-  if (first) $('frameLoad').classList.add('on');
-  else resumePoll(ifr);                                    // đã mở trước đó → hiện NGAY + làm mới nền
-}
-/* Nạp trước các màn hình còn lại để lần chuyển đầu tiên cũng tức thì */
-function preloadRest(){
-  const rest = myScreens().filter(s => !frames[s.id]);
-  rest.forEach((s, i) => setTimeout(()=>{ if(!frames[s.id]) getFrame(s.id); }, 2000 + i*1500));
-}
-function openWindow(){ if (current) window.open(current.file, '_blank'); }
-
-/* Nếu phiên chết giữa chừng (màn hình con hiện lại form đăng nhập) → hub quay về đăng nhập */
-function startWatch(){
-  clearInterval(watchTimer);
-  watchTimer = setInterval(() => {
-    try{
-      const ifr = current && frames[current.id]; if (!ifr) return;
-      const d = ifr.contentDocument; if (!d) return;
-      const lv = d.getElementById('loginView');
-      if (lv && lv.style.display !== 'none' && !loadSess()){
-        clearInterval(watchTimer); location.reload();
-      }
-    }catch(e){}
-  }, 3000);
+  location.replace(target);
 }
 
 /* ================== ĐĂNG NHẬP ================== */
@@ -241,35 +94,35 @@ function gisInit(){
 }
 async function onCredential(resp){
   token = resp.credential;
-  $('loginMsg').className=''; $('loginMsg').textContent='Đang kiểm tra quyền…';
+  $('loginView').classList.add('busy');
+  $('loginMsg').className = ''; $('loginMsg').textContent = 'Đang kiểm tra quyền…';
   try{
-    const w = await api('login');
+    const w = await SB_API('login', {token});
     if (!w.ok){
-      $('loginMsg').className='err';
+      $('loginMsg').className = 'err';
       $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền (chưa có trong danh sách nhân sự).' : ('Lỗi: '+(w.error||''));
-      token=null; return;
+      $('loginView').classList.remove('busy');
+      token = null; return;
     }
-    me = w;
-    if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
-    enterApp();
-  }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ — kiểm tra mạng.'; }
-}
-function tryResume(){
-  const s = loadSess(); if (!s) return false;
-  token = s.sess; me = {email:s.email, role:s.role, ho_ten:s.ho_ten||''};
-  enterApp();
-  return !!$('nav').children.length;
-}
-function logout(){
-  try{ SB_API('logout'); }catch(e){}
-  try{ localStorage.removeItem(SESS_KEY); }catch(e){}
-  clearInterval(watchTimer); token=null; me=null;
-  location.reload();
+    if (w.sess){ try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
+    enterApp(w.role);
+  }catch(e){
+    $('loginMsg').className = 'err';
+    $('loginMsg').textContent = 'Không gọi được máy chủ — kiểm tra mạng.';
+    $('loginView').classList.remove('busy');
+  }
 }
 window.addEventListener('load', () => {
+  /* đã có phiên hợp lệ → vào thẳng màn hình làm việc */
+  const s = loadSess();
+  if (s){
+    $('loginView').classList.add('busy');
+    $('loginMsg').textContent = 'Đang mở màn hình làm việc…';
+    enterApp(s.role);
+    return;
+  }
   const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
   setTimeout(()=>clearInterval(t), 10000);
-  tryResume();
 });
 </script>
 </body>

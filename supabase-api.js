@@ -197,34 +197,62 @@ window.SB_API = async function(action, extra){
   }, 1500);
 })();
 
-/* ==== CHUYỂN GIAO DIỆN NHANH (chỉ Quản lý) — nút cạnh tên đăng nhập ==== */
+/* ==== CHUYỂN MÀN HÌNH — dropdown theo VAI TRÒ (giao diện duy nhất của hệ thống) ==== */
 (function(){
-  if (window.top !== window) return; // đang chạy trong hub (iframe) → hub đã có thanh tab riêng
+  if (window.top !== window) return;
   var P = [['tong-quan.html','📊 Tổng quan'],['thu-ngan.html','💵 Thu ngân'],['ban-kham.html','🩺 Bàn khám'],['ban-thu-ky.html','📋 Thư ký'],['duoc-sy.html','💊 Dược sỹ']];
+  var ROLE_PAGES = {
+    'Quản lý':  ['tong-quan.html','thu-ngan.html','ban-kham.html','ban-thu-ky.html','duoc-sy.html'],
+    'Kế toán':  ['tong-quan.html'],
+    'Thu ngân': ['thu-ngan.html'],
+    'Lễ tân':   ['thu-ngan.html'],
+    'Bác sĩ':   ['ban-kham.html'],
+    'Thư ký':   ['ban-thu-ky.html','ban-kham.html'],
+    'Dược sỹ':  ['duoc-sy.html']
+  };
   var cur = (location.pathname.split('/').pop()||'').toLowerCase();
   var here = false;
   for (var i=0;i<P.length;i++) if (P[i][0]===cur) here = true;
   if (!here) return;
+  try{ localStorage.setItem('pk_last_page', cur); }catch(e){}
   var t = setInterval(function(){
     try{
       var chip = document.querySelector('header .userchip');
       if (!chip) return;
       var txt = chip.textContent || '';
-      if (txt.indexOf('·') === -1) return;           // chưa đăng nhập xong
+      if (txt.indexOf('·') === -1) return;
       clearInterval(t);
-      if (txt.indexOf('Quản lý') === -1) return;      // vai trò khác: không hiện
-      if (document.getElementById('pnlSwitch')) return;
-      var sel = document.createElement('select');
-      sel.id = 'pnlSwitch';
-      sel.title = 'Chuyển giao diện (chỉ Quản lý thấy)';
-      sel.style.cssText = 'border:none;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
-      var html = '';
-      for (var j=0;j<P.length;j++) html += '<option value="'+P[j][0]+'"'+(P[j][0]===cur?' selected':'')+'>'+P[j][1]+'</option>';
-      sel.innerHTML = html;
-      sel.onchange = function(){ if (sel.value && sel.value !== cur) location.href = sel.value; };
-      chip.parentNode.insertBefore(sel, chip);
-      /* nút Nhân sự dùng được từ MỌI màn hình (chỉ Quản lý) */
-      if (!document.getElementById('nsGlobalBtn')){
+      var role = txt.split('·').pop().trim();
+      var pages = ROLE_PAGES[role] || [];
+      /* vai trò chỉ dùng đúng màn hình được gán — gõ tay URL khác sẽ bị đưa về màn hình của mình */
+      if (pages.length && pages.indexOf(cur) === -1){ location.replace(pages[0]); return; }
+      /* dropdown chuyển màn hình — CHỈ Quản lý */
+      if (role === 'Quản lý' && !document.getElementById('pnlSwitch')){
+        var sel = document.createElement('select');
+        sel.id = 'pnlSwitch';
+        sel.title = 'Chuyển màn hình';
+        sel.style.cssText = 'border:none;border-radius:9px;padding:6px 10px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
+        var html = '';
+        for (var j=0;j<P.length;j++){
+          if (pages.indexOf(P[j][0]) === -1) continue;
+          html += '<option value="'+P[j][0]+'"'+(P[j][0]===cur?' selected':'')+'>'+P[j][1]+'</option>';
+        }
+        sel.innerHTML = html;
+        sel.onchange = function(){ if (sel.value && sel.value !== cur) location.href = sel.value; };
+        chip.parentNode.insertBefore(sel, chip);
+      }
+      /* Thư ký: nút liên kết giữa Bàn thư ký ↔ Bàn khám (không phải dropdown) */
+      if (role === 'Thư ký' && !document.getElementById('tkNavBtn')){
+        var other = (cur === 'ban-kham.html') ? ['ban-thu-ky.html','📋 Bàn thư ký'] : ['ban-kham.html','🩺 Bàn khám'];
+        var tb = document.createElement('button');
+        tb.id = 'tkNavBtn';
+        tb.textContent = other[1];
+        tb.style.cssText = 'border:none;border-radius:9px;padding:6px 11px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
+        tb.onclick = function(){ location.href = other[0]; };
+        chip.parentNode.insertBefore(tb, chip);
+      }
+      /* nút Nhân sự — chỉ Quản lý */
+      if (role === 'Quản lý' && !document.getElementById('nsGlobalBtn')){
         var nb = document.createElement('button');
         nb.id = 'nsGlobalBtn';
         nb.textContent = '👥 Nhân sự';
@@ -234,7 +262,8 @@ window.SB_API = async function(action, extra){
           if (cur === 'tong-quan.html' && typeof window.nsOpen === 'function') window.nsOpen();
           else location.href = 'tong-quan.html#nhansu';
         };
-        chip.parentNode.insertBefore(nb, sel);
+        var ref = document.getElementById('pnlSwitch') || chip;
+        ref.parentNode.insertBefore(nb, ref);
       }
     }catch(e){}
   }, 600);
