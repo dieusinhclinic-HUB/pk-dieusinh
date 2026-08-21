@@ -86,6 +86,7 @@
   <header class="bar">
     <div class="brandName">🌿 <span class="txt">PK Diệu Sinh</span></div>
     <nav id="nav"></nav>
+    <button class="hbtn" id="hubNsBtn" style="display:none;" onclick="hubNhanSu()" title="Quản lý tài khoản nhân viên">👥 Nhân sự</button>
     <span class="userchip" id="userChip">…</span>
     <button class="hbtn" onclick="openWindow()" title="Mở màn hình này ở cửa sổ riêng">⧉</button>
     <button class="hbtn" onclick="logout()">Thoát</button>
@@ -125,6 +126,20 @@ function loadSess(){
   }catch(e){ return null; }
 }
 
+/* Mở bảng Nhân sự (nằm trong màn Tổng quan) từ thanh chung của hub */
+function hubNhanSu(){
+  go('tong-quan');
+  const t = setInterval(() => {
+    try{
+      const w = frames['tong-quan'] && frames['tong-quan'].contentWindow;
+      if (w && typeof w.nsOpen === 'function' && w.document && w.document.getElementById('nsList') !== null){
+        clearInterval(t); w.nsOpen();
+      }
+    }catch(e){}
+  }, 400);
+  setTimeout(() => clearInterval(t), 10000);
+}
+
 /* ================== VAI TRÒ → MÀN HÌNH ================== */
 function myScreens(){
   const role = String(me.role||'').trim();
@@ -141,6 +156,7 @@ function enterApp(){
     token=null; return;
   }
   $('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
+  if (String(me.role||'').trim() === 'Quản lý') $('hubNsBtn').style.display = 'inline-block';
   $('nav').innerHTML = scr.map(s =>
     `<button class="navtab" data-id="${s.id}" onclick="go('${s.id}')">${s.label}</button>`).join('');
   $('loginView').style.display='none';
