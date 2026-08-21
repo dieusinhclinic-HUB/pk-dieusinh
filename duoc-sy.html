@@ -236,7 +236,7 @@
             <button id="scanModeX" class="ttab on" style="border:none;border-radius:0;" onclick="scanMode('Xuất')">➖ XUẤT kho</button>
             <button id="scanModeN" class="ttab" style="border:none;border-radius:0;" onclick="scanMode('Nhập')">➕ NHẬP kho</button>
           </div>
-          <span class="hint" style="flex:1;">Mỗi lần quét = +1 đơn vị (sửa được số lượng bên dưới). Quét xong hết thì bấm nút xác nhận.</span>
+          <span class="hint" style="flex:1;">Mỗi lần quét = +1 đơn vị (sửa được bên dưới), bấm nút xác nhận khi xong. Quét tem THIẾT BỊ (serial hoặc mã TB) → mở thẳng hồ sơ máy.</span>
         </div>
         <input id="scanIn" placeholder="🔫 Bấm vào đây rồi quét — hoặc gõ mã vạch và Enter" autocomplete="off"
           style="width:100%;font-size:17px;padding:13px 15px;border:2px solid var(--brand3);border-radius:12px;font-weight:700;"
@@ -851,6 +851,20 @@ function handleScan(code){
   if (!code) return;
   const hit = scanFind(code);
   if (!hit){
+    /* thiết bị? quét tem máy → mở thẳng hồ sơ + nhật ký của máy đó */
+    const tb = rowsToObj('THIET_BI').find(x=>String(x.SERIAL||'').trim()===code || String(x.MA_TB)===code);
+    if (tb){
+      scanBeep(true);
+      document.querySelectorAll('.ttab[data-p]').forEach(x=>x.classList.remove('on'));
+      document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
+      document.querySelector('.ttab[data-p="paneTb"]').classList.add('on');
+      $('paneTb').classList.add('on');
+      const h = $('tbp_'+tb.MA_TB); if (h) h.innerHTML='';
+      tbPanel(tb.MA_TB);
+      const card = $('tbp_'+tb.MA_TB); if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
+      toast('🔧 Mở hồ sơ thiết bị: <b>'+tb.TEN_TB+'</b>');
+      return;
+    }
     scanBeep(false);
     scanLastCode = code;
     $('scanLinkCode').textContent = code;
