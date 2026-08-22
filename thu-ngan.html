@@ -605,21 +605,43 @@ function callBN(maCho){
 const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
 gcCho = maCho;
 const yc = String(r.BS_YEU_CAU||'').trim();
-/* điều phối siêu âm: nếu đơn có siêu âm và BN không yêu cầu ai → đề xuất BS siêu âm ít bận nhất */
-let goiY = '';
-if (!yc && needsSieuAm(r)){
-const sa = sieuAmBS();
-if (sa.length){
+/* điều phối thông minh: nhìn phần việc CÒN LẠI (không phải đơn gốc) + phòng nào đang trống */
+const li = legInfo(r);
 const q = queueToday();
+const busy = ten => q.some(x=>x.TRANG_THAI==='Đang khám' && String(x.BS_KHAM||'').trim()===ten);
 const load = ten => q.filter(x=>x.TRANG_THAI==='Đang khám' && String(x.BS_KHAM||'').trim()===ten).length*100
 + q.filter(x=>(x.TRANG_THAI==='Xong khám'||x.TRANG_THAI==='Đã thu') && String(x.BS_KHAM||'').trim()===ten).length;
-goiY = sa.slice().sort((a,b)=>load(a)-load(b))[0];
+const saList = sieuAmBS();
+const working = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có').map(b=>String(b.TEN_BS).trim());
+const khList = working.filter(t=>saList.indexOf(t)===-1);
+const byLoad = arr => arr.slice().sort((a,b)=>load(a)-load(b));
+let goiY = '', why = '';
+if (li.sa.length){
+/* còn siêu âm chưa làm */
+const saFree = byLoad(saList.filter(t=>!busy(t)));
+if (saFree.length){
+goiY = saFree[0];
+why = '🔊 Còn <b>siêu âm</b> — <b>'+goiY+'</b> đang trống' + ((yc && busy(yc))?(' · '+yc+' đang bận → siêu âm trước, quay lại sau'):'');
+} else {
+const khTarget = (yc && !busy(yc)) ? yc : byLoad(khList.filter(t=>!busy(t)))[0];
+if (li.kh.length && khTarget){ goiY = khTarget; why = '💡 Phòng siêu âm đang bận · <b>'+khTarget+'</b> đang trống → khám trước, siêu âm sau'; }
+else { goiY = byLoad(saList)[0]||''; if (goiY) why = '🔊 Còn <b>siêu âm</b> — đề xuất: <b>'+goiY+'</b> (ít bận nhất)'; }
+}
+} else {
+/* CHỈ còn khám (hoặc đơn trống) — không đưa về phòng siêu âm nữa */
+if (yc){
+goiY = yc;
+if (busy(yc)){ const free = byLoad(khList.filter(t=>!busy(t)))[0]; if (free) why = '💡 '+yc+' đang bận · <b>'+free+'</b> đang trống — hỏi BN nếu muốn khám sớm hơn'; }
+} else {
+goiY = byLoad(khList.filter(t=>!busy(t)))[0] || byLoad(khList)[0] || '';
+if (goiY) why = '💡 Đề xuất: <b>'+goiY+'</b>'+(busy(goiY)?' (ít bận nhất)':' (đang trống)');
 }
 }
-const sel = yc || goiY;
+const sel = goiY || yc;
 $('gcInfo').innerHTML = 'Mời số <b>'+(r.STT||'?')+'</b> — <b>'+bnName(r.MA_BN)+'</b> vào phòng khám.'
-+ (yc?(' <div style="color:#2456a8;margin-top:4px;">BN yêu cầu: <b>'+yc+'</b> (đã chọn sẵn)</div>'):'')
-+ (goiY?(' <div style="color:#7c4dbe;margin-top:4px;">🔊 Đơn có siêu âm — hệ thống đề xuất: <b>'+goiY+'</b> (đã chọn sẵn)</div>'):'');
++ (legBadges(r)?('<div style="margin-top:4px;">'+legBadges(r)+'</div>'):'')
++ (yc?(' <div style="color:#2456a8;margin-top:4px;">BN yêu cầu: <b>'+yc+'</b></div>'):'')
++ (why?(' <div style="color:#7c4dbe;margin-top:4px;">'+why+' <b>(đã chọn sẵn)</b></div>'):'');
 const bss = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
 $('gcBs').innerHTML = bss.map(b=>{
 const ten = String(b.TEN_BS).trim();
