@@ -241,14 +241,13 @@ window.SB_API = async function(action, extra){
         sel.onchange = function(){ if (sel.value && sel.value !== cur) location.href = sel.value; };
         chip.parentNode.insertBefore(sel, chip);
       }
-      /* Thư ký: nút liên kết giữa Bàn thư ký ↔ Bàn khám (không phải dropdown) */
-      if (role === 'Thư ký' && !document.getElementById('tkNavBtn')){
-        var other = (cur === 'ban-kham.html') ? ['ban-thu-ky.html','📋 Bàn thư ký'] : ['ban-kham.html','🩺 Bàn khám'];
+      /* Thư ký lỡ mở thẳng ban-kham.html → nút về Bàn thư ký (bàn khám đã lồng sẵn trong đó) */
+      if (role === 'Thư ký' && cur === 'ban-kham.html' && !document.getElementById('tkNavBtn')){
         var tb = document.createElement('button');
         tb.id = 'tkNavBtn';
-        tb.textContent = other[1];
+        tb.textContent = '📋 Bàn thư ký';
         tb.style.cssText = 'border:none;border-radius:9px;padding:6px 11px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
-        tb.onclick = function(){ location.href = other[0]; };
+        tb.onclick = function(){ location.href = 'ban-thu-ky.html'; };
         chip.parentNode.insertBefore(tb, chip);
       }
       /* nút Nhân sự — chỉ Quản lý */

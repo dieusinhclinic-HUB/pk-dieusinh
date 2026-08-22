@@ -53,6 +53,9 @@ header.bar .sub{font-size:12px;opacity:.85;}
 .hbtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;}
 
 .wrap{max-width:1520px;margin:0 auto;padding:12px 14px;display:grid;grid-template-columns:2.15fr 1fr;gap:14px;align-items:start;}
+/* tab Bàn khám mở → ẩn rail, bàn khám chiếm toàn màn hình (trang con đã có hàng chờ riêng) */
+body.bkfull .wrap{grid-template-columns:1fr;max-width:none;}
+body.bkfull #railCol{display:none;}
 .card{background:var(--surface);border:1px solid var(--hair);border-radius:14px;overflow:hidden;}
 .card .hd{padding:11px 14px;border-bottom:1px solid var(--hair);display:flex;align-items:center;gap:8px;background:#fff;}
 .card .hd h2{font-size:13.5px;font-weight:700;color:var(--brand);}
@@ -144,8 +147,8 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <div class="wrap">
 <div>
 <div class="ttabs">
-<button class="ttab" onclick="location.href='ban-kham.html'" style="background:var(--brand);color:#fff;">🩺 Bàn khám — giao diện bác sĩ ↗</button>
-<button class="ttab on" data-p="t-sokham">🩺 Nhập sổ khám</button>
+<button class="ttab on" data-p="t-bankham">🩺 Bàn khám</button>
+<button class="ttab" data-p="t-sokham">🩺 Nhập sổ khám</button>
 <button class="ttab" data-p="t-hoso">👩 Hồ sơ BN <span id="hsBadge"></span></button>
 <button class="ttab" data-p="t-thaiky">🤰 Thai kỳ</button>
 <button class="ttab" data-p="t-lichhen">📅 Lịch hẹn</button>
@@ -153,12 +156,17 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 </div>
 <div class="tbody">
 
+<!-- ==== BÀN KHÁM — trang ban-kham.html thật, hiển thị lồng (KHÔNG nhân bản code) ==== -->
+<div class="tpane on" id="t-bankham" style="padding:0;">
+<iframe id="bkFrame" src="ban-kham.html" title="Bàn khám" style="width:100%;height:calc(100vh - 140px);border:none;display:block;background:var(--brand-bg);border-radius:0 0 14px 14px;"></iframe>
+</div>
+
 <!-- ==== NHẬP SỔ KHÁM ==== -->
 <div class="tpane" id="t-dangkham">
 <div id="dkBox"></div>
 </div>
 
-<div class="tpane on" id="t-sokham">
+<div class="tpane" id="t-sokham">
 <div class="sect-label">Bệnh nhân</div>
 <div class="pk"><input id="skPk" placeholder="🔍 Tìm BN — tên, SĐT hoặc mã…" oninput="pkSearch('sk')" autocomplete="off"><div class="pkResults" id="skPkR"></div></div>
 <div id="skSel" class="empty" style="margin-top:6px;">Chưa chọn bệnh nhân.</div>
@@ -236,7 +244,7 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 </div>
 
 <!-- ==== RAIL ==== -->
-<div style="display:flex;flex-direction:column;gap:14px;">
+<div id="railCol" style="display:flex;flex-direction:column;gap:14px;">
 <div class="card">
 <div class="hd"><h2>👥 Ca của tôi hôm nay</h2><div class="spacer"></div><span style="font-size:11px;color:var(--ink3);">bấm để nhận / nhả ca</span></div>
 <div class="bd" id="caBox"></div>
@@ -323,11 +331,13 @@ setTimeout(()=>clearInterval(t), 10000);
 $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
 tryResume();
 document.querySelectorAll('.ttab').forEach(b=>b.addEventListener('click',()=>{
-if (!b.dataset.p) return; // nút điều hướng (Bàn khám) không phải tab
+if (!b.dataset.p) return;
 document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
 document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
 b.classList.add('on'); $(b.dataset.p).classList.add('on');
+document.body.classList.toggle('bkfull', b.dataset.p==='t-bankham');
 }));
+document.body.classList.add('bkfull'); // tab Bàn khám mở sẵn khi vào trang
 document.addEventListener('click', e => { if (!e.target.closest('.pk')) document.querySelectorAll('.pkResults').forEach(x=>x.style.display='none'); });
 });
 function tryResume(){
