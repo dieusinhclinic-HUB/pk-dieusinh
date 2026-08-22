@@ -207,7 +207,7 @@ window.SB_API = async function(action, extra){
     'Thu ngân': ['thu-ngan.html'],
     'Lễ tân':   ['thu-ngan.html'],
     'Bác sĩ':   ['ban-kham.html'],
-    'Thư ký':   ['ban-thu-ky.html','ban-kham.html'],
+    'Thư ký':   ['ban-kham.html','ban-thu-ky.html'],
     'Dược sỹ':  ['duoc-sy.html']
   };
   var cur = (location.pathname.split('/').pop()||'').toLowerCase();
