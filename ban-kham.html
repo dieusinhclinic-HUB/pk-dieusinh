@@ -397,6 +397,62 @@ return (Number(a.STT)||0)-(Number(b.STT)||0);
 });
 }
 function bn(ma){ return rowsToObj('BENH_NHAN').find(x=>x.MA_BN===ma) || {MA_BN:ma, HO_TEN:ma}; }
+
+/* ========== ĐIỀU PHỐI THEO PHÒNG — chia việc siêu âm / khám, mỗi BS một hàng chờ riêng ========== */
+function stripVN(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase(); }
+function isSaTen(ten, nhom){ const t = stripVN((nhom||'')+' '+(ten||'')); return t.indexOf('sieu am')!==-1 || t.indexOf('shg')!==-1; }
+function isSaBS(ten){ const b = rowsToObj('BAC_SI').find(x=>String(x.TEN_BS).trim()===String(ten||'').trim()); return !!(b && stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1); }
+/* chia các dịch vụ CHỈ ĐỊNH còn lại của 1 lượt thành 2 nhóm: siêu âm / khám thường */
+function pendSplit(r){
+const dvs = rowsToObj('DICH_VU');
+const pend = orderLines(r.MA_CHO, r.MA_BN).filter(l=>!lineDone(l));
+const sa=[], kh=[];
+pend.forEach(l=>{ const d = dvs.find(x=>x.TEN_DV===l.TEN_DV); (isSaTen(l.TEN_DV, d&&d.NHOM)?sa:kh).push(l); });
+return {sa, kh, pend};
+}
+/* dịch vụ chờ mà PHÒNG MÌNH phục vụ được — null = BN ghim BS khác */
+function myRoomPend(r){
+const s = pendSplit(r);
+if (isSaBS(myBS())) return s.sa;
+const yc = String(r.BS_YEU_CAU||'').trim();
+if (yc && yc !== myBS()) return null;
+return s.kh;
+}
+/* BN đủ điều kiện vào phòng mình: có việc cho phòng mình, hoặc đơn trống (khám thường cổ điển) */
+function eligibleMine(r){
+const p = myRoomPend(r);
+if (p === null) return false;
+if (p.length) return true;
+const s = pendSplit(r);
+return !s.pend.length && !isSaBS(myBS());
+}
+function myQueue(){ return sortQueue(queueToday().filter(x=>x.TRANG_THAI==='Chờ khám')).filter(eligibleMine); }
+/* ước thời gian (phút) cho các dịch vụ — cột THOI_LUONG của DICH_VU, mặc định 15' */
+function estMin(pendLines){
+const dvs = rowsToObj('DICH_VU');
+const m = (pendLines||[]).reduce((s,l)=>{ const d = dvs.find(x=>x.TEN_DV===l.TEN_DV); return s + (Number(d&&d.THOI_LUONG)||15); }, 0);
+return m || 15;
+}
+/* hẹn sắp tới hôm nay của 1 bác sĩ (để biết còn đủ giờ nhận ca mới không) */
+function nextHenCua(tenBS){
+const now = new Date(); const nowM = now.getHours()*60 + now.getMinutes();
+const hs = rowsToObj('LICH_HEN')
+.filter(h=>sameDay(h.NGAY_HEN) && String(h.TRANG_THAI||'').trim()==='Đã hẹn' && String(h.BS_PHU_TRACH||'').trim()===String(tenBS||'').trim())
+.map(h=>{ const t = fmtT(h.GIO_HEN)||''; const p = t.split(':'); return {m:(Number(p[0])||0)*60+(Number(p[1])||0), t}; })
+.filter(x=>x.m>nowM).sort((a,b)=>a.m-b.m);
+return hs.length ? {gio:hs[0].t, conPhut:hs[0].m-nowM} : null;
+}
+/* nhãn hành trình cho thẻ hàng chờ */
+function legTags(r){
+const s = pendSplit(r);
+if (!s.pend.length) return '';
+let t = '';
+if (s.sa.length) t += ' <span class="tag" style="background:#efe6f8;color:#7c4dbe;">🩻 siêu âm'+(s.sa.length>1?' ×'+s.sa.length:'')+'</span>';
+if (s.kh.length) t += ' <span class="tag" style="background:#e3f0fb;color:#2456a8;">🩺 khám'+(s.kh.length>1?' ×'+s.kh.length:'')+'</span>';
+const done = orderLines(r.MA_CHO, r.MA_BN).filter(lineDone);
+if (done.length) t += ' <span class="tag" style="background:#e8f7e8;color:#0ca30c;">✅ xong '+done.length+' DV</span>';
+return t;
+}
 function henOf(r){ return r.MA_HEN ? rowsToObj('LICH_HEN').find(h=>h.MA_HEN===r.MA_HEN) : null; }
 function qTags(r){
 const hen = henOf(r);
@@ -418,17 +474,20 @@ let html = '<div class="sect-label">🩺 Đang khám ('+exams.length+')</div>';
 html += exams.length ? exams.map(r=>`
 <div class="qrow exam" onclick="openPatient('${r.MA_CHO}')">
 <div class="stt num">${r.STT||'–'}</div>
-<div style="flex:1;"><div class="nm">${bn(r.MA_BN).HO_TEN} ${qTags(r)}</div><div class="meta num">${r.MA_BN}${r.BS_KHAM?' · '+r.BS_KHAM:''}${r.GIO_GOI?' · gọi '+fmtT(r.GIO_GOI):''}</div></div>
+<div style="flex:1;"><div class="nm">${bn(r.MA_BN).HO_TEN} ${qTags(r)}${legTags(r)}</div><div class="meta num">${r.MA_BN}${r.BS_KHAM?' · '+r.BS_KHAM:''}${r.GIO_GOI?' · gọi '+fmtT(r.GIO_GOI):''}${(String(r.BS_KHAM||'').trim()!==myBS() && (myRoomPend(r)||[]).length)?' · <b style="color:#7c4dbe;">sau đó → phòng mình</b>':''}</div></div>
 <span style="font-size:11px;color:var(--brand);">mở ▸</span>
 </div>`).join('') : '<div class="empty">— trống —</div>';
-html += '<div class="sect-label">⏳ Chờ khám ('+waits.length+')</div>';
+const mineW = waits.filter(eligibleMine);
+html += '<div class="sect-label">⏳ Chờ khám ('+waits.length+' · phòng mình: '+mineW.length+')</div>';
 html += waits.length ? waits.map(r=>{
 const dv = dvNames(r);
+const isMine = eligibleMine(r);
+const mp = myRoomPend(r);
 return `
-<div class="qrow wait${String(r.UU_TIEN||'').trim()==='Có'?' prio':''}">
+<div class="qrow wait${String(r.UU_TIEN||'').trim()==='Có'?' prio':''}" style="${isMine?'':'opacity:.55;'}">
 <div class="stt num">${r.STT||'–'}</div>
-<div style="flex:1;"><div class="nm"><span class="pn" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span> ${qTags(r)}</div>
-<div class="meta num">${r.MA_BN}${r.BS_YEU_CAU?' · YC: '+r.BS_YEU_CAU:''}${dv?' · '+dv:''}</div></div>
+<div style="flex:1;"><div class="nm"><span class="pn" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span> ${qTags(r)}${legTags(r)}</div>
+<div class="meta num">${r.MA_BN}${r.BS_YEU_CAU?' · YC: '+r.BS_YEU_CAU:''}${dv?' · '+dv:''}${isMine?' · <b style="color:var(--brand);">→ phòng mình'+(mp&&mp.length?' (~'+estMin(mp)+"')":'')+'</b>':' · chờ phòng khác'}</div></div>
 </div>`;
 }).join('') : '<div class="empty">— trống —</div>';
 const dones = q.filter(r=>r.TRANG_THAI==='Xong khám');
@@ -448,12 +507,19 @@ $('qCount').textContent = q.filter(r=>r.TRANG_THAI!=='Hủy').length + ' lượt
 
 /* ================== GỌI & MỞ BN ================== */
 async function callNext(){
-const waits = sortQueue(queueToday().filter(r=>r.TRANG_THAI==='Chờ khám'));
-if (!waits.length){ toast('Hàng chờ trống 🎉'); return; }
-// ưu tiên BN yêu cầu đúng mình hoặc không yêu cầu ai; nếu chỉ còn BN chờ BS khác thì vẫn gọi được
-let r = waits.find(x => !String(x.BS_YEU_CAU||'').trim() || String(x.BS_YEU_CAU||'').trim()===myBS());
-let note = '';
-if (!r){ r = waits[0]; note = ' <span style="font-size:11px;">(BN này yêu cầu '+(r.BS_YEU_CAU||'')+')</span>'; }
+const mine = myQueue();
+if (!mine.length){
+const others = queueToday().filter(r=>r.TRANG_THAI==='Chờ khám').length;
+toast(others ? 'Không có bệnh nhân nào đang chờ <b>phòng mình</b> ('+others+' BN đang chờ phòng khác)' : 'Hàng chờ trống 🎉');
+return;
+}
+const r = mine[0]; let note = '';
+/* kiểm tra quỹ thời gian trước cuộc hẹn sắp tới của bác sĩ */
+const mins = estMin(myRoomPend(r));
+const hen = nextHenCua(myBS());
+if (hen && mins > hen.conPhut){
+if (!confirm('⏳ Ca này ước khoảng '+mins+' phút, nhưng '+myBS()+' có hẹn lúc '+hen.gio+' (còn '+hen.conPhut+' phút).\n\nOK = vẫn gọi vào ngay · Cancel = nhường bệnh nhân cho phòng khác')) return;
+}
 const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:r.MA_CHO, row:{TRANG_THAI:'Đang khám', BS_KHAM: myBS(), GIO_GOI: nowTime()}});
 if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
 ver = j.v; chime();
@@ -497,10 +563,21 @@ const ws = $('wsCol');
 const ae = document.activeElement; const aeId = ae ? ae.id : '';
 const aePos = (ae && ae.selectionStart != null) ? ae.selectionStart : null;
 if (!cur){
-const w = sortQueue(queueToday().filter(r=>r.TRANG_THAI==='Chờ khám'));
+const w = myQueue();
+const all = queueToday().filter(r=>r.TRANG_THAI==='Chờ khám').length;
+const hen = nextHenCua(myBS());
+let sub;
+if (w.length){
+const nx = w[0]; const mins = estMin(myRoomPend(nx));
+sub = 'Chờ <b>phòng mình</b>: <b>'+w.length+'</b> BN · tiếp theo: <b>'+bn(nx.MA_BN).HO_TEN+'</b> (số '+(nx.STT||'')+', ~'+mins+' phút)';
+if (hen && mins > hen.conPhut) sub += '<br><span style="color:var(--warn);">⏳ Lưu ý: có hẹn lúc '+hen.gio+' (còn '+hen.conPhut+' phút) — ca này có thể không kịp</span>';
+} else {
+sub = all ? 'Không có BN chờ phòng mình ('+all+' BN đang chờ phòng khác) 🎉' : 'Hàng chờ trống 🎉';
+}
+if (hen && !w.length) sub += '<br><span style="color:var(--ink2);">🗓 Hẹn sắp tới của '+myBS()+': '+hen.gio+'</span>';
 ws.innerHTML = `<div class="card"><div class="bd hero">
 <button class="herobtn" onclick="callNext()" ${w.length?'':'disabled'}>📢 Gọi bệnh nhân tiếp theo</button>
-<div class="sub">${w.length ? 'Đang chờ: <b>'+w.length+'</b> bệnh nhân · tiếp theo: <b>'+bn(w[0].MA_BN).HO_TEN+'</b> (số '+(w[0].STT||'')+')' : 'Hàng chờ trống 🎉'}</div>
+<div class="sub">${sub}</div>
 </div></div>`;
 return;
 }
@@ -692,8 +769,14 @@ if (!cur) return;
 const oLines = orderLines(cur.maCho, cur.maBN);
 const pend = oLines.filter(l=>!lineDone(l));
 const doneCount = oLines.filter(lineDone).length;
+/* chia phần việc còn lại: của phòng mình / của phòng khác */
+const dvs0 = rowsToObj('DICH_VU');
+const pendSa = pend.filter(l=>{ const d = dvs0.find(x=>x.TEN_DV===l.TEN_DV); return isSaTen(l.TEN_DV, d&&d.NHOM); });
+const pendKh = pend.filter(l=>pendSa.indexOf(l)===-1);
+const pendMine  = isSaBS(myBS()) ? pendSa : pendKh;
+const pendOther = isSaBS(myBS()) ? pendKh : pendSa;
 if (!lines.length && !doneCount){ if(!confirm('Chưa có dịch vụ nào được xác nhận cho lượt khám này. Vẫn kết thúc?')) return; }
-if (pend.length){ if(!confirm('Còn '+pend.length+' dịch vụ chỉ định CHƯA xác nhận thực hiện — sẽ không tính tiền nếu để nguyên. Vẫn hoàn tất khám?')) return; }
+if (pendMine.length){ if(!confirm('Còn '+pendMine.length+' dịch vụ CỦA PHÒNG MÌNH chưa xác nhận ('+pendMine.map(l=>l.TEN_DV).join(', ')+') — sẽ không tính tiền nếu để nguyên. Vẫn kết thúc phần của mình?')) return; }
 $('loading').classList.add('on');
 try{
 let base = nextNum('L','SO_KHAM','MA_LUOT');
@@ -710,14 +793,23 @@ lines = lines.filter((_,i)=>!(rs[i]&&rs[i].ok)); // giữ lại đúng các dòn
 toast('⚠️ '+fails+' dịch vụ chưa ghi được vào Sổ khám — thử bấm Hoàn tất khám lần nữa.');
 $('loading').classList.remove('on'); loadAll(true); return;
 }
-const patch = {TRANG_THAI:'Xong khám', GIO_XONG: nowTime()};
+/* còn việc cho phòng KHÁC → BN quay lại hàng chờ GIỮ NGUYÊN SỐ; hết việc → tự chuyển thu ngân */
+const backToQueue = pendOther.length > 0;
+const patch = backToQueue
+? {TRANG_THAI:'Chờ khám', BS_KHAM:'', GIO_GOI:''}
+: {TRANG_THAI:'Xong khám', GIO_XONG: nowTime()};
 if (!lines.length && examNote){
 const order = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
 patch.GHI_CHU = (String(order.GHI_CHU||'').trim() ? (order.GHI_CHU + ' · ') : '') + 'BS ghi: ' + examNote;
 }
 const j2 = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:cur.maCho, row:patch});
 if (j2.ok) ver = j2.v;
+if (backToQueue){
+const ord2 = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
+toast('↩ <b>'+bn(cur.maBN).HO_TEN+'</b> quay lại hàng chờ (giữ số <b>'+(ord2.STT||'')+'</b>) — còn: '+pendOther.map(l=>l.TEN_DV).join(', '));
+} else {
 toast('✓ Hoàn tất khám — <b>'+bn(cur.maBN).HO_TEN+'</b> đã chuyển sang thu ngân');
+}
 cur=null; lines=[]; examNote='';
 await loadAll(true);
 } finally { $('loading').classList.remove('on'); }
