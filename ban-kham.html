@@ -445,9 +445,38 @@ const hs = rowsToObj('LICH_HEN')
 .filter(x=>x.m>nowM).sort((a,b)=>a.m-b.m);
 return hs.length ? {gio:hs[0].t, conPhut:hs[0].m-nowM} : null;
 }
-/* nhãn hành trình cho thẻ hàng chờ */
-function legTags(r){
+/* BN này đủ điều kiện vào phòng của bác sĩ t? (dùng cho chuyển thẳng công bằng) */
+function eligibleFor(t, r){
 const s = pendSplit(r);
+if (isSaBS(t)) return s.sa.length > 0;
+const yc = String(r.BS_YEU_CAU||'').trim();
+if (yc && yc !== t) return false;
+return s.kh.length > 0 || !s.pend.length;
+}
+/* bác sĩ đã khám BN này LẦN TRƯỚC (đúng loại phòng) — để gợi ý đúng người quen */
+function prevDoctor(maBN, saRoom){
+const rows = rowsToObj('SO_KHAM').filter(l=>l.MA_BN===maBN && !sameDay(l.NGAY) && String(l.BS_THUC_HIEN||'').trim());
+rows.sort((a,b)=>String(b.NGAY).localeCompare(String(a.NGAY)));
+for (const r of rows){ const t = String(r.BS_THUC_HIEN).trim(); if (isSaBS(t) === !!saRoom) return t; }
+return '';
+}
+/* tìm phòng trống để CHUYỂN THẲNG — chỉ khi không cướp lượt của ai đến trước */
+function handoffPick(needSaRoom, ord){
+const q = queueToday();
+const busy = t => q.some(x=>x.TRANG_THAI==='Đang khám' && String(x.BS_KHAM||'').trim()===t);
+const working = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có').map(b=>String(b.TEN_BS).trim());
+const myStt = Number(ord.STT)||0;
+const cands = working.filter(t => t !== myBS() && isSaBS(t) === needSaRoom && !busy(t)
+&& !q.some(r => r.TRANG_THAI==='Chờ khám' && String(r.MA_CHO)!==String(ord.MA_CHO) && (Number(r.STT)||0) < myStt && eligibleFor(t, r)));
+if (!cands.length) return null;
+const yc = String(ord.BS_YEU_CAU||'').trim();
+if (yc && cands.indexOf(yc) !== -1) return {bs:yc, ly:'BN yêu cầu'};
+const fam = prevDoctor(ord.MA_BN, needSaRoom);
+if (fam && cands.indexOf(fam) !== -1) return {bs:fam, ly:'đã khám cho BN lần trước'};
+return {bs:cands[0], ly:'đang trống'};
+}
+/* nhãn hành trình cho thẻ hàng chờ */
+function legTags(r){const s = pendSplit(r);
 if (!s.pend.length) return '';
 let t = '';
 if (s.sa.length) t += ' <span class="tag" style="background:#efe6f8;color:#7c4dbe;"> siêu âm'+(s.sa.length>1?' ×'+s.sa.length:'')+'</span>';
@@ -796,9 +825,18 @@ lines = lines.filter((_,i)=>!(rs[i]&&rs[i].ok)); // giữ lại đúng các dòn
 toast('⚠ '+fails+' dịch vụ chưa ghi được vào Sổ khám — thử bấm Hoàn tất khám lần nữa.');
 $('loading').classList.remove('on'); loadAll(true); return;
 }
-/* còn việc cho phòng KHÁC → BN quay lại hàng chờ GIỮ NGUYÊN SỐ; hết việc → tự chuyển thu ngân */
+/* còn việc cho phòng KHÁC → ưu tiên CHUYỂN THẲNG nếu có phòng trống & không cướp lượt ai;
+   không thì quay lại hàng chờ GIỮ NGUYÊN SỐ; hết việc → tự chuyển thu ngân */
 const backToQueue = pendOther.length > 0;
-const patch = backToQueue
+let handTo = null;
+if (backToQueue){
+const ord0 = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
+const hp = handoffPick(!isSaBS(myBS()), ord0);
+if (hp && confirm('Xong phần của phòng mình — còn: '+pendOther.map(l=>l.TEN_DV).join(', ')+'.\n\n'+hp.bs+' đang trống ('+hp.ly+').\nOK = CHUYỂN THẲNG sang phòng '+hp.bs+' ngay (máy đọc loa) · Cancel = đưa vào hàng chờ')) handTo = hp;
+}
+const patch = handTo
+? {TRANG_THAI:'Đang khám', BS_KHAM:handTo.bs, GIO_GOI: nowTime()}
+: backToQueue
 ? {TRANG_THAI:'Chờ khám', BS_KHAM:'', GIO_GOI:''}
 : {TRANG_THAI:'Xong khám', GIO_XONG: nowTime()};
 if (!lines.length && examNote){
@@ -807,7 +845,12 @@ patch.GHI_CHU = (String(order.GHI_CHU||'').trim() ? (order.GHI_CHU + ' · ') : '
 }
 const j2 = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:cur.maCho, row:patch});
 if (j2.ok) ver = j2.v;
-if (backToQueue){
+if (handTo){
+const ord2 = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
+chime();
+announce(ord2.STT, bn(cur.maBN).HO_TEN, handTo.bs);
+toast('→ <b>'+bn(cur.maBN).HO_TEN+'</b> chuyển thẳng sang phòng <b>'+handTo.bs+'</b> ('+handTo.ly+')');
+} else if (backToQueue){
 const ord2 = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
 toast('↩ <b>'+bn(cur.maBN).HO_TEN+'</b> quay lại hàng chờ (giữ số <b>'+(ord2.STT||'')+'</b>) — còn: '+pendOther.map(l=>l.TEN_DV).join(', '));
 } else {

@@ -598,6 +598,13 @@ const t = stripVN((d.NHOM||'')+' '+(d.TEN_DV||''));
 return t.indexOf('sieu am')!==-1 || t.indexOf('shg')!==-1;
 });
 }
+/* bác sĩ KHÁM đã tiếp BN này lần gần nhất (bỏ BS siêu âm) — để gợi ý đúng người quen */
+function prevBSCua(maBN, khList){
+const rows = rowsToObj('SO_KHAM').filter(l=>l.MA_BN===maBN && !sameDay(l.NGAY) && String(l.BS_THUC_HIEN||'').trim());
+rows.sort((a,b)=>String(b.NGAY).localeCompare(String(a.NGAY)));
+for (const r of rows){ const t = String(r.BS_THUC_HIEN).trim(); if (khList.indexOf(t) !== -1) return t; }
+return '';
+}
 /* các BS làm siêu âm đang làm việc hôm nay (theo cột CHUYÊN KHOA) */
 function sieuAmBS(){
 return rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có' && stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1).map(b=>String(b.TEN_BS).trim());
@@ -630,12 +637,19 @@ else { goiY = byLoad(saList)[0]||''; if (goiY) why = ' Còn <b>siêu âm</b> —
 }
 } else {
 /* CHỈ còn khám (hoặc đơn trống) — không đưa về phòng siêu âm nữa */
+const fam = prevBSCua(r.MA_BN, khList);
 if (yc){
 goiY = yc;
 if (busy(yc)){ const free = byLoad(khList.filter(t=>!busy(t)))[0]; if (free) why = ' '+yc+' đang bận · <b>'+free+'</b> đang trống — hỏi BN nếu muốn khám sớm hơn'; }
+} else if (fam && !busy(fam)){
+goiY = fam;
+why = ' BN từng khám <b>'+fam+'</b> lần trước — đề xuất (đang trống)';
 } else {
 goiY = byLoad(khList.filter(t=>!busy(t)))[0] || byLoad(khList)[0] || '';
-if (goiY) why = ' Đề xuất: <b>'+goiY+'</b>'+(busy(goiY)?' (ít bận nhất)':' (đang trống)');
+if (goiY){
+why = ' Đề xuất: <b>'+goiY+'</b>'+(busy(goiY)?' (ít bận nhất)':' (đang trống)');
+if (fam && fam !== goiY) why += ' · lần trước BN khám '+fam+(busy(fam)?' (đang bận)':'');
+}
 }
 }
 const sel = goiY || yc;
