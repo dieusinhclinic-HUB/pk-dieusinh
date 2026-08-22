@@ -66,12 +66,14 @@ main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-h
 #syncTag{position:fixed;left:2vw;bottom:2.4vh;font-size:1.5vh;color:#2c5949;z-index:90;}
 #syncTag.off{color:#ff8a8a;}
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&display=swap">
+<style>body{font-family:'Inter',sans-serif;}</style>
 </head>
 <body>
 
 <div id="loginView">
 <div class="logincard">
-<div style="font-size:42px;">📺</div>
+
 <h1>TV phòng chờ — PK Diệu Sinh</h1>
 <div class="sub">Đăng nhập một lần bằng tài khoản Google của phòng khám, sau đó để nguyên trên TV.</div>
 <div id="gbtn"></div>
@@ -81,14 +83,14 @@ main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-h
 
 <div id="app">
 <header>
-<div><div class="logo">🌿 PHÒNG KHÁM DIỆU SINH</div><div class="sub">Kính chúc quý khách sức khỏe — vui lòng theo dõi số thứ tự</div></div>
+<div><div class="logo"> PHÒNG KHÁM DIỆU SINH</div><div class="sub">Kính chúc quý khách sức khỏe — vui lòng theo dõi số thứ tự</div></div>
 <div class="spacer"></div>
 <div><div id="clock" class="num">--:--</div><div id="dateTxt"></div></div>
 </header>
 <main>
 <div class="roomsWrap" id="roomsWrap"></div>
-<div class="waitBar"><span class="lbl">⏳ Số đang chờ</span><div class="waitNums" id="waitNums"></div></div>
-<div class="waitBar payNums"><span class="lbl">💳 Mời thanh toán</span><div class="waitNums" id="payNums"></div></div>
+<div class="waitBar"><span class="lbl"> Số đang chờ</span><div class="waitNums" id="waitNums"></div></div>
+<div class="waitBar payNums"><span class="lbl"> Mời thanh toán</span><div class="waitNums" id="payNums"></div></div>
 </main>
 </div>
 
@@ -98,7 +100,7 @@ main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-h
 <div class="t3" id="cbRoom">vào phòng khám</div>
 </div></div>
 
-<button id="sndBtn" onclick="sndOn()">🔊 Bấm để bật âm thanh</button>
+<button id="sndBtn" onclick="sndOn()">Bấm để bật âm thanh</button>
 <div id="syncTag">●</div>
 
 <script>
@@ -190,7 +192,7 @@ $('loginMsg').className='err'; $('loginMsg').textContent='Phiên đăng nhập h
 function sndOn(){
 sndReady = true;
 try{ const c=new (window.AudioContext||window.webkitAudioContext)(); const o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); g.gain.value=.06; o.frequency.value=880; o.start(); o.stop(c.currentTime+.15); }catch(e){}
-const b=$('sndBtn'); b.className='ok'; b.textContent='🔊 Âm thanh: BẬT';
+const b=$('sndBtn'); b.className='ok'; b.textContent='Âm thanh: BẬT';
 }
 function chime(){
 if (!sndReady) return;

@@ -1,0 +1,117 @@
+/* ============================================================
+   PK DIỆU SINH — THEME chuyên nghiệp y khoa (nạp SAU style trang)
+   Một file duy nhất chỉnh: chữ, màu, bo góc, bóng đổ cho MỌI màn hình.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ---- 1 · BẢNG MÀU LÂM SÀNG (ghi đè biến gốc của từng trang) ---- */
+:root{
+  --brand:#0C4F44;
+  --brand2:#12635A;
+  --brand3:#157A66;
+  --brand-soft:#E7F0ED;
+  --brand-bg:#F4F7F6;
+  --ink:#1D272E;
+  --ink2:#57646C;
+  --ink3:#8A98A1;
+  --surface:#FFFFFF;
+  --hair:#E2E8E6;
+  --good:#1E7A4D;  --good-soft:#E9F4EE;
+  --warn:#A9761C;  --warn-soft:#FBF4E4;
+  --crit:#B54038;  --crit-soft:#F9EDEC;
+}
+
+/* ---- 2 · CHỮ ---- */
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif !important;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  background:var(--brand-bg);
+}
+body button, body input, body select, body textarea{ font-family:inherit; }
+body .num{ font-family:'Inter',sans-serif !important; font-variant-numeric:tabular-nums; letter-spacing:0; }
+
+/* ---- 3 · THANH ĐẦU TRANG ---- */
+body header.bar{
+  background:linear-gradient(180deg, #0D5449 0%, #0B4B41 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 1px 3px rgba(15,35,30,.25);
+}
+body header.bar h1, body .brandName{ font-weight:700; letter-spacing:.2px; }
+body .userchip{ background:rgba(255,255,255,.12); font-weight:600; }
+body .hbtn{ border-radius:8px; font-weight:600; }
+body #pnlSwitch, body #nsGlobalBtn, body #tkNavBtn{ border-radius:8px !important; box-shadow:0 1px 2px rgba(15,35,30,.15); }
+
+/* ---- 4 · THẺ / KHỐI ---- */
+body .card{
+  border-radius:10px;
+  border:1px solid var(--hair);
+  box-shadow:0 1px 2px rgba(23,42,58,.04);
+}
+body .card .hd{ border-bottom:1px solid var(--hair); }
+body .card .hd h2{ font-size:12.5px; font-weight:700; letter-spacing:.55px; text-transform:uppercase; color:var(--ink2); }
+body .sect-label, body .sect{
+  font-size:10.5px; font-weight:700; letter-spacing:.8px; color:var(--ink3);
+}
+
+/* ---- 5 · NÚT ---- */
+body .btn, body .qbtn, body .hbtn, body .herobtn, body .dvchip, body .rcChip{
+  border-radius:8px; font-weight:600; letter-spacing:.1px;
+}
+body .btn-brand{ box-shadow:0 1px 2px rgba(12,79,68,.25); }
+body .btn-brand:hover{ filter:brightness(1.06); }
+body .herobtn{
+  border-radius:10px; font-weight:700; letter-spacing:.2px;
+  box-shadow:0 1px 3px rgba(12,79,68,.3);
+}
+body .qbtn{ border-radius:7px; }
+
+/* ---- 6 · NHÃN / CHIP ---- */
+body .tag, body .chip{
+  border-radius:6px !important;
+  font-weight:600 !important;
+  letter-spacing:.15px;
+}
+body .stt{ border-radius:8px; font-weight:700; }
+
+/* ---- 7 · TAB ---- */
+body .ttabs{ border-radius:10px 10px 0 0; gap:2px; }
+body .ttab{
+  border-radius:8px 8px 0 0; font-weight:600; letter-spacing:.15px;
+}
+body .ttab.on{ box-shadow:0 -1px 0 rgba(12,79,68,.2) inset; }
+
+/* ---- 8 · HÀNG CHỜ / DANH SÁCH ---- */
+body .qrow{ border-radius:8px; }
+body .qrow.prio{ box-shadow:0 0 0 1px var(--warn-soft) inset; }
+body .empty{ color:var(--ink3); font-weight:500; }
+body .histrow{ border-color:var(--hair); }
+
+/* ---- 9 · NHẬP LIỆU ---- */
+body input, body select, body textarea{
+  border-radius:7px; border-color:#D4DDDA;
+}
+body input:focus, body select:focus, body textarea:focus{
+  outline:2px solid rgba(21,122,102,.28); outline-offset:0; border-color:var(--brand3);
+}
+
+/* ---- 10 · MODAL / TOAST ---- */
+body .modal, body .sheet{ border-radius:12px; box-shadow:0 8px 30px rgba(17,34,29,.18); }
+body #toast{ border-radius:9px; font-weight:600; box-shadow:0 4px 16px rgba(17,34,29,.22); }
+
+/* ---- 11 · BẢNG ---- */
+body th{ font-size:10.5px; letter-spacing:.6px; color:var(--ink3); }
+
+/* ---- 12 · ĐĂNG NHẬP ---- */
+body .logincard{ border-radius:14px; border:1px solid var(--hair); box-shadow:0 6px 24px rgba(17,34,29,.10); }
+body .logincard .logo{
+  width:56px; height:56px; margin:0 auto; border-radius:50%;
+  background:var(--brand); color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:22px; font-weight:800; letter-spacing:1px;
+}
+body .logincard h1{ letter-spacing:.2px; }
+
+/* ---- 13 · THANH CUỘN GỌN ---- */
+body ::-webkit-scrollbar{ width:9px; height:9px; }
+body ::-webkit-scrollbar-thumb{ background:#C6D2CE; border-radius:8px; border:2px solid var(--brand-bg); }
+body ::-webkit-scrollbar-thumb:hover{ background:#AFBEB9; }
+body ::-webkit-scrollbar-track{ background:transparent; }

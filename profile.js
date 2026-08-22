@@ -107,10 +107,10 @@ var lastData = null;
 
 function toaHtml(t, ctList){
   var lines = ctList.filter(function(c){ return c.MA_TOA===t.MA_TOA; });
-  return '<div class="pkpToa"><div class="th">💊 Toa ' + esc(t.MA_TOA) +
+  return '<div class="pkpToa"><div class="th"> Toa ' + esc(t.MA_TOA) +
     ' <span class="pkpMut" style="font-weight:400;">' + esc(t.BS_KE||'') + (t.GIO_KE?(' · '+hhmm(t.GIO_KE)):'') + '</span>' +
     ' <span class="tst">' + esc(t.TRANG_THAI||'') + '</span>' +
-    ' <button class="pkpBtn" onclick="PKProfile._inToa(\'' + esc(t.MA_TOA) + '\')" style="margin-left:auto;">🖨 In</button></div>' +
+    ' <button class="pkpBtn" onclick="PKProfile._inToa(\'' + esc(t.MA_TOA) + '\')" style="margin-left:auto;"> In</button></div>' +
     '<ul>' + lines.map(function(l){
       return '<li><b>' + esc(l.TEN_THUOC) + '</b> — ' + esc(l.LIEU_LAN) + '/lần × ' + esc(l.LAN_NGAY) + ' lần/ngày × ' + esc(l.SO_NGAY) + ' ngày' +
         (l.THOI_DIEM?(' (' + esc(l.THOI_DIEM) + ')'):'') + ' · SL: ' + esc(l.SO_LUONG) + '</li>';
@@ -122,7 +122,7 @@ function render(maBN, D){
   lastData = D;
   var b = obj(D,'BENH_NHAN').find(function(x){ return x.MA_BN===maBN; });
   if (!b){ document.getElementById('pkpBody').innerHTML = '<div class="pkpEmpty">Không tìm thấy hồ sơ ' + esc(maBN) + '.</div>'; return; }
-  document.getElementById('pkpTitle').textContent = '📁 Bệnh án — ' + b.HO_TEN + ' (' + b.MA_BN + ')';
+  document.getElementById('pkpTitle').textContent = ' Bệnh án — ' + b.HO_TEN + ' (' + b.MA_BN + ')';
 
   var html = '';
   /* ===== PHẦN 1 — THÔNG TIN BỆNH NHÂN ===== */
@@ -134,13 +134,13 @@ function render(maBN, D){
     (b.NGAY_LAP ? '<span>Lập hồ sơ: <b class="pkpNum">' + dvn(b.NGAY_LAP) + '</b></span>' : '') +
     '</div>';
   if (String(b.TIEN_SU||'').trim() || String(b.GHI_CHU||'').trim()){
-    html += '<div class="pkpWarn">⚠️ <b>Tiền sử / dị ứng:</b> ' + esc(b.TIEN_SU||'—') +
-      (String(b.GHI_CHU||'').trim() ? ('<br>📝 Ghi chú: ' + esc(b.GHI_CHU)) : '') + '</div>';
+    html += '<div class="pkpWarn">⚠ <b>Tiền sử / dị ứng:</b> ' + esc(b.TIEN_SU||'—') +
+      (String(b.GHI_CHU||'').trim() ? ('<br> Ghi chú: ' + esc(b.GHI_CHU)) : '') + '</div>';
   }
   var tk = obj(D,'THAI_KY').find(function(t){ return t.MA_BN===maBN && String(t.TRANG_THAI||'')!=='Kết thúc'; });
   if (tk){
     var c = tkCalc(tk.KINH_CUOI);
-    html += '<div class="pkpPreg"><b style="color:#a2385f;">🤰 Thai kỳ đang theo dõi</b><br>' +
+    html += '<div class="pkpPreg"><b style="color:#a2385f;"> Thai kỳ đang theo dõi</b><br>' +
       (c ? ('<span class="pkpChip">Tuổi thai: ' + c.weeks + ' tuần ' + c.days + ' ngày</span>' +
             '<span class="pkpChip">Dự sinh: ' + c.edd.toLocaleDateString('vi-VN') + '</span>' +
             (c.next ? ('<span class="pkpChip">▶ Mốc ' + c.next[0] + ' tuần: ' + c.next[1] + '</span>') : ''))
@@ -151,7 +151,7 @@ function render(maBN, D){
   var up = hens.filter(function(h){ return dstr(h.NGAY_HEN)>=tdy() && String(h.TRANG_THAI||'')==='Đã hẹn'; })
                .sort(function(a,c2){ return dstr(a.NGAY_HEN).localeCompare(dstr(c2.NGAY_HEN)); });
   if (up.length){
-    html += up.map(function(h){ return '<div class="pkpRow"><span class="pkpNum" style="color:var(--brand,#0a5240);font-weight:700;">🗓 Hẹn ' + dvn(h.NGAY_HEN) + ' ' + hhmm(h.GIO_HEN) + '</span><span style="flex:1;padding:0 8px;">' + esc(h.LY_DO||'') + (h.BS_PHU_TRACH?(' · '+esc(h.BS_PHU_TRACH)):'') + '</span></div>'; }).join('');
+    html += up.map(function(h){ return '<div class="pkpRow"><span class="pkpNum" style="color:var(--brand,#0a5240);font-weight:700;"> Hẹn ' + dvn(h.NGAY_HEN) + ' ' + hhmm(h.GIO_HEN) + '</span><span style="flex:1;padding:0 8px;">' + esc(h.LY_DO||'') + (h.BS_PHU_TRACH?(' · '+esc(h.BS_PHU_TRACH)):'') + '</span></div>'; }).join('');
   }
 
   /* ===== PHẦN 2 — CÁC LẦN KHÁM ===== */
@@ -190,31 +190,31 @@ function render(maBN, D){
     body += v.lines.map(function(l){
       var st = String(l.TRANG_THAI_DV||'').trim();
       var stH = st==='Hủy' ? '<span class="lcancel">✕ hủy</span>'
-        : st==='Chỉ định' ? '<span class="lpend">⏳ chưa thực hiện</span>'
+        : st==='Chỉ định' ? '<span class="lpend"> chưa thực hiện</span>'
         : '<span class="lok">✓' + (l.GIO_XAC_NHAN?(' '+hhmm(l.GIO_XAC_NHAN)):'') + (l.NGUOI_XAC_NHAN?(' · '+esc(String(l.NGUOI_XAC_NHAN).split('@')[0])):'') + '</span>';
       var kq = String(l.KET_QUA||'').trim();
       var files = String(l.ANH_KET_QUA||'').split('|').filter(Boolean);
       var chips = files.length ? ('<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' + files.map(function(p){
         var nm = p.split('/').pop().split('_').slice(2).join('_') || 'tệp';
-        return '<span onclick="PKProfile._file(\'' + esc(p) + '\')" title="Mở tệp kết quả" style="cursor:pointer;background:#fff;border:1px solid #b8d2f5;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">📎 ' + esc(nm) + '</span>';
+        return '<span onclick="PKProfile._file(\'' + esc(p) + '\')" title="Mở tệp kết quả" style="cursor:pointer;background:#fff;border:1px solid #b8d2f5;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;"> ' + esc(nm) + '</span>';
       }).join('') + '</div>') : '';
       return '<div class="pkpLine"><div class="lh"><span class="ldv">' + esc(l.TEN_DV) + (Number(l.SO_LUONG)>1?(' ×'+l.SO_LUONG):'') + '</span>' +
         (l.BS_THUC_HIEN?('<span class="lmut">' + esc(l.BS_THUC_HIEN) + '</span>'):'') + stH +
         '<span class="pkpNum" style="margin-left:auto;">' + fmtD(l.THANH_TIEN) + '</span></div>' +
-        (st!=='Hủy' ? ((kq||files.length) ? ('<div class="pkpKq">' + (kq?('🧾 Kết quả: ' + esc(kq)):'📎 Tệp kết quả đính kèm') + chips + '</div>') : '<div class="pkpKq empty">— chưa nhập kết quả —</div>') : '') +
-        (l.GHI_CHU?('<div class="pkpNote">📝 ' + esc(l.GHI_CHU) + '</div>'):'') + '</div>';
+        (st!=='Hủy' ? ((kq||files.length) ? ('<div class="pkpKq">' + (kq?(' Kết quả: ' + esc(kq)):' Tệp kết quả đính kèm') + chips + '</div>') : '<div class="pkpKq empty">— chưa nhập kết quả —</div>') : '') +
+        (l.GHI_CHU?('<div class="pkpNote"> ' + esc(l.GHI_CHU) + '</div>'):'') + '</div>';
     }).join('');
     if (!v.lines.length) body += '<div class="pkpEmpty">Không có dịch vụ ghi nhận.</div>';
-    if (o.GHI_CHU) body += '<div class="pkpNote">📝 Ghi chú lần khám: ' + esc(o.GHI_CHU) + '</div>';
+    if (o.GHI_CHU) body += '<div class="pkpNote"> Ghi chú lần khám: ' + esc(o.GHI_CHU) + '</div>';
     /* toa của lần khám */
     body += v.toas.map(function(t){ return toaHtml(t, cts); }).join('');
     /* thanh toán cùng ngày */
     var payDay = pays.filter(function(p){ return dstr(p.NGAY)===v.ngay; });
     body += payDay.map(function(p){
-      return '<div class="pkpPay">💳 <b class="pkpNum">' + esc(p.MA_TT) + '</b> · đã thu <b class="pkpNum">' + fmtD(p.DA_THU) + '</b> (' + esc(p.HINH_THUC||'') + ')' +
+      return '<div class="pkpPay"> <b class="pkpNum">' + esc(p.MA_TT) + '</b> · đã thu <b class="pkpNum">' + fmtD(p.DA_THU) + '</b> (' + esc(p.HINH_THUC||'') + ')' +
         ((Number(p.CON_LAI)||0)>0?(' · <span style="color:#d03b3b;font-weight:700;">còn thiếu ' + fmtD(p.CON_LAI) + '</span>'):'') + '</div>';
     }).join('');
-    return '<details class="pkpV"' + (idx===0?' open':'') + '><summary><span class="vd">📅 ' + dvn(v.ngay) + '</span>' +
+    return '<details class="pkpV"' + (idx===0?' open':'') + '><summary><span class="vd"> ' + dvn(v.ngay) + '</span>' +
       (Object.keys(bsList).length?('<span class="vmut">' + esc(Object.keys(bsList).join(', ')) + '</span>'):'') +
       (gio?('<span class="vmut pkpNum">' + gio + '</span>'):'') +
       (tot?('<span class="vmut pkpNum">' + fmtD(tot) + '</span>'):'') + stTxt + '</summary>' +
@@ -232,10 +232,10 @@ function render(maBN, D){
 
   var hk = window.PKHooks || {};
   var f = '';
-  if (typeof hk.editHS === 'function') f += '<button class="pkpFBtn" onclick="PKProfile._act(\'editHS\',\'' + maBN + '\')">✏️ Sửa hồ sơ</button>';
-  if (typeof hk.datHen === 'function') f += '<button class="pkpFBtn" onclick="PKProfile._act(\'datHen\',\'' + maBN + '\')">📅 Đặt hẹn</button>';
-  if (typeof hk.addSvc === 'function') f += '<button class="pkpFBtn" onclick="PKProfile._act(\'addSvc\',\'' + maBN + '\')">➕ Thêm dịch vụ</button>';
-  if (typeof hk.reception === 'function') f += '<button class="pkpFBtn pri" onclick="PKProfile._act(\'reception\',\'' + maBN + '\')">🏥 Tiếp nhận vào hàng chờ</button>';
+  if (typeof hk.editHS === 'function') f += '<button class="pkpFBtn" onclick="PKProfile._act(\'editHS\',\'' + maBN + '\')">✏ Sửa hồ sơ</button>';
+  if (typeof hk.datHen === 'function') f += '<button class="pkpFBtn" onclick="PKProfile._act(\'datHen\',\'' + maBN + '\')"> Đặt hẹn</button>';
+  if (typeof hk.addSvc === 'function') f += '<button class="pkpFBtn" onclick="PKProfile._act(\'addSvc\',\'' + maBN + '\')"> Thêm dịch vụ</button>';
+  if (typeof hk.reception === 'function') f += '<button class="pkpFBtn pri" onclick="PKProfile._act(\'reception\',\'' + maBN + '\')"> Tiếp nhận vào hàng chờ</button>';
   document.getElementById('pkpFoot').innerHTML = f;
   document.getElementById('pkpFoot').style.display = f ? 'flex' : 'none';
 }
@@ -261,7 +261,7 @@ window.PKProfile = {
     }catch(e){}
     if (!instant){
       document.getElementById('pkpTitle').textContent = 'Hồ sơ bệnh án';
-      document.getElementById('pkpBody').innerHTML = '<div class="pkpLoad">⏳ Đang mở bệnh án…</div>';
+      document.getElementById('pkpBody').innerHTML = '<div class="pkpLoad"> Đang mở bệnh án…</div>';
       document.getElementById('pkpFoot').innerHTML = '';
     }
     /* 2) Làm tươi ngầm từ máy chủ (bổ sung bảng trang này không tải) */

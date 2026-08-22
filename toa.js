@@ -36,7 +36,7 @@ document.head.appendChild(css);
 
 var ovl = document.createElement('div');
 ovl.id = 'tkOvl';
-ovl.innerHTML = '<div class="tkM"><div class="tkH"><h3 id="tkTitle">💊 Kê toa thuốc</h3><button class="x" onclick="PKToa.close()">✕</button></div><div class="tkB" id="tkBody"></div><div class="tkF" id="tkFoot"></div></div>';
+ovl.innerHTML = '<div class="tkM"><div class="tkH"><h3 id="tkTitle"> Kê toa thuốc</h3><button class="x" onclick="PKToa.close()">✕</button></div><div class="tkB" id="tkBody"></div><div class="tkF" id="tkFoot"></div></div>';
 document.body.appendChild(ovl);
 
 var ctx = null, THUOCS = [], TON = {}, DANG_SOAN = {};
@@ -82,7 +82,7 @@ function thuocOpts(){
 function addRow(){
   var div = document.createElement('div');
   div.className = 'tkRow';
-  div.innerHTML = '<button class="tkDel" title="Xóa dòng">🗑</button>' +
+  div.innerHTML = '<button class="tkDel" title="Xóa dòng"></button>' +
     '<div class="tkGrid">' +
     '<div><label>Thuốc *</label><select class="tThuoc"></select><div class="tkTon"></div></div>' +
     '<div><label>Liều / lần *</label><input class="tLieu" placeholder="vd 1"></div>' +
@@ -164,15 +164,15 @@ async function save(){
     if (typeof cb === 'function') cb(maToa, fail);
   }catch(e){
     alert('Không lưu được toa: ' + String(e&&e.message||e));
-  } finally { btn.disabled=false; btn.textContent='💊 Lưu toa — gửi Dược sỹ'; }
+  } finally { btn.disabled=false; btn.textContent=' Lưu toa — gửi Dược sỹ'; }
 }
 
 window.PKToa = {
   openCompose: async function(o){
     ctx = o || {};
     ovl.classList.add('on');
-    document.getElementById('tkTitle').textContent = (o.editToa ? ('✎ Sửa toa '+o.editToa+' — ') : '💊 Kê toa thuốc — ') + (o.tenBN||o.maBN||'');
-    document.getElementById('tkBody').innerHTML = '<div class="tkLoad">⏳ Đang tải danh mục thuốc & tồn kho…</div>';
+    document.getElementById('tkTitle').textContent = (o.editToa ? ('✎ Sửa toa '+o.editToa+' — ') : ' Kê toa thuốc — ') + (o.tenBN||o.maBN||'');
+    document.getElementById('tkBody').innerHTML = '<div class="tkLoad"> Đang tải danh mục thuốc & tồn kho…</div>';
     document.getElementById('tkFoot').innerHTML = '';
     try{
       var d = await loadComposeData();
@@ -187,11 +187,11 @@ window.PKToa = {
         bsChon +
         (o.bsKe ? ('<div style="margin-bottom:11px;font-size:13px;">Bác sĩ kê: <b>'+esc(o.bsKe)+'</b>'+(o.nguoiNhap&&o.nguoiNhap!==o.bsKe?(' · người nhập: '+esc(String(o.nguoiNhap).split('@')[0])):'')+'</div>') : '') +
         '<div id="tkRows"></div>' +
-        '<button class="tkBtn" id="tkAdd">➕ Thêm thuốc</button>' +
+        '<button class="tkBtn" id="tkAdd"> Thêm thuốc</button>' +
         '<div style="margin-top:11px;"><label style="font-size:10px;color:var(--ink3,#8a9187);font-weight:800;text-transform:uppercase;">Lời dặn chung</label><br><input id="tkGc" style="width:100%;font-size:13px;border:1.5px solid var(--hair,#e1e0d9);border-radius:8px;padding:7px 9px;" placeholder="vd: uống đủ nước, tái khám nếu sốt…"></div>';
       document.getElementById('tkFoot').innerHTML =
         '<span style="font-size:11.5px;color:var(--ink3,#8a9187);">Toa gửi Dược sỹ soạn trước · thu tiền chung phiếu · phát sau khi thanh toán.</span>' +
-        '<button class="tkBtn pri" id="tkSave">💊 Lưu toa — gửi Dược sỹ</button>';
+        '<button class="tkBtn pri" id="tkSave"> Lưu toa — gửi Dược sỹ</button>';
       document.getElementById('tkAdd').addEventListener('click', addRow);
       document.getElementById('tkSave').addEventListener('click', save);
       if (o.prefill && o.prefill.length){

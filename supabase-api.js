@@ -191,7 +191,7 @@ window.SB_API = async function(action, extra){
       var chip = document.querySelector('header .userchip');
       if (chip && chip.textContent.indexOf('·') !== -1){
         var role = chip.textContent.split('·').pop().trim();
-        chip.textContent = '👤 ' + ten + ' · ' + role;
+        chip.textContent = ' ' + ten + ' · ' + role;
       }
     }catch(e){}
   }, 1500);
@@ -200,7 +200,7 @@ window.SB_API = async function(action, extra){
 /* ==== CHUYỂN MÀN HÌNH — dropdown theo VAI TRÒ (giao diện duy nhất của hệ thống) ==== */
 (function(){
   if (window.top !== window) return;
-  var P = [['tong-quan.html','📊 Tổng quan'],['thu-ngan.html','💵 Thu ngân'],['ban-kham.html','🩺 Bàn khám'],['ban-thu-ky.html','📋 Thư ký'],['duoc-sy.html','💊 Dược sỹ']];
+  var P = [['tong-quan.html',' Tổng quan'],['thu-ngan.html',' Thu ngân'],['ban-kham.html',' Bàn khám'],['ban-thu-ky.html',' Thư ký'],['duoc-sy.html',' Dược sỹ']];
   var ROLE_PAGES = {
     'Quản lý':  ['tong-quan.html','thu-ngan.html','ban-kham.html','ban-thu-ky.html','duoc-sy.html'],
     'Kế toán':  ['tong-quan.html'],
@@ -245,7 +245,7 @@ window.SB_API = async function(action, extra){
       if (role === 'Thư ký' && cur === 'ban-kham.html' && !document.getElementById('tkNavBtn')){
         var tb = document.createElement('button');
         tb.id = 'tkNavBtn';
-        tb.textContent = '📋 Bàn thư ký';
+        tb.textContent = ' Bàn thư ký';
         tb.style.cssText = 'border:none;border-radius:9px;padding:6px 11px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
         tb.onclick = function(){ location.href = 'ban-thu-ky.html'; };
         chip.parentNode.insertBefore(tb, chip);
@@ -254,7 +254,7 @@ window.SB_API = async function(action, extra){
       if (role === 'Quản lý' && !document.getElementById('nsGlobalBtn') && !document.getElementById('nsBtn')){
         var nb = document.createElement('button');
         nb.id = 'nsGlobalBtn';
-        nb.textContent = '👥 Nhân sự';
+        nb.textContent = ' Nhân sự';
         nb.title = 'Quản lý tài khoản nhân viên';
         nb.style.cssText = 'border:none;border-radius:9px;padding:6px 11px;font-size:12.5px;font-weight:700;color:#0a5240;margin-right:2px;cursor:pointer;background:#fff;';
         nb.onclick = function(){

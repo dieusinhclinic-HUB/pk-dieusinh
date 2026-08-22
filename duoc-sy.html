@@ -96,12 +96,13 @@
   @keyframes paneIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   @keyframes rowIn{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
 <div id="loginView">
   <div class="logincard">
-    <div style="font-size:40px;">💊</div>
+    <div style="font-size:40px;"></div>
     <h1>Bàn dược sỹ — PK Diệu Sinh</h1>
     <div class="sub">Kho thuốc: tồn tự tính từ giao dịch nhập / xuất / kiểm kê.</div>
     <div id="gbtn"></div>
@@ -111,7 +112,7 @@
 
 <div id="app">
   <header class="bar">
-    <div><h1>💊 Bàn dược sỹ</h1><div class="sub" id="hdDate"></div></div>
+    <div><h1> Bàn dược sỹ</h1><div class="sub" id="hdDate"></div></div>
     <div class="sp"></div>
     <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
     <span class="userchip" id="userChip">…</span>
@@ -127,14 +128,14 @@
     </div>
 
     <div class="ttabs">
-      <button class="ttab on" data-p="paneToa">💊 Toa thuốc <span id="toaBadge"></span></button>
-      <button class="ttab" data-p="paneToaHx">🗂 Toa đã phát</button>
-      <button class="ttab" data-p="paneTon">📦 Tồn kho</button>
-      <button class="ttab" data-p="paneGd">↕️ Nhập / Xuất / Kiểm kê</button>
-      <button class="ttab" data-p="paneVt">🧴 Vật tư</button>
-      <button class="ttab" data-p="paneScan">📷 Quét mã</button>
-      <button class="ttab" data-p="paneTb">🔧 Thiết bị</button>
-      <button class="ttab" data-p="paneLs">🕘 Lịch sử</button>
+      <button class="ttab on" data-p="paneToa"> Toa thuốc <span id="toaBadge"></span></button>
+      <button class="ttab" data-p="paneToaHx"> Toa đã phát</button>
+      <button class="ttab" data-p="paneTon"> Tồn kho</button>
+      <button class="ttab" data-p="paneGd">↕ Nhập / Xuất / Kiểm kê</button>
+      <button class="ttab" data-p="paneVt"> Vật tư</button>
+      <button class="ttab" data-p="paneScan"> Quét mã</button>
+      <button class="ttab" data-p="paneTb"> Thiết bị</button>
+      <button class="ttab" data-p="paneLs"> Lịch sử</button>
     </div>
 
     <!-- ===== TOA THUỐC ===== -->
@@ -149,7 +150,7 @@
     <div class="tpane" id="paneToaHx">
       <div class="card">
         <div class="sect">Toa đã phát — toàn bộ lịch sử, mới nhất trên cùng. Bấm một toa để xem chi tiết thuốc.</div>
-        <input id="toaHxQ" placeholder="🔍 Lọc theo tên bệnh nhân hoặc mã toa…" style="width:100%;margin-bottom:10px;" oninput="renderToaHx()" autocomplete="off">
+        <input id="toaHxQ" placeholder=" Lọc theo tên bệnh nhân hoặc mã toa…" style="width:100%;margin-bottom:10px;" oninput="renderToaHx()" autocomplete="off">
         <div id="toaHxBox"></div>
       </div>
     </div>
@@ -157,14 +158,14 @@
     <!-- ===== TỒN KHO ===== -->
     <div class="tpane" id="paneTon">
       <div class="card">
-        <input id="tkSearch" placeholder="🔍 Tìm thuốc — tên hoặc mã…" style="width:100%;margin-bottom:10px;" oninput="renderTon()">
+        <input id="tkSearch" placeholder=" Tìm thuốc — tên hoặc mã…" style="width:100%;margin-bottom:10px;" oninput="renderTon()">
         <div style="max-height:60vh;overflow:auto;">
           <table class="tk">
             <thead><tr><th>Mã</th><th>Tên thuốc</th><th>Đvt</th><th class="r">Tồn</th><th class="r">Đơn giá</th><th class="r">Giá trị</th><th></th></tr></thead>
             <tbody id="tonBody"></tbody>
           </table>
         </div>
-        <div class="hint">Tồn = Tồn đầu + Nhập − Xuất ± Kiểm kê. Đỏ = tồn ≤ mức tối thiểu. Bấm ➕/➖ để nhập/xuất nhanh thuốc đó.</div>
+        <div class="hint">Tồn = Tồn đầu + Nhập − Xuất ± Kiểm kê. Đỏ = tồn ≤ mức tối thiểu. Bấm / để nhập/xuất nhanh thuốc đó.</div>
       </div>
     </div>
 
@@ -176,9 +177,9 @@
           <div class="full"><label>Thuốc *</label><select id="gdThuoc" style="width:100%;" onchange="gdInfo()"></select></div>
           <div><label>Loại *</label>
             <select id="gdLoai" style="width:100%;" onchange="gdInfo()">
-              <option value="Nhập">➕ Nhập kho</option>
-              <option value="Xuất">➖ Xuất kho</option>
-              <option value="Kiểm kê">📋 Kiểm kê (đếm thực tế)</option>
+              <option value="Nhập"> Nhập kho</option>
+              <option value="Xuất"> Xuất kho</option>
+              <option value="Kiểm kê"> Kiểm kê (đếm thực tế)</option>
             </select>
           </div>
           <div><label id="gdSlLabel">Số lượng *</label><input type="number" id="gdSl" min="0" value="1"></div>
@@ -195,11 +196,11 @@
     <div class="tpane" id="paneVt">
       <div class="card">
         <div class="sect">Vật tư tiêu hao — tồn tự tính từ nhập / xuất / kiểm kê (giống kho thuốc)</div>
-        <input id="vtSearch" placeholder="🔍 Tìm vật tư — tên hoặc mã…" style="width:100%;margin-bottom:10px;" oninput="renderVt()" autocomplete="off">
+        <input id="vtSearch" placeholder=" Tìm vật tư — tên hoặc mã…" style="width:100%;margin-bottom:10px;" oninput="renderVt()" autocomplete="off">
         <table class="tk"><thead><tr><th>Mã</th><th>Tên vật tư</th><th>ĐVT</th><th>Nhóm</th><th class="r">Tồn</th><th class="r"></th></tr></thead><tbody id="vtBody"></tbody></table>
       </div>
       <div class="card">
-        <div class="sect">↕️ Ghi giao dịch vật tư</div>
+        <div class="sect">↕ Ghi giao dịch vật tư</div>
         <div class="fgrid">
           <div class="full"><label>Vật tư *</label><select id="vgVt" style="width:100%;" onchange="vgInfo()"></select></div>
           <div><label>Loại *</label><select id="vgLoai" style="width:100%;" onchange="vgInfo()"><option>Nhập</option><option>Xuất</option><option>Kiểm kê</option></select></div>
@@ -212,17 +213,17 @@
         <div style="margin-top:12px;"><button class="btn btn-brand" id="vgSave" onclick="saveVg()">✓ Ghi giao dịch</button></div>
       </div>
       <div class="card">
-        <div class="sect">➕ Thêm vật tư mới vào danh mục</div>
+        <div class="sect"> Thêm vật tư mới vào danh mục</div>
         <div class="fgrid">
           <div class="full"><label>Tên vật tư *</label><input id="vtNewTen" placeholder="vd: Găng tay y tế size M"></div>
           <div><label>Đơn vị tính</label><input id="vtNewDvt" placeholder="hộp, cái, chai…"></div>
           <div><label>Nhóm</label><input id="vtNewNhom" placeholder="vd: Tiêu hao, Xét nghiệm, Vệ sinh"></div>
           <div><label>Tồn tối thiểu (cảnh báo)</label><input type="number" id="vtNewMin" min="0" value="0"></div>
         </div>
-        <div style="margin-top:12px;"><button class="btn btn-ghost" onclick="vtAdd()">➕ Thêm vật tư</button></div>
+        <div style="margin-top:12px;"><button class="btn btn-ghost" onclick="vtAdd()"> Thêm vật tư</button></div>
       </div>
       <div class="card">
-        <div class="sect">🕘 Giao dịch vật tư gần nhất</div>
+        <div class="sect"> Giao dịch vật tư gần nhất</div>
         <div id="vtLsBox"></div>
       </div>
     </div>
@@ -230,15 +231,15 @@
     <!-- ===== QUÉT MÃ VẠCH ===== -->
     <div class="tpane" id="paneScan">
       <div class="card">
-        <div class="sect">📷 Quét mã vạch — cắm súng quét USB là dùng được ngay (súng gõ mã như bàn phím)</div>
+        <div class="sect"> Quét mã vạch — cắm súng quét USB là dùng được ngay (súng gõ mã như bàn phím)</div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
           <div style="display:flex;border:1.5px solid var(--brand3);border-radius:10px;overflow:hidden;">
-            <button id="scanModeX" class="ttab on" style="border:none;border-radius:0;" onclick="scanMode('Xuất')">➖ XUẤT kho</button>
-            <button id="scanModeN" class="ttab" style="border:none;border-radius:0;" onclick="scanMode('Nhập')">➕ NHẬP kho</button>
+            <button id="scanModeX" class="ttab on" style="border:none;border-radius:0;" onclick="scanMode('Xuất')"> XUẤT kho</button>
+            <button id="scanModeN" class="ttab" style="border:none;border-radius:0;" onclick="scanMode('Nhập')"> NHẬP kho</button>
           </div>
           <span class="hint" style="flex:1;">Mỗi lần quét = +1 đơn vị (sửa được bên dưới), bấm nút xác nhận khi xong. Quét tem THIẾT BỊ (serial hoặc mã TB) → mở thẳng hồ sơ máy.</span>
         </div>
-        <input id="scanIn" placeholder="🔫 Bấm vào đây rồi quét — hoặc gõ mã vạch và Enter" autocomplete="off"
+        <input id="scanIn" placeholder=" Bấm vào đây rồi quét — hoặc gõ mã vạch và Enter" autocomplete="off"
           style="width:100%;font-size:17px;padding:13px 15px;border:2px solid var(--brand3);border-radius:12px;font-weight:700;"
           onkeydown="if(event.key==='Enter'){event.preventDefault();handleScan(this.value.trim());this.value='';}">
         <div id="scanLink" style="display:none;margin-top:10px;background:#fdf3dc;border:1.5px solid #eed77e;border-radius:11px;padding:11px 13px;">
@@ -264,7 +265,7 @@
         <div id="tbBox"></div>
       </div>
       <div class="card">
-        <div class="sect">➕ Thêm thiết bị</div>
+        <div class="sect"> Thêm thiết bị</div>
         <div class="fgrid">
           <div class="full"><label>Tên thiết bị *</label><input id="tbNewTen" placeholder="vd: Máy siêu âm GE Voluson"></div>
           <div><label>Model</label><input id="tbNewModel" placeholder="vd: Voluson P8"></div>
@@ -277,7 +278,7 @@
           <div><label>Chu kỳ bảo trì (tháng)</label><input type="number" id="tbNewCk" min="0" value="0" placeholder="0 = không định kỳ"></div>
           <div class="full"><label>Ghi chú</label><input id="tbNewGc" placeholder="serial, nơi mua, người liên hệ bảo trì…"></div>
         </div>
-        <div style="margin-top:12px;"><button class="btn btn-ghost" onclick="tbAdd()">➕ Thêm thiết bị</button></div>
+        <div style="margin-top:12px;"><button class="btn btn-ghost" onclick="tbAdd()"> Thêm thiết bị</button></div>
       </div>
     </div>
 
@@ -291,7 +292,7 @@
   </main>
 </div>
 
-<div id="loading"><div>⏳ Đang tải…</div></div>
+<div id="loading"><div> Đang tải…</div></div>
 <div id="toast"></div>
 
 <script>
@@ -328,7 +329,7 @@ async function loadAll(silent){
   try{
     const j = await api('readAll', {tables: TABLES});
     if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); saveSnap(); }
-    else { toast('⚠️ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
+    else { toast('⚠ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
   }catch(e){ setSync(false); }
   $('loading').classList.remove('on');
 }
@@ -389,7 +390,7 @@ function tryResume(){
   return true;
 }
 function enterApp(){
-  $('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
+  $('userChip').textContent = ' ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
   $('loginView').style.display='none'; $('app').style.display='block';
 }
 function sessionExpired(){
@@ -450,9 +451,9 @@ function renderToa(){
     const lines = cts.filter(c=>c.MA_TOA===t.MA_TOA);
     const openNow = toaOpen===t.MA_TOA;
     const paid = toaPaid(t);
-    const stChip = t.TRANG_THAI==='Chờ soạn' ? '<span style="background:#fdf3dc;color:#8a6205;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">⏳ Chờ soạn</span>'
-      : t.TRANG_THAI==='Đã soạn' ? (paid ? '<span style="background:#e8f7e8;color:#0a7a0a;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">💰 Đã thanh toán — sẵn sàng phát</span>' : '<span style="background:#e7f0fd;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">✔ Đã soạn — chờ thanh toán</span>')
-      : '<span style="background:#e8f7e8;color:#0a7a0a;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;">💊 Đã phát'+(t.GIO_PHAT?(' '+hhmm(t.GIO_PHAT)):'')+'</span>';
+    const stChip = t.TRANG_THAI==='Chờ soạn' ? '<span style="background:#fdf3dc;color:#8a6205;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;"> Chờ soạn</span>'
+      : t.TRANG_THAI==='Đã soạn' ? (paid ? '<span style="background:#e8f7e8;color:#0a7a0a;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;"> Đã thanh toán — sẵn sàng phát</span>' : '<span style="background:#e7f0fd;color:#2456a8;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;"> Đã soạn — chờ thanh toán</span>')
+      : '<span style="background:#e8f7e8;color:#0a7a0a;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;"> Đã phát'+(t.GIO_PHAT?(' '+hhmm(t.GIO_PHAT)):'')+'</span>';
     let body = '';
     if (openNow){
       body = '<table class="tk" style="margin-top:8px;"><thead><tr><th>Thuốc</th><th>Liều dùng</th><th class="r">SL kê</th><th class="r">Tồn</th>' +
@@ -472,43 +473,43 @@ function renderToa(){
       const allSoan = lines.length && lines.every(l=>String(l.DA_SOAN)==='x');
       const allPhat = lines.length && lines.every(l=>String(l.DA_PHAT)==='x');
       if (t.TRANG_THAI==='Chờ soạn')
-        body += `<div style="margin-top:10px;display:flex;gap:9px;align-items:center;"><button class="btn btn-brand" ${allSoan?'':'disabled'} onclick="toaXongSoan('${t.MA_TOA}')">✔ Xong soạn — chuyển chờ thanh toán</button><span class="hint" style="margin:0;">Tick đủ hàng TỪNG dòng thì nút mới sáng.</span></div>`;
+        body += `<div style="margin-top:10px;display:flex;gap:9px;align-items:center;"><button class="btn btn-brand" ${allSoan?'':'disabled'} onclick="toaXongSoan('${t.MA_TOA}')"> Xong soạn — chuyển chờ thanh toán</button><span class="hint" style="margin:0;">Tick đủ hàng TỪNG dòng thì nút mới sáng.</span></div>`;
       else if (t.TRANG_THAI==='Đã soạn')
         body += paid
-          ? `<div style="margin-top:10px;display:flex;gap:9px;align-items:center;"><button class="btn btn-brand" ${allPhat?'':'disabled'} onclick="toaXongPhat('${t.MA_TOA}')">💊 Xác nhận đã phát — trừ kho</button><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In toa</button><span class="hint" style="margin:0;">Soát tên thuốc – liều – SL với toa rồi tick từng dòng.</span></div>`
-          : `<div class="hint" style="margin-top:10px;">⏳ Chờ thu ngân thu tiền — phát thuốc sau khi thanh toán.</div>`;
-      else body += `<div style="margin-top:10px;"><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In toa</button></div>`;
+          ? `<div style="margin-top:10px;display:flex;gap:9px;align-items:center;"><button class="btn btn-brand" ${allPhat?'':'disabled'} onclick="toaXongPhat('${t.MA_TOA}')"> Xác nhận đã phát — trừ kho</button><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')"> In toa</button><span class="hint" style="margin:0;">Soát tên thuốc – liều – SL với toa rồi tick từng dòng.</span></div>`
+          : `<div class="hint" style="margin-top:10px;"> Chờ thu ngân thu tiền — phát thuốc sau khi thanh toán.</div>`;
+      else body += `<div style="margin-top:10px;"><button class="qbtn" onclick="PKToa.printToa('${t.MA_TOA}')"> In toa</button></div>`;
     }
     return `<div style="border:1px solid var(--hair);border-radius:12px;padding:10px 13px;margin-bottom:9px;background:#fff;">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;cursor:pointer;" onclick="toaOpen = toaOpen==='${t.MA_TOA}' ? null : '${t.MA_TOA}'; renderToa();">
-      <b style="color:#5b2fa0;">💊 ${t.MA_TOA}</b>
+      <b style="color:#5b2fa0;"> ${t.MA_TOA}</b>
       <b style="cursor:pointer;" onclick="event.stopPropagation();PKProfile.open('${t.MA_BN}')" title="Mở bệnh án">${bnTen(t.MA_BN)}</b>
       <span style="font-size:12px;color:var(--ink2);">${lines.length} thuốc · ${t.BS_KE}${t.GIO_KE?(' · kê '+hhmm(t.GIO_KE)):''}</span>
       ${stChip}<span style="margin-left:auto;font-size:12px;color:var(--ink2);">${openNow?'▲ thu gọn':'▼ mở'}</span></div>${body}</div>`;
   };
-  let html = '<div class="sect">⏳ Chờ soạn ('+cho.length+')</div>' + (cho.length?cho.map(card).join(''):'<div class="hint">Không có toa chờ soạn.</div>');
-  html += '<div class="sect" style="margin-top:14px;">✔ Đã soạn ('+soan.length+')</div>' + (soan.length?soan.map(card).join(''):'<div class="hint">Không có.</div>');
-  html += '<div class="sect" style="margin-top:14px;">💊 Đã phát hôm nay ('+phat.length+')</div>' + (phat.length?phat.map(card).join(''):'<div class="hint">Chưa phát toa nào hôm nay.</div>');
+  let html = '<div class="sect"> Chờ soạn ('+cho.length+')</div>' + (cho.length?cho.map(card).join(''):'<div class="hint">Không có toa chờ soạn.</div>');
+  html += '<div class="sect" style="margin-top:14px;"> Đã soạn ('+soan.length+')</div>' + (soan.length?soan.map(card).join(''):'<div class="hint">Không có.</div>');
+  html += '<div class="sect" style="margin-top:14px;"> Đã phát hôm nay ('+phat.length+')</div>' + (phat.length?phat.map(card).join(''):'<div class="hint">Chưa phát toa nào hôm nay.</div>');
   box.innerHTML = html;
 }
 async function toaTickSoan(maCT, on){
   const j = await api('update', {table:'TOA_CT', keyCol:'MA_CT', keyVal:maCT, row:{DA_SOAN: on?'x':''}});
-  if (j.ok){ ver=j.v; loadAll(true); } else toast('⚠️ '+(j.error||'lỗi'));
+  if (j.ok){ ver=j.v; loadAll(true); } else toast('⚠ '+(j.error||'lỗi'));
 }
 async function toaTickPhat(maCT, on){
   const el = document.getElementById('slp_'+maCT);
   const sl = el ? (Number(el.value)||0) : 0;
   const j = await api('update', {table:'TOA_CT', keyCol:'MA_CT', keyVal:maCT, row:{DA_PHAT: on?'x':'', SL_PHAT: sl}});
-  if (j.ok){ ver=j.v; loadAll(true); } else toast('⚠️ '+(j.error||'lỗi'));
+  if (j.ok){ ver=j.v; loadAll(true); } else toast('⚠ '+(j.error||'lỗi'));
 }
 async function toaXongSoan(maToa){
   const j = await api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:maToa, row:{TRANG_THAI:'Đã soạn', GIO_SOAN: nowTime(), NGUOI_SOAN: me?me.email:''}});
   if (j.ok){ ver=j.v; toast('✓ Toa <b>'+maToa+'</b> đã soạn xong — thu ngân có thể thu tiền'); loadAll(true); }
-  else toast('⚠️ '+(j.error||'lỗi'));
+  else toast('⚠ '+(j.error||'lỗi'));
 }
 async function toaXongPhat(maToa){
   const lines = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===maToa);
-  if (!lines.length || !lines.every(l=>String(l.DA_PHAT)==='x')){ toast('⚠️ Tick đủ từng dòng trước khi xác nhận phát'); return; }
+  if (!lines.length || !lines.every(l=>String(l.DA_PHAT)==='x')){ toast('⚠ Tick đủ từng dòng trước khi xác nhận phát'); return; }
   let base = parseInt(nextId('K',5,'KHO_GD','MA_GD').slice(1),10);
   const who = me?me.email.split('@')[0]:'';
   const rs = await Promise.all(lines.map((l,i)=>api('append', {table:'KHO_GD', row:{
@@ -516,10 +517,10 @@ async function toaXongPhat(maToa){
     SO_LUONG: Number(l.SL_PHAT)||Number(l.SO_LUONG)||0, LO:'', HSD:'',
     GHI_CHU: ('Phát toa '+maToa+' — bởi '+who) }}).catch(e=>({ok:false}))));
   const fail = rs.filter(x=>!(x&&x.ok)).length;
-  if (fail){ toast('⚠️ '+fail+' dòng chưa trừ được kho — thử lại'); loadAll(true); return; }
+  if (fail){ toast('⚠ '+fail+' dòng chưa trừ được kho — thử lại'); loadAll(true); return; }
   const j = await api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:maToa, row:{TRANG_THAI:'Đã phát', GIO_PHAT: nowTime(), NGUOI_PHAT: me?me.email:''}});
   if (j.ok){ ver=j.v; toast('✓ Đã phát toa <b>'+maToa+'</b> — kho đã trừ '+lines.length+' mặt hàng'); toaOpen=null; loadAll(true); }
-  else toast('⚠️ '+(j.error||'lỗi'));
+  else toast('⚠ '+(j.error||'lỗi'));
 }
 
 /* ================== RENDER ================== */
@@ -537,11 +538,11 @@ function renderToaHx(){
   let html = '', lastDay = '';
   toas.slice(0,200).forEach(t=>{
     const d = String(t.NGAY).slice(0,10);
-    if (d !== lastDay){ lastDay = d; html += '<div class="sect" style="margin-top:12px;">📅 '+d.split('-').reverse().join('/')+'</div>'; }
+    if (d !== lastDay){ lastDay = d; html += '<div class="sect" style="margin-top:12px;"> '+d.split('-').reverse().join('/')+'</div>'; }
     const lines = cts.filter(c=>c.MA_TOA===t.MA_TOA);
     html += `<details style="border:1px solid #e1e0d9;border-radius:11px;background:#fff;margin-bottom:7px;overflow:hidden;">
     <summary style="padding:9px 12px;cursor:pointer;display:flex;gap:10px;align-items:center;font-size:13px;list-style:none;flex-wrap:wrap;">
-      <b style="color:#5b2fa0;">💊 ${t.MA_TOA}</b>
+      <b style="color:#5b2fa0;"> ${t.MA_TOA}</b>
       <span style="font-weight:700;">${bnTen(t.MA_BN)}</span>
       <span style="color:#8a9187;font-size:12px;">${lines.length} thuốc · kê: ${t.BS_KE||'—'}</span>
       <span style="margin-left:auto;color:#0a7a0a;font-size:12px;font-weight:700;">✓ phát ${hxT(t.GIO_PHAT)||''} — ${t.NGUOI_PHAT?String(t.NGUOI_PHAT).split('@')[0]:''}</span>
@@ -549,7 +550,7 @@ function renderToaHx(){
     <div style="padding:4px 14px 10px;border-top:1px dashed #eee;">
       ${lines.map(c=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed #f0efe9;font-size:12.5px;"><span style="flex:1;">${c.TEN_THUOC}</span><span style="color:#8a9187;">${c.LIEU_LAN?(c.LIEU_LAN+' × '+c.LAN_NGAY+' lần/ngày × '+c.SO_NGAY+' ngày'):''}</span><b class="num">SL phát: ${c.SL_PHAT||c.SO_LUONG||0}</b></div>`).join('')}
       <div style="margin-top:8px;font-size:12px;color:#8a9187;">Soạn: ${t.NGUOI_SOAN?String(t.NGUOI_SOAN).split('@')[0]:'—'} ${hxT(t.GIO_SOAN)||''} · Phát: ${t.NGUOI_PHAT?String(t.NGUOI_PHAT).split('@')[0]:'—'} ${hxT(t.GIO_PHAT)||''}
-      <button class="qbtn" style="margin-left:10px;" onclick="PKToa.printToa('${t.MA_TOA}')">🖨 In lại toa</button></div>
+      <button class="qbtn" style="margin-left:10px;" onclick="PKToa.printToa('${t.MA_TOA}')"> In lại toa</button></div>
     </div></details>`;
   });
   if (toas.length > 200) html += '<div class="hint">Hiển thị 200 toa gần nhất — dùng ô lọc để tìm toa cũ hơn.</div>';
@@ -583,7 +584,7 @@ function renderVt(){
         <td>${t.DVT||''}</td>
         <td>${t.NHOM||''}</td>
         <td class="r">${badge}</td>
-        <td class="r"><button class="qbtn" title="Nhập" onclick="quickVg('${t.MA_VT}','Nhập')">➕</button> <button class="qbtn" title="Xuất" onclick="quickVg('${t.MA_VT}','Xuất')">➖</button></td>
+        <td class="r"><button class="qbtn" title="Nhập" onclick="quickVg('${t.MA_VT}','Nhập')">+</button> <button class="qbtn" title="Xuất" onclick="quickVg('${t.MA_VT}','Xuất')">−</button></td>
       </tr>`;
     });
   body.innerHTML = rows.join('') || '<tr><td colspan="6" class="empty">Chưa có vật tư nào — thêm ở khối bên dưới.</td></tr>';
@@ -617,20 +618,20 @@ function vgInfo(){
 async function saveVg(){
   const ma = $('vgVt').value;
   const t = vtList().find(x=>x.MA_VT===ma);
-  if (!t){ toast('⚠️ Chọn vật tư trước'); return; }
+  if (!t){ toast('⚠ Chọn vật tư trước'); return; }
   const loai = $('vgLoai').value;
   const sl = Number($('vgSl').value);
   const note = $('vgGhiChu').value.trim();
   const ton = (vtStockMap()[ma])||0;
-  if (isNaN(sl) || sl < 0){ toast('⚠️ Số lượng không hợp lệ'); return; }
+  if (isNaN(sl) || sl < 0){ toast('⚠ Số lượng không hợp lệ'); return; }
   let qty = sl, noteGhi = note;
   if (loai === 'Xuất'){
-    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
-    if (sl > ton){ toast('⚠️ Chỉ còn <b>'+ton+'</b> '+(t.DVT||'')+' — không xuất được '+sl); return; }
+    if (sl <= 0){ toast('⚠ Số lượng phải > 0'); return; }
+    if (sl > ton){ toast('⚠ Chỉ còn <b>'+ton+'</b> '+(t.DVT||'')+' — không xuất được '+sl); return; }
   } else if (loai === 'Nhập'){
-    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
+    if (sl <= 0){ toast('⚠ Số lượng phải > 0'); return; }
   } else {
-    if (!note){ toast('⚠️ Kiểm kê bắt buộc ghi lý do (vd: rách, hết hạn, đếm lại)'); return; }
+    if (!note){ toast('⚠ Kiểm kê bắt buộc ghi lý do (vd: rách, hết hạn, đếm lại)'); return; }
     qty = sl - ton;
     if (qty === 0){ toast('✓ Số đếm khớp hệ thống — không cần điều chỉnh'); return; }
     noteGhi = 'Thực đếm '+sl+', hệ thống '+ton+' → chênh '+(qty>0?'+':'')+qty+'. '+note;
@@ -647,17 +648,17 @@ async function saveVg(){
       toast('✓ Đã ghi <b>'+loai+'</b> '+Math.abs(qty)+' '+(t.DVT||'')+' — <b>'+t.TEN_VT+'</b>');
       $('vgSl').value = loai==='Kiểm kê' ? '' : 1; $('vgGhiChu').value=''; $('vgLo').value=''; $('vgHsd').value='';
       loadAll(true);
-    } else toast('⚠️ ' + (j.error||'lỗi'));
+    } else toast('⚠ ' + (j.error||'lỗi'));
   } finally { btn.disabled=false; btn.textContent='✓ Ghi giao dịch'; }
 }
 async function vtAdd(){
   const ten = $('vtNewTen').value.trim();
-  if (!ten){ toast('⚠️ Nhập tên vật tư'); return; }
+  if (!ten){ toast('⚠ Nhập tên vật tư'); return; }
   const row = { MA_VT: nextId('VT',4,'VAT_TU','MA_VT'), TEN_VT: ten, DVT: $('vtNewDvt').value.trim(),
     NHOM: $('vtNewNhom').value.trim(), TON_TOI_THIEU: Number($('vtNewMin').value)||0, CON_AP_DUNG:'Có', GHI_CHU:'' };
   const j = await api('append', {table:'VAT_TU', row});
   if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+ten+'</b> ('+row.MA_VT+') — giờ ghi Nhập để có tồn'); $('vtNewTen').value=''; $('vtNewDvt').value=''; $('vtNewNhom').value=''; $('vtNewMin').value=0; loadAll(true); }
-  else toast('⚠️ '+(j.error||'lỗi'));
+  else toast('⚠ '+(j.error||'lỗi'));
 }
 function renderVtLs(){
   const box = $('vtLsBox'); if (!box) return;
@@ -698,19 +699,19 @@ function renderTb(){
       <b style="font-size:14px;">${t.TEN_TB}</b>
       <span class="num" style="color:var(--ink3);font-size:11.5px;">${t.MA_TB}</span>
       <select id="tbst_${t.MA_TB}" style="font-size:12px;padding:4px 8px;">${['Đang dùng','Sửa chữa','Hỏng','Ngừng dùng'].map(x=>'<option'+(x===String(t.TINH_TRANG||'Đang dùng').trim()?' selected':'')+'>'+x+'</option>').join('')}</select>
-      <button class="qbtn" onclick="tbSaveSt('${t.MA_TB}')">💾 Lưu</button>
-      <button class="qbtn" style="color:#0a7a0a;" onclick="tbBaoTri('${t.MA_TB}')">🔧 Đã bảo trì hôm nay</button>
-      <button class="qbtn" onclick="tbPanel('${t.MA_TB}')">📋 Nhật ký &amp; hồ sơ</button>
+      <button class="qbtn" onclick="tbSaveSt('${t.MA_TB}')"> Lưu</button>
+      <button class="qbtn" style="color:#0a7a0a;" onclick="tbBaoTri('${t.MA_TB}')"> Đã bảo trì hôm nay</button>
+      <button class="qbtn" onclick="tbPanel('${t.MA_TB}')"> Nhật ký &amp; hồ sơ</button>
     </div>
     <div style="font-size:12.5px;color:var(--ink2);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;">
       ${t.MODEL?('<span>Model: <b>'+t.MODEL+'</b></span>'):''}
       ${t.SERIAL?('<span>Serial: <b class="num">'+t.SERIAL+'</b></span>'):''}
-      ${t.VI_TRI?('<span>📍 '+t.VI_TRI+'</span>'):''}
-      ${t.PHU_TRACH?('<span>👤 '+t.PHU_TRACH+'</span>'):''}
+      ${t.VI_TRI?('<span> '+t.VI_TRI+'</span>'):''}
+      ${t.PHU_TRACH?('<span> '+t.PHU_TRACH+'</span>'):''}
       <span>Mua: <b class="num">${t.NGAY_MUA?String(t.NGAY_MUA).slice(0,10):'—'}</b>${Number(t.GIA_MUA)?(' · '+fmtD(Number(t.GIA_MUA))):''}</span>
       <span>Bảo hành: <b>${bh||'—'}</b> ${bh?(bhOk?'<span class="badge ok">còn</span>':'<span class="badge low">hết</span>'):''}</span>
       <span>Bảo trì kế tiếp: <b ${dueCls}>${dueTxt}</b>${Number(t.CHU_KY_BT)?(' · chu kỳ '+t.CHU_KY_BT+' tháng'):''}</span>
-      ${files.length?('<span>📎 '+files.length+' tệp</span>'):''}
+      ${files.length?('<span> '+files.length+' tệp</span>'):''}
       ${t.GHI_CHU?('<span style="color:var(--ink3);">'+t.GHI_CHU+'</span>'):''}
     </div>
     <div id="tbp_${t.MA_TB}"></div>
@@ -723,7 +724,7 @@ function tbFileChips(t){
   if (!files.length) return '<span class="hint">Chưa có tệp nào.</span>';
   return files.map(p=>{
     const nm = p.split('/').pop().split('_').slice(1).join('_') || 'tệp';
-    return `<span onclick="SB_FILES.open('${p}')" style="cursor:pointer;background:#fff;border:1px solid #b8d2f5;color:#2456a8;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;margin:0 6px 6px 0;display:inline-block;">📎 ${nm}</span>`;
+    return `<span onclick="SB_FILES.open('${p}')" style="cursor:pointer;background:#fff;border:1px solid #b8d2f5;color:#2456a8;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;margin:0 6px 6px 0;display:inline-block;"> ${nm}</span>`;
   }).join('');
 }
 function tbPanel(ma){
@@ -751,7 +752,7 @@ function tbPanel(ma){
     <input id="tbe_pt_${ma}" placeholder="Người phụ trách" value="${String(t.PHU_TRACH||'').replace(/"/g,'&quot;')}" style="font-size:12px;width:140px;">
     <input id="tbe_ck_${ma}" type="number" min="0" placeholder="chu kỳ (tháng)" value="${Number(t.CHU_KY_BT)||0}" style="font-size:12px;width:110px;">
     <input id="tbe_bh_${ma}" type="date" value="${String(t.BAO_HANH_DEN||'').slice(0,10)}" style="font-size:12px;">
-    <button class="qbtn" onclick="tbEditSave('${ma}')">💾 Lưu thông tin</button>
+    <button class="qbtn" onclick="tbEditSave('${ma}')"> Lưu thông tin</button>
   </div>
   </div>`;
 }
@@ -759,12 +760,12 @@ async function tbLogAdd(ma, loai, noiDung, chiPhi, silent){
   loai = loai || ($('tbll_'+ma) ? $('tbll_'+ma).value : 'Bảo trì');
   noiDung = noiDung != null ? noiDung : ($('tbln_'+ma) ? $('tbln_'+ma).value.trim() : '');
   chiPhi = chiPhi != null ? chiPhi : (Number($('tblc_'+ma) ? $('tblc_'+ma).value : 0)||0);
-  if (!noiDung){ toast('⚠️ Nhập nội dung ghi chép'); return false; }
+  if (!noiDung){ toast('⚠ Nhập nội dung ghi chép'); return false; }
   const row = { MA_LOG: nextId('TL',5,'TB_LOG','MA_LOG'), MA_TB: ma, NGAY: todayStr(), LOAI: loai,
     NOI_DUNG: noiDung, CHI_PHI: chiPhi, NGUOI: me?me.email.split('@')[0]:'' };
   const j = await api('append', {table:'TB_LOG', row});
   if (j.ok){ ver=j.v; if(!silent) toast('✓ Đã ghi nhật ký: <b>'+loai+'</b>'); await loadAll(true); const h=$('tbp_'+ma); if(h){h.innerHTML='';} tbPanel(ma); return true; }
-  toast('⚠️ '+(j.error||'lỗi')); return false;
+  toast('⚠ '+(j.error||'lỗi')); return false;
 }
 async function tbFileUp(ma){
   const el = $('tbf_'+ma); if (!el || !el.files || !el.files.length) return;
@@ -776,12 +777,12 @@ async function tbFileUp(ma){
     const p = 'TB/'+ma+'/'+Date.now()+'_'+safe;
     const up = await SB_FILES.upload(p, f);
     if (up.ok){ paths.push(up.path); ok++; }
-    else toast('⚠️ Không tải được tệp '+f.name+' — '+(up.error||''));
+    else toast('⚠ Không tải được tệp '+f.name+' — '+(up.error||''));
   }
   if (ok){
     const j = await api('update', {table:'THIET_BI', keyCol:'MA_TB', keyVal:ma, row:{HO_SO: paths.join('|')}});
     if (j.ok){ ver=j.v; toast('✓ Đã đính '+ok+' tệp vào hồ sơ thiết bị'); await loadAll(true); const h=$('tbp_'+ma); if(h){h.innerHTML='';} tbPanel(ma); }
-    else toast('⚠️ '+(j.error||'lỗi'));
+    else toast('⚠ '+(j.error||'lỗi'));
   }
 }
 async function tbEditSave(ma){
@@ -790,13 +791,13 @@ async function tbEditSave(ma){
     CHU_KY_BT: Number($('tbe_ck_'+ma).value)||0, BAO_HANH_DEN: $('tbe_bh_'+ma).value||'' };
   const j = await api('update', {table:'THIET_BI', keyCol:'MA_TB', keyVal:ma, row});
   if (j.ok){ ver=j.v; toast('✓ Đã lưu thông tin thiết bị'); await loadAll(true); const h=$('tbp_'+ma); if(h){h.innerHTML='';} }
-  else toast('⚠️ '+(j.error||'lỗi'));
+  else toast('⚠ '+(j.error||'lỗi'));
 }
 async function tbSaveSt(ma){
   const el = $('tbst_'+ma); if (!el) return;
   const j = await api('update', {table:'THIET_BI', keyCol:'MA_TB', keyVal:ma, row:{TINH_TRANG: el.value}});
   if (j.ok){ ver=j.v; toast('✓ Đã lưu tình trạng: <b>'+el.value+'</b>'); loadAll(true); }
-  else toast('⚠️ '+(j.error||'lỗi'));
+  else toast('⚠ '+(j.error||'lỗi'));
 }
 async function tbBaoTri(ma){
   if (!confirm('Ghi nhận thiết bị này vừa được bảo trì HÔM NAY?')) return;
@@ -806,18 +807,18 @@ async function tbBaoTri(ma){
     await tbLogAdd(ma, 'Bảo trì', 'Bảo trì định kỳ', 0, true);
     toast('✓ Đã ghi bảo trì hôm nay — hạn kế tiếp tự dời, nhật ký đã lưu');
     loadAll(true);
-  } else toast('⚠️ '+(j.error||'lỗi'));
+  } else toast('⚠ '+(j.error||'lỗi'));
 }
 async function tbAdd(){
   const ten = $('tbNewTen').value.trim();
-  if (!ten){ toast('⚠️ Nhập tên thiết bị'); return; }
+  if (!ten){ toast('⚠ Nhập tên thiết bị'); return; }
   const row = { MA_TB: nextId('TB',3,'THIET_BI','MA_TB'), TEN_TB: ten, NGAY_MUA: $('tbNewMua').value||'',
     GIA_MUA: Number($('tbNewGia').value)||0, BAO_HANH_DEN: $('tbNewBh').value||'',
     CHU_KY_BT: Number($('tbNewCk').value)||0, BAO_TRI_GAN_NHAT: '', TINH_TRANG:'Đang dùng', GHI_CHU: $('tbNewGc').value.trim(),
     MODEL: $('tbNewModel').value.trim(), SERIAL: $('tbNewSerial').value.trim(), VI_TRI: $('tbNewViTri').value.trim(), PHU_TRACH: $('tbNewPt').value.trim(), HO_SO:'' };
   const j = await api('append', {table:'THIET_BI', row});
   if (j.ok){ ver=j.v; toast('✓ Đã thêm thiết bị <b>'+ten+'</b> ('+row.MA_TB+')'); ['tbNewTen','tbNewMua','tbNewBh','tbNewGc','tbNewModel','tbNewSerial','tbNewViTri','tbNewPt'].forEach(i=>$(i).value=''); $('tbNewGia').value=0; $('tbNewCk').value=0; loadAll(true); }
-  else toast('⚠️ '+(j.error||'lỗi'));
+  else toast('⚠ '+(j.error||'lỗi'));
 }
 
 /* ================== QUÉT MÃ VẠCH ================== */
@@ -862,15 +863,15 @@ function handleScan(code){
       const h = $('tbp_'+tb.MA_TB); if (h) h.innerHTML='';
       tbPanel(tb.MA_TB);
       const card = $('tbp_'+tb.MA_TB); if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
-      toast('🔧 Mở hồ sơ thiết bị: <b>'+tb.TEN_TB+'</b>');
+      toast(' Mở hồ sơ thiết bị: <b>'+tb.TEN_TB+'</b>');
       return;
     }
     scanBeep(false);
     scanLastCode = code;
     $('scanLinkCode').textContent = code;
     $('scanLinkSel').innerHTML =
-      '<optgroup label="🧴 Vật tư">' + vtList().map(t=>`<option value="VT|${t.MA_VT}">${t.MA_VT} · ${t.TEN_VT}</option>`).join('') + '</optgroup>' +
-      '<optgroup label="💊 Thuốc">' + drugList().map(t=>`<option value="THUOC|${t.MA_THUOC}">${t.MA_THUOC} · ${t.TEN_THUOC}</option>`).join('') + '</optgroup>';
+      '<optgroup label=" Vật tư">' + vtList().map(t=>`<option value="VT|${t.MA_VT}">${t.MA_VT} · ${t.TEN_VT}</option>`).join('') + '</optgroup>' +
+      '<optgroup label=" Thuốc">' + drugList().map(t=>`<option value="THUOC|${t.MA_THUOC}">${t.MA_THUOC} · ${t.TEN_THUOC}</option>`).join('') + '</optgroup>';
     $('scanLink').style.display = 'block';
     return;
   }
@@ -894,7 +895,7 @@ async function scanLinkSave(){
     await loadAll(true);
     handleScan(scanLastCode);
     $('scanIn').focus();
-  } else toast('⚠️ '+(j.error||'lỗi'));
+  } else toast('⚠ '+(j.error||'lỗi'));
 }
 function scanQty(key, d){
   if (!scanPending[key]) return;
@@ -912,22 +913,22 @@ function renderScan(){
     return `<div class="histrow" style="${over?'background:var(--crit-soft);border-radius:8px;':''}">
     <span class="tag ${it.type==='VT'?'open':'in'}">${it.type==='VT'?'Vật tư':'Thuốc'}</span>
     <span style="flex:1;"><b>${it.ten}</b> <span class="hint">(tồn ${ton} ${it.dvt})</span>${over?' <b style="color:var(--crit);">— quá tồn!</b>':''}</span>
-    <button class="qbtn" onclick="scanQty('${key}',-1)">➖</button>
+    <button class="qbtn" onclick="scanQty('${key}',-1)">−</button>
     <b class="num" style="font-size:16px;min-width:34px;text-align:center;">${it.qty}</b>
-    <button class="qbtn" onclick="scanQty('${key}',1)">➕</button>
+    <button class="qbtn" onclick="scanQty('${key}',1)">+</button>
     <span>${it.dvt}</span>
     </div>`;
   }).join('') : '<div class="empty">Chưa quét mặt hàng nào.</div>';
   const go = $('scanGo');
-  if (go) go.textContent = (scanDir==='Xuất'?'➖ Ghi XUẤT ':'➕ Ghi NHẬP ') + items.length + ' mặt hàng';
+  if (go) go.textContent = (scanDir==='Xuất'?' Ghi XUẤT ':' Ghi NHẬP ') + items.length + ' mặt hàng';
 }
 async function scanConfirm(){
   const items = Object.entries(scanPending);
-  if (!items.length){ toast('⚠️ Chưa quét mặt hàng nào'); return; }
+  if (!items.length){ toast('⚠ Chưa quét mặt hàng nào'); return; }
   const stV = vtStockMap(), stT = stockMap();
   for (const [key,it] of items){
     const ton = it.type==='VT' ? (stV[it.ma]||0) : (stT[it.ma]||0);
-    if (scanDir==='Xuất' && it.qty > ton){ toast('⚠️ <b>'+it.ten+'</b> chỉ còn '+ton+' — giảm số lượng trước khi ghi'); return; }
+    if (scanDir==='Xuất' && it.qty > ton){ toast('⚠ <b>'+it.ten+'</b> chỉ còn '+ton+' — giảm số lượng trước khi ghi'); return; }
   }
   const go = $('scanGo'); if (go.disabled) return;
   go.disabled = true;
@@ -945,7 +946,7 @@ async function scanConfirm(){
       }
       if (j.ok){ ok++; ver=j.v; delete scanPending[key]; } else fail++;
     }
-    if (fail) toast('⚠️ '+ok+' mặt hàng đã ghi, '+fail+' lỗi — thử lại phần còn lại');
+    if (fail) toast('⚠ '+ok+' mặt hàng đã ghi, '+fail+' lỗi — thử lại phần còn lại');
     else toast('✓ Đã ghi <b>'+scanDir+'</b> '+ok+' mặt hàng từ quét mã');
     renderScan();
     loadAll(true);
@@ -984,7 +985,7 @@ function renderTon(){
         <td class="r">${badge}</td>
         <td class="r num">${gia?fmtD(gia):'—'}</td>
         <td class="r num">${fmtD(ton*gia)}</td>
-        <td class="r"><button class="qbtn" title="Nhập" onclick="quickGd('${t.MA_THUOC}','Nhập')">➕</button> <button class="qbtn" title="Xuất" onclick="quickGd('${t.MA_THUOC}','Xuất')">➖</button></td>
+        <td class="r"><button class="qbtn" title="Nhập" onclick="quickGd('${t.MA_THUOC}','Nhập')">+</button> <button class="qbtn" title="Xuất" onclick="quickGd('${t.MA_THUOC}','Xuất')">−</button></td>
       </tr>`;
     });
   $('tonBody').innerHTML = rows.join('') || '<tr><td colspan="7" class="empty">Không tìm thấy thuốc.</td></tr>';
@@ -1017,20 +1018,20 @@ function gdInfo(){
 async function saveGd(){
   const ma = $('gdThuoc').value;
   const t = drugList().find(x=>x.MA_THUOC===ma);
-  if (!t){ toast('⚠️ Chọn thuốc trước'); return; }
+  if (!t){ toast('⚠ Chọn thuốc trước'); return; }
   const loai = $('gdLoai').value;
   const sl = Number($('gdSl').value);
   const note = $('gdGhiChu').value.trim();
   const ton = (stockMap()[ma])||0;
-  if (isNaN(sl) || sl < 0){ toast('⚠️ Số lượng không hợp lệ'); return; }
+  if (isNaN(sl) || sl < 0){ toast('⚠ Số lượng không hợp lệ'); return; }
   let qty = sl, loaiGhi = loai, noteGhi = note;
   if (loai === 'Xuất'){
-    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
-    if (sl > ton){ toast('⚠️ Chỉ còn <b>'+ton+'</b> '+(t.DVT||'')+' trong kho — không xuất được '+sl); return; }
+    if (sl <= 0){ toast('⚠ Số lượng phải > 0'); return; }
+    if (sl > ton){ toast('⚠ Chỉ còn <b>'+ton+'</b> '+(t.DVT||'')+' trong kho — không xuất được '+sl); return; }
   } else if (loai === 'Nhập'){
-    if (sl <= 0){ toast('⚠️ Số lượng phải > 0'); return; }
+    if (sl <= 0){ toast('⚠ Số lượng phải > 0'); return; }
   } else { // Kiểm kê
-    if (!note){ toast('⚠️ Kiểm kê bắt buộc ghi lý do (vd: vỡ, hết hạn, đếm lại)'); return; }
+    if (!note){ toast('⚠ Kiểm kê bắt buộc ghi lý do (vd: vỡ, hết hạn, đếm lại)'); return; }
     qty = sl - ton;
     if (qty === 0){ toast('✓ Số đếm khớp hệ thống — không cần điều chỉnh'); return; }
     noteGhi = 'Thực đếm '+sl+', hệ thống '+ton+' → chênh '+(qty>0?'+':'')+qty+'. '+note;
@@ -1047,7 +1048,7 @@ async function saveGd(){
       toast('✓ Đã ghi <b>'+loaiGhi+'</b> '+Math.abs(qty)+' '+(t.DVT||'')+' — <b>'+t.TEN_THUOC+'</b>');
       $('gdSl').value = loai==='Kiểm kê' ? '' : 1; $('gdGhiChu').value=''; $('gdLo').value=''; $('gdHsd').value='';
       loadAll(true);
-    } else toast('⚠️ ' + (j.error||'lỗi'));
+    } else toast('⚠ ' + (j.error||'lỗi'));
   } finally { btn.disabled=false; btn.textContent='✓ Ghi giao dịch'; }
 }
 function renderLs(){

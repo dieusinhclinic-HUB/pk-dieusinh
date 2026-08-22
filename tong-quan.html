@@ -111,12 +111,13 @@ header.bar .sub{font-size:12px;opacity:.85;}
 }
 @keyframes growUp{from{transform:scaleY(.25);opacity:.5}to{transform:none;opacity:1}}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
 <div id="loginView">
 <div class="logincard">
-<h1>📊 Phòng khám Diệu Sinh</h1>
+<h1> Phòng khám Diệu Sinh</h1>
 <div class="sub">Tổng quan — dành cho Quản lý & Kế toán</div>
 <div id="gbtn"></div>
 <div id="loginMsg">Đang tải đăng nhập Google…</div>
@@ -125,10 +126,10 @@ header.bar .sub{font-size:12px;opacity:.85;}
 
 <div id="app">
 <header class="bar">
-<div><h1>📊 Tổng quan</h1><div class="sub" id="hdDate"></div></div>
+<div><h1> Tổng quan</h1><div class="sub" id="hdDate"></div></div>
 <div class="spacer"></div>
 <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
-<button class="hbtn" id="nsBtn" style="display:none;" onclick="nsOpen()">👥 Nhân sự</button>
+<button class="hbtn" id="nsBtn" style="display:none;" onclick="nsOpen()"> Nhân sự</button>
 <span class="userchip" id="userChip">…</span>
 <button class="hbtn" onclick="location.reload()">Thoát</button>
 </header>
@@ -141,40 +142,40 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <button data-r="month" onclick="setRange('month')">Tháng này</button>
 </div>
 <div class="spacer"></div>
-<button class="btn btn-ghost" onclick="exportCSV()">⬇️ Xuất CSV thanh toán</button>
+<button class="btn btn-ghost" onclick="exportCSV()"> Xuất CSV thanh toán</button>
 </div>
 
 <div class="kpis" id="kpis"></div>
 
 <div class="grid2">
 <div class="card">
-<div class="hd"><h2>🚶 Dòng chảy bệnh nhân hôm nay</h2></div>
+<div class="hd"><h2> Dòng chảy bệnh nhân hôm nay</h2></div>
 <div class="bd" id="pipeBox"></div>
 </div>
 <div class="card">
-<div class="hd"><h2>📊 Doanh thu theo nhóm dịch vụ</h2></div>
+<div class="hd"><h2> Doanh thu theo nhóm dịch vụ</h2></div>
 <div class="bd" id="nhomBox"></div>
 </div>
 </div>
 
 <div class="grid2">
 <div class="card">
-<div class="hd"><h2>📈 Doanh thu 14 ngày (đã thu)</h2></div>
+<div class="hd"><h2> Doanh thu 14 ngày (đã thu)</h2></div>
 <div class="bd"><div class="chart" id="chart14"></div></div>
 </div>
 <div class="card">
-<div class="hd"><h2>💳 Theo hình thức thanh toán</h2></div>
+<div class="hd"><h2> Theo hình thức thanh toán</h2></div>
 <div class="bd" id="methodBox"></div>
 </div>
 </div>
 
 <div class="grid2">
 <div class="card">
-<div class="hd"><h2>🧑‍⚕️ Doanh thu theo bác sĩ <span style="font-weight:400;color:var(--ink3);font-size:11px;">(bấm để xem thực hiện / chỉ định)</span></h2></div>
+<div class="hd"><h2> Doanh thu theo bác sĩ <span style="font-weight:400;color:var(--ink3);font-size:11px;">(bấm để xem thực hiện / chỉ định)</span></h2></div>
 <div class="bd" id="bsBox"></div>
 </div>
 <div class="card">
-<div class="hd"><h2>⚠️ Cần đối soát</h2></div>
+<div class="hd"><h2>⚠ Cần đối soát</h2></div>
 <div class="bd" id="flagBox"></div>
 </div>
 </div>
@@ -182,7 +183,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 </div>
 
 <div id="toast"></div>
-<div id="loading">⏳ Đang tải dữ liệu…</div>
+<div id="loading"> Đang tải dữ liệu…</div>
 
 <script>
 /* ================== CẤU HÌNH ================== */
@@ -248,7 +249,7 @@ function tryResume(){
 const s = loadSess(); if (!s) return false;
 if (!ALLOWED.includes(s.role)) return false;
 token = s.sess; me = {email:s.email, role:s.role, ho_ten:s.ho_ten||''};
-$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
+$('userChip').textContent = ' ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
 const warm = !!(snap && snap.DB);
@@ -265,7 +266,7 @@ if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==
 if (!ALLOWED.includes(w.role)){ $('loginMsg').className='err'; $('loginMsg').textContent='Vai trò "'+w.role+'" không được xem Tổng quan (chỉ Quản lý & Kế toán).'; token=null; return; }
 me = w;
 if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
-$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
+$('userChip').textContent = ' ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 await loadAll(); startPoll();
 }catch(e){ $('loginMsg').className='err'; $('loginMsg').textContent='Không gọi được máy chủ.'; }
@@ -349,11 +350,11 @@ const q = rowsToObj('HANG_CHO').filter(r=>dstr(r.NGAY)===todayStr());
 const c = st => q.filter(r=>String(r.TRANG_THAI).trim()===st).length;
 const total = q.length, huy = c('Hủy');
 const steps = [
-{l:'Tiếp nhận', v: total - huy, icon:'📥'},
-{l:'Chờ khám', v: c('Chờ khám'), icon:'⏳'},
-{l:'Đang khám', v: c('Đang khám'), icon:'🩺'},
-{l:'Chờ thanh toán', v: c('Xong khám'), icon:'💜'},
-{l:'Đã thanh toán', v: c('Đã thu'), icon:'✅'},
+{l:'Tiếp nhận', v: total - huy, icon:''},
+{l:'Chờ khám', v: c('Chờ khám'), icon:''},
+{l:'Đang khám', v: c('Đang khám'), icon:''},
+{l:'Chờ thanh toán', v: c('Xong khám'), icon:''},
+{l:'Đã thanh toán', v: c('Đã thu'), icon:''},
 ];
 const waits = [
 {l:'Tiếp nhận → gọi khám', v: avgGap(q,'GIO_TIEP_NHAN','GIO_GOI')},
@@ -370,7 +371,7 @@ ${steps.map(s=>`<div style="flex:1;min-width:90px;text-align:center;border:1px s
 </div>`).join('')}
 </div>
 ${waits.length?`<div style="font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--ink3);text-transform:uppercase;margin-bottom:7px;">Thời gian chờ trung bình</div>
-${waits.map(x=>`<div class="hrow" style="cursor:default;"><div class="nm" style="width:150px;font-weight:600;">${x.l}</div><div class="track"><div class="tfill" style="width:${Math.round(x.v/mxW*100)}%;${x.v===mxW&&waits.length>1?'background:var(--crit);':''}"></div></div><div class="val num">${x.v} phút${x.v===mxW&&waits.length>1?' 🔴':''}</div></div>`).join('')}`:'<div class="empty">Chưa đủ dấu thời gian để tính thời gian chờ (dữ liệu bắt đầu ghi từ hôm nay).</div>'}
+${waits.map(x=>`<div class="hrow" style="cursor:default;"><div class="nm" style="width:150px;font-weight:600;">${x.l}</div><div class="track"><div class="tfill" style="width:${Math.round(x.v/mxW*100)}%;${x.v===mxW&&waits.length>1?'background:var(--crit);':''}"></div></div><div class="val num">${x.v} phút${x.v===mxW&&waits.length>1?' ':''}</div></div>`).join('')}`:'<div class="empty">Chưa đủ dấu thời gian để tính thời gian chờ (dữ liệu bắt đầu ghi từ hôm nay).</div>'}
 ${huy?`<div style="margin-top:9px;font-size:12px;color:var(--crit);">✕ Hủy tiếp nhận hôm nay: <b>${huy}</b>${q.filter(r=>r.TRANG_THAI==='Hủy'&&r.LY_DO_HUY).map(r=>' · '+r.LY_DO_HUY).join('')}</div>`:''}
 ` : '<div class="empty">Chưa có bệnh nhân nào hôm nay.</div>';
 }
@@ -420,8 +421,8 @@ const flags = [];
 pays.forEach(p=>{
 const cl = Number(p.CON_LAI)||0;
 const note = String(p.GHI_CHU||'');
-if (cl>0) flags.push({cls:'crit', html:`💰 <b>Thu thiếu ${fmtD(cl)}</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})${p.THU_NGAN?(' · thu ngân: '+String(p.THU_NGAN).split('@')[0]):''}${note?('<br><i>'+note+'</i>'):''}`});
-else if (/Giảm/i.test(note)) flags.push({cls:'warn', html:`🏷️ <b>Giảm giá</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})<br><i>${note}</i>`});
+if (cl>0) flags.push({cls:'crit', html:` <b>Thu thiếu ${fmtD(cl)}</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})${p.THU_NGAN?(' · thu ngân: '+String(p.THU_NGAN).split('@')[0]):''}${note?('<br><i>'+note+'</i>'):''}`});
+else if (/Giảm/i.test(note)) flags.push({cls:'warn', html:` <b>Giảm giá</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})<br><i>${note}</i>`});
 });
 /* thiết bị đến hạn bảo trì / hết bảo hành */
 const now = new Date();
@@ -434,20 +435,20 @@ const d = new Date(last);
 if (!isNaN(d)){
 d.setMonth(d.getMonth()+ck);
 const days = Math.ceil((d - now)/86400000);
-if (days < 0) flags.push({cls:'crit', html:`🔧 <b>${t.TEN_TB}</b> QUÁ HẠN bảo trì ${-days} ngày (hạn ${d.toLocaleDateString('vi-VN')})`});
-else if (days <= 14) flags.push({cls:'warn', html:`🔧 <b>${t.TEN_TB}</b> đến hạn bảo trì trong ${days} ngày (${d.toLocaleDateString('vi-VN')})`});
+if (days < 0) flags.push({cls:'crit', html:` <b>${t.TEN_TB}</b> QUÁ HẠN bảo trì ${-days} ngày (hạn ${d.toLocaleDateString('vi-VN')})`});
+else if (days <= 14) flags.push({cls:'warn', html:` <b>${t.TEN_TB}</b> đến hạn bảo trì trong ${days} ngày (${d.toLocaleDateString('vi-VN')})`});
 }
 }
-if (String(t.TINH_TRANG||'').trim()==='Hỏng') flags.push({cls:'crit', html:`🔧 <b>${t.TEN_TB}</b> đang ghi nhận <b>Hỏng</b>`});
+if (String(t.TINH_TRANG||'').trim()==='Hỏng') flags.push({cls:'crit', html:` <b>${t.TEN_TB}</b> đang ghi nhận <b>Hỏng</b>`});
 });
 /* vật tư dưới tồn tối thiểu */
 (function(){
 const m = {};
 rowsToObj('VT_GD').forEach(g=>{ const ma=String(g.MA_VT||'').trim(); if(!ma) return; const sl=Number(g.SO_LUONG)||0; if(!(ma in m)) m[ma]=0; if(String(g.LOAI||'').trim()==='Xuất') m[ma]-=sl; else m[ma]+=sl; });
 const low = rowsToObj('VAT_TU').filter(t=>String(t.CON_AP_DUNG||'').trim()!=='Không' && (m[t.MA_VT]||0) <= (Number(t.TON_TOI_THIEU)||0) && (Number(t.TON_TOI_THIEU)||0) > 0);
-if (low.length) flags.push({cls:'warn', html:`🧴 <b>${low.length} vật tư</b> chạm mức tồn tối thiểu: ${low.slice(0,5).map(t=>t.TEN_VT).join(', ')}${low.length>5?'…':''}`});
+if (low.length) flags.push({cls:'warn', html:` <b>${low.length} vật tư</b> chạm mức tồn tối thiểu: ${low.slice(0,5).map(t=>t.TEN_VT).join(', ')}${low.length>5?'…':''}`});
 })();
-$('flagBox').innerHTML = flags.length ? flags.map(f=>`<div class="flag ${f.cls}">${f.html}</div>`).join('') : '<div class="empty">🎉 Không có mục cần đối soát trong kỳ.</div>';
+$('flagBox').innerHTML = flags.length ? flags.map(f=>`<div class="flag ${f.cls}">${f.html}</div>`).join('') : '<div class="empty"> Không có mục cần đối soát trong kỳ.</div>';
 }
 function exportCSV(){
 const d = DB['THANH_TOAN']; if(!d) return;
@@ -466,7 +467,7 @@ function renderAll(){ renderKpis(); renderPipe(); renderNhom(); renderChart(); r
 <div id="nsOvl" style="position:fixed;inset:0;background:rgba(20,30,25,.45);display:none;align-items:center;justify-content:center;z-index:120;padding:16px;">
 <div style="background:#fff;border-radius:16px;width:min(940px,97vw);max-height:90vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);">
 <div style="padding:13px 18px;border-bottom:1px solid var(--hair);display:flex;align-items:center;position:sticky;top:0;background:#fff;z-index:2;">
-<h3 style="font-size:15px;color:var(--brand);">👥 Nhân sự — tài khoản đăng nhập</h3>
+<h3 style="font-size:15px;color:var(--brand);"> Nhân sự — tài khoản đăng nhập</h3>
 <div style="flex:1;"></div>
 <button onclick="document.getElementById('nsOvl').style.display='none'" style="border:none;background:#f1f1ec;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:14px;">✕</button>
 </div>
@@ -474,7 +475,7 @@ function renderAll(){ renderKpis(); renderPipe(); renderNhom(); renderChart(); r
 <div style="font-size:12px;color:var(--ink3);margin-bottom:10px;">Email = tài khoản Google nhân viên dùng để đăng nhập · <b>Tên hiển thị</b> thay cho email trên thanh đầu trang · tài khoản vai trò <b>Bác sĩ</b> phải chọn đúng tên trong danh sách bác sĩ để tự khóa vào bàn của mình.</div>
 <div id="nsList"></div>
 <div style="margin-top:14px;padding:12px;border:1.5px dashed var(--brand3);border-radius:12px;">
-<div style="font-size:11.5px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">➕ Thêm tài khoản mới</div>
+<div style="font-size:11.5px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;"> Thêm tài khoản mới</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
 <input id="nsEmail" placeholder="email@gmail.com" style="flex:2;min-width:200px;">
 <select id="nsRole" style="flex:1;min-width:110px;" onchange="nsNameField()"></select>
@@ -514,25 +515,25 @@ return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;borde
 + '<select id="nsr_'+i+'" style="width:120px;" onchange="document.getElementById(\'nsnh_'+i+'\').innerHTML = nsNI(\'nsn_'+i+'\', this.value, document.getElementById(\'nsn_'+i+'\')?document.getElementById(\'nsn_'+i+'\').value:\'\');">'
 + ROLES.map(function(r){ return '<option'+(r===String(u.VAI_TRO).trim()?' selected':'')+'>'+r+'</option>'; }).join('') + '</select>'
 + '<span id="nsnh_'+i+'" style="flex:1;min-width:170px;display:inline-flex;">'+nameInput('nsn_'+i, u.VAI_TRO, String(u.HO_TEN||''))+'</span>'
-+ '<button class="hbtn" style="background:var(--brand2);" onclick="nsSave(\''+esc(em)+'\', '+i+')">💾 Lưu</button>'
++ '<button class="hbtn" style="background:var(--brand2);" onclick="nsSave(\''+esc(em)+'\', '+i+')"> Lưu</button>'
 + '</div>';
 }).join('') : '<div style="color:var(--ink3);font-size:12.5px;">Chưa có tài khoản nào.</div>';
 };
 window.nsNI = nameInput;
 window.nsSave = async function(email, i){
 var role = $('nsr_'+i).value, ten = $('nsn_'+i).value.trim();
-if (!ten){ toast('⚠️ Nhập tên hiển thị'); return; }
+if (!ten){ toast('⚠ Nhập tên hiển thị'); return; }
 var j = await api('update', {table:'NGUOI_DUNG', keyCol:'EMAIL', keyVal:email, row:{HO_TEN:ten, VAI_TRO:role}});
 if (j.ok){ ver=j.v; toast('✓ Đã lưu: <b>'+ten+'</b> · '+role); await loadAll(true); nsRender(); }
-else toast('⚠️ '+(j.error||'lỗi'));
+else toast('⚠ '+(j.error||'lỗi'));
 };
 window.nsAdd = async function(){
 var em = $('nsEmail').value.trim().toLowerCase(), role = $('nsRole').value, ten = $('nsName').value.trim();
-if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ toast('⚠️ Email chưa đúng'); return; }
-if (!ten){ toast('⚠️ Nhập tên hiển thị'); return; }
+if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ toast('⚠ Email chưa đúng'); return; }
+if (!ten){ toast('⚠ Nhập tên hiển thị'); return; }
 var j = await api('append', {table:'NGUOI_DUNG', row:{EMAIL:em, HO_TEN:ten, VAI_TRO:role, MA_NV:'', GHI_CHU:''}});
 if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+ten+'</b> ('+role+') — người này đăng nhập được ngay'); $('nsEmail').value=''; $('nsName').value=''; await loadAll(true); nsRender(); }
-else toast('⚠️ '+(j.error||'lỗi'));
+else toast('⚠ '+(j.error||'lỗi'));
 };
 var t = setInterval(function(){
 try{ if (typeof me!=='undefined' && me && me.role){ clearInterval(t); if (String(me.role).trim()==='Quản lý'){ $('nsBtn').style.display='inline-block'; if (location.hash === '#nhansu'){ history.replaceState(null,'',location.pathname); setTimeout(function(){ try{ nsOpen(); }catch(e){} }, 400); } } } }catch(e){}
@@ -575,13 +576,13 @@ var cards = bss.map(function(b){
 var ten = String(b.TEN_BS).trim();
 var cur = q.filter(function(r){ return r.TRANG_THAI==="Đang khám" && String(r.BS_KHAM||"").trim()===ten; });
 var done = q.filter(function(r){ return (r.TRANG_THAI==="Xong khám"||r.TRANG_THAI==="Đã thu") && String(r.BS_KHAM||"").trim()===ten; }).length;
-var inner = cur.length ? cur.map(function(r){ return "<div class=\"dst\">🔵 "+pn(r.MA_BN)+" (số "+r.STT+")</div>"; }).join("") : "<div class=\"dst free\">— trống —</div>";
-return "<div class=\"dcard "+(cur.length?"busy":"")+"\"><div class=\"dname\">👨‍⚕️ "+ten+"</div>"+inner+"<div class=\"dst\" style=\"font-size:11px;color:var(--ink3);\">xong hôm nay: "+done+"</div></div>";
+var inner = cur.length ? cur.map(function(r){ return "<div class=\"dst\"> "+pn(r.MA_BN)+" (số "+r.STT+")</div>"; }).join("") : "<div class=\"dst free\">— trống —</div>";
+return "<div class=\"dcard "+(cur.length?"busy":"")+"\"><div class=\"dname\"> "+ten+"</div>"+inner+"<div class=\"dst\" style=\"font-size:11px;color:var(--ink3);\">xong hôm nay: "+done+"</div></div>";
 }).join("");
 var wait = q.filter(function(r){ return r.TRANG_THAI==="Chờ khám"; }).sort(function(a,b){ return (Number(a.STT)||0)-(Number(b.STT)||0); });
 var pay = q.filter(function(r){ return r.TRANG_THAI==="Xong khám"; }).length;
 var wtxt = wait.slice(0,10).map(function(r){ return "số "+r.STT+" "+pn(r.MA_BN); }).join(" · ");
-board.innerHTML = "<div class=\"dbwrap\"><div class=\"dbtitle\">🏥 Vận hành trực tiếp — hàng chờ theo bác sĩ</div><div class=\"dbrow\">"+(cards||"<div class=\"dst free\">Chưa có bác sĩ đang làm việc.</div>")+"</div><div class=\"pool\">⏳ Đang chờ: <b>"+wait.length+"</b>"+(wait.length?" — "+wtxt+(wait.length>10?" …":""):"")+" &nbsp;·&nbsp; 💳 Chờ thanh toán: <b>"+pay+"</b></div></div>";
+board.innerHTML = "<div class=\"dbwrap\"><div class=\"dbtitle\"> Vận hành trực tiếp — hàng chờ theo bác sĩ</div><div class=\"dbrow\">"+(cards||"<div class=\"dst free\">Chưa có bác sĩ đang làm việc.</div>")+"</div><div class=\"pool\"> Đang chờ: <b>"+wait.length+"</b>"+(wait.length?" — "+wtxt+(wait.length>10?" …":""):"")+" &nbsp;·&nbsp;  Chờ thanh toán: <b>"+pay+"</b></div></div>";
 }catch(e){}
 };
 window.opsLoad = async function(){

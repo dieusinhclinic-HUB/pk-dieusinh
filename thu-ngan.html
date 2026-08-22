@@ -198,13 +198,14 @@ header.bar .sub{font-size:12px;opacity:.85;}
 @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
 @keyframes popOut{to{opacity:0;transform:translateY(8px) scale(.98)}}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
 <!-- ============ LOGIN ============ -->
 <div id="loginView">
 <div class="logincard">
-<h1>🏥 Phòng khám Diệu Sinh</h1>
+<h1> Phòng khám Diệu Sinh</h1>
 <div class="sub">Quầy thu ngân — đăng nhập bằng tài khoản Google của phòng khám cấp</div>
 <div id="gbtn"></div>
 <div id="loginMsg">Đang tải đăng nhập Google…</div>
@@ -214,17 +215,17 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <!-- ============ APP ============ -->
 <div id="app">
 <header class="bar">
-<div><h1>💵 Quầy thu ngân</h1><div class="sub" id="hdDate"></div></div>
+<div><h1> Quầy thu ngân</h1><div class="sub" id="hdDate"></div></div>
 <div class="spacer"></div>
 <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
 <span class="userchip" id="userChip">…</span>
-<button class="hbtn" onclick="openShift()">🧾 Chốt ca</button>
+<button class="hbtn" onclick="openShift()"> Chốt ca</button>
 <button class="hbtn" onclick="logout()">Thoát</button>
 </header>
 
 <div class="toolbar">
-<input id="gsInput" placeholder="🔍 Tìm bệnh nhân — tên, số điện thoại hoặc mã BN…" oninput="renderSearch()" autocomplete="off">
-<button class="btn btn-brand" onclick="openNewBN()">➕ BN mới</button>
+<input id="gsInput" placeholder=" Tìm bệnh nhân — tên, số điện thoại hoặc mã BN…" oninput="renderSearch()" autocomplete="off">
+<button class="btn btn-brand" onclick="openNewBN()"> BN mới</button>
 <div id="gsResults"></div>
 </div>
 
@@ -232,19 +233,19 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div style="display:flex;flex-direction:column;gap:14px;">
 <!-- ==== HẸN HÔM NAY ==== -->
 <div class="card">
-<div class="hd"><h2>🗓 Lịch hẹn</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="henCount"></span><button class="qbtn" onclick="openCal()">🗓 Xem lịch</button><button class="qbtn call" onclick="openDatHen()">📅 Đặt hẹn</button></div>
+<div class="hd"><h2> Lịch hẹn</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="henCount"></span><button class="qbtn" onclick="openCal()"> Xem lịch</button><button class="qbtn call" onclick="openDatHen()"> Đặt hẹn</button></div>
 <div class="bd" id="henBox"></div>
 </div>
 <!-- ==== QUEUE ==== -->
 <div class="card">
-<div class="hd"><h2>📋 Hàng chờ hôm nay</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="qCount"></span></div>
+<div class="hd"><h2> Hàng chờ hôm nay</h2><div class="spacer"></div><span style="font-size:12px;color:var(--ink3);" class="num" id="qCount"></span></div>
 <div class="bd" id="queueBox"></div>
 </div>
 </div>
 
 <!-- ==== PAY ==== -->
 <div class="card">
-<div class="hd"><h2>💳 Thanh toán</h2></div>
+<div class="hd"><h2> Thanh toán</h2></div>
 <div class="bd" id="payBox"><div class="empty">Chọn bệnh nhân ở nhóm <b>Hoàn tất khám</b> trong hàng chờ để thanh toán.</div></div>
 </div>
 </div>
@@ -252,7 +253,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 
 <!-- ===== modal: BN mới ===== -->
 <div class="ovl" id="newOvl"><div class="modal" style="width:min(540px,100%);">
-<div class="mh"><h3>➕ Bệnh nhân mới</h3><button class="mclose" onclick="hide('newOvl')">✕</button></div>
+<div class="mh"><h3> Bệnh nhân mới</h3><button class="mclose" onclick="hide('newOvl')">✕</button></div>
 <div class="mb"><div class="fgrid">
 <div class="full"><label>Họ tên *</label><input id="nbTen"></div>
 <div><label>Số điện thoại</label><input id="nbSdt"></div>
@@ -266,17 +267,17 @@ header.bar .sub{font-size:12px;opacity:.85;}
 
 <!-- ===== modal: tiếp nhận ===== -->
 <div class="ovl" id="rcOvl"><div class="modal" style="width:min(700px,100%);">
-<div class="mh"><h3 id="rcTitle">🏥 Tiếp nhận</h3><button class="mclose" onclick="hide('rcOvl')">✕</button></div>
+<div class="mh"><h3 id="rcTitle"> Tiếp nhận</h3><button class="mclose" onclick="hide('rcOvl')">✕</button></div>
 <div class="mb" id="rcBody" style="max-height:64vh;overflow-y:auto;"></div>
 <div class="mf">
-<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#8a6205;font-weight:700;margin-right:auto;cursor:pointer;"><input type="checkbox" id="rcUuTien" style="width:15px;height:15px;accent-color:var(--warn);">⬆ Ưu tiên khám trước</label>
+<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#8a6205;font-weight:700;margin-right:auto;cursor:pointer;"><input type="checkbox" id="rcUuTien" style="width:15px;height:15px;accent-color:var(--warn);"> Ưu tiên khám trước</label>
 <button class="btn btn-brand" id="rcSaveBtn" onclick="rcSave()">✓ Tiếp nhận vào hàng chờ</button>
 </div>
 </div></div>
 
 <!-- ===== modal: lịch hẹn dạng calendar ===== -->
 <div class="ovl" id="calOvl"><div class="modal calmodal">
-<div class="mh"><h3>🗓 Lịch hẹn</h3>
+<div class="mh"><h3> Lịch hẹn</h3>
 <div class="caltools" style="margin-left:14px;flex:1;">
 <div class="calseg"><button id="calBtnM" class="on" onclick="calSet('month')">Tháng</button><button id="calBtnW" onclick="calSet('week')">Tuần</button></div>
 <div class="spacer"></div>
@@ -292,11 +293,11 @@ header.bar .sub{font-size:12px;opacity:.85;}
 
 <!-- ===== modal: đặt hẹn ===== -->
 <div class="ovl" id="dhOvl"><div class="modal" style="width:min(560px,100%);">
-<div class="mh"><h3>📅 Đặt lịch hẹn</h3><button class="mclose" onclick="hide('dhOvl')">✕</button></div>
+<div class="mh"><h3> Đặt lịch hẹn</h3><button class="mclose" onclick="hide('dhOvl')">✕</button></div>
 <div class="mb">
 <div style="position:relative;">
 <label style="font-size:10.5px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;">Bệnh nhân *</label>
-<input id="dhPk" placeholder="🔍 Tìm bệnh nhân — tên, SĐT hoặc mã…" oninput="dhSearch()" autocomplete="off" style="width:100%;">
+<input id="dhPk" placeholder=" Tìm bệnh nhân — tên, SĐT hoặc mã…" oninput="dhSearch()" autocomplete="off" style="width:100%;">
 <div id="dhPkR" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--hair);border-radius:11px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:60;max-height:220px;overflow:auto;display:none;"></div>
 </div>
 <div class="fgrid" style="margin-top:11px;">
@@ -311,7 +312,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 
 <!-- ===== modal: gọi vào phòng khám ===== -->
 <div class="ovl" id="gcOvl"><div class="modal" style="width:min(520px,100%);">
-<div class="mh"><h3>📢 Gọi vào phòng khám</h3><button class="mclose" onclick="hide('gcOvl')">✕</button></div>
+<div class="mh"><h3> Gọi vào phòng khám</h3><button class="mclose" onclick="hide('gcOvl')">✕</button></div>
 <div class="mb">
 <div id="gcInfo" style="font-size:13.5px;margin-bottom:12px;"></div>
 <div class="sect-label" style="margin-top:0;">Bấm chọn phòng bác sĩ — máy sẽ đọc loa mời bệnh nhân</div>
@@ -333,10 +334,10 @@ header.bar .sub{font-size:12px;opacity:.85;}
 
 <!-- ===== modal: thêm dịch vụ ===== -->
 <div class="ovl" id="svcOvl"><div class="modal" style="width:min(680px,100%);">
-<div class="mh"><h3 id="svcTitle">➕ Thêm dịch vụ</h3><button class="mclose" onclick="hide('svcOvl')">✕</button></div>
+<div class="mh"><h3 id="svcTitle"> Thêm dịch vụ</h3><button class="mclose" onclick="hide('svcOvl')">✕</button></div>
 <div class="mb" style="max-height:62vh;overflow-y:auto;">
 <div id="svcRows"></div>
-<button class="btn btn-ghost" style="margin-top:10px;" onclick="addSvcRow()">➕ Thêm dòng dịch vụ</button>
+<button class="btn btn-ghost" style="margin-top:10px;" onclick="addSvcRow()"> Thêm dòng dịch vụ</button>
 <div style="font-size:11.5px;color:var(--ink3);margin-top:10px;">Giá lấy từ bảng dịch vụ chuẩn — không sửa tay. Dịch vụ thêm tại quầy được tính là đã thực hiện (thu ngân xác nhận trực tiếp với bệnh nhân).</div>
 </div>
 <div class="mf" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
@@ -347,13 +348,13 @@ header.bar .sub{font-size:12px;opacity:.85;}
 
 <!-- ===== modal: chốt ca ===== -->
 <div class="ovl" id="shiftOvl"><div class="modal" style="width:min(560px,100%);">
-<div class="mh"><h3>🧾 Chốt ca — hôm nay</h3><button class="mclose" onclick="hide('shiftOvl')">✕</button></div>
+<div class="mh"><h3> Chốt ca — hôm nay</h3><button class="mclose" onclick="hide('shiftOvl')">✕</button></div>
 <div class="mb" id="shiftBody"></div>
-<div class="mf"><button class="btn btn-ghost" onclick="window.print()">🖨️ In</button></div>
+<div class="mf"><button class="btn btn-ghost" onclick="window.print()"> In</button></div>
 </div></div>
 
 <div id="toast"></div>
-<div id="loading">⏳ Đang tải dữ liệu…</div>
+<div id="loading"> Đang tải dữ liệu…</div>
 
 <script>
 /* ================== CẤU HÌNH ================== */
@@ -411,7 +412,7 @@ if(!silent) $('loading').classList.add('on');
 try{
 const j = await api('readAll', {tables: TABLES});
 if (j.ok){ DB = j.tables; ver = j.v; renderAll(); setSync(true); saveSnap(); }
-else { toast('⚠️ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
+else { toast('⚠ Lỗi tải dữ liệu: ' + (j.error||'')); setSync(false); }
 }catch(e){ setSync(false); }
 $('loading').classList.remove('on');
 }
@@ -449,7 +450,7 @@ tryResume();
 function tryResume(){
 const s = loadSess(); if (!s) return false;
 token = s.sess; me = {email:s.email, role:s.role, ho_ten:s.ho_ten||''};
-$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
+$('userChip').textContent = ' ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 let snap=null; try{ snap=JSON.parse(localStorage.getItem(SNAP_KEY)||'null'); }catch(e){}
 const warm = !!(snap && snap.DB);
@@ -465,7 +466,7 @@ const w = await api('login');
 if (!w.ok){ $('loginMsg').className='err'; $('loginMsg').textContent = w.error==='NOT_AUTHORIZED' ? 'Email này chưa được cấp quyền (chưa có trong danh sách nhân sự).' : ('Lỗi: '+w.error); token=null; return; }
 me = w;
 if (w.sess){ token = w.sess; try{ localStorage.setItem(SESS_KEY, JSON.stringify({sess:w.sess, email:w.email, role:w.role, ho_ten:w.ho_ten||'', exp:w.exp})); }catch(e){} }
-$('userChip').textContent = '👤 ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
+$('userChip').textContent = ' ' + (String(me.ho_ten||'').trim() || me.email.split('@')[0]) + ' · ' + me.role;
 $('loginView').style.display='none'; $('app').style.display='block';
 await loadAll(); startPoll();
 toast('✓ Xin chào — vai trò: ' + me.role);
@@ -517,8 +518,8 @@ return (Number(a.STT)||0)-(Number(b.STT)||0);
 }
 function qTags(r){
 const hen = henOf(r);
-let t = r.MA_HEN ? `<span class="tag hen">🗓 hẹn${hen&&hen.GIO_HEN?(' '+fmtT(hen.GIO_HEN)):''}</span>` : '<span class="tag vl">🚶 vãng lai</span>';
-if (String(r.UU_TIEN||'').trim()==='Có') t += ' <span class="tag uu">⬆ ưu tiên</span>';
+let t = r.MA_HEN ? `<span class="tag hen"> hẹn${hen&&hen.GIO_HEN?(' '+fmtT(hen.GIO_HEN)):''}</span>` : '<span class="tag vl"> vãng lai</span>';
+if (String(r.UU_TIEN||'').trim()==='Có') t += ' <span class="tag uu"> ưu tiên</span>';
 return t;
 }
 function dvNames(r){
@@ -540,19 +541,19 @@ function legBadges(r){
 const li = legInfo(r);
 if (!li.pend.length && !li.done.length) return '';
 let t = '';
-if (li.saDone.length && !li.sa.length) t += ' <span class="tag" style="background:#e8f7e8;color:#0ca30c;">✅ siêu âm xong</span>';
-if (li.khDone.length && !li.kh.length && li.pend.length) t += ' <span class="tag" style="background:#e8f7e8;color:#0ca30c;">✅ khám xong</span>';
-if (li.sa.length) t += ' <span class="tag" style="background:#efe6f8;color:#7c4dbe;">còn 🩻 siêu âm</span>';
-if (li.kh.length) t += ' <span class="tag" style="background:#e3f0fb;color:#2456a8;">còn 🩺 khám</span>';
+if (li.saDone.length && !li.sa.length) t += ' <span class="tag" style="background:#e8f7e8;color:#0ca30c;"> siêu âm xong</span>';
+if (li.khDone.length && !li.kh.length && li.pend.length) t += ' <span class="tag" style="background:#e8f7e8;color:#0ca30c;"> khám xong</span>';
+if (li.sa.length) t += ' <span class="tag" style="background:#efe6f8;color:#7c4dbe;">còn  siêu âm</span>';
+if (li.kh.length) t += ' <span class="tag" style="background:#e3f0fb;color:#2456a8;">còn  khám</span>';
 return t;
 }
 function renderQueue(){
 const q = sortQueue(queueToday());
 const groups = [
-{key:'Chờ khám', cls:'wait', icon:'⏳', label:'Chờ khám'},
-{key:'Đang khám', cls:'exam', icon:'🩺', label:'Đang khám'},
-{key:'Xong khám', cls:'done', icon:'💜', label:'Hoàn tất khám — chờ thanh toán'},
-{key:'Đã thu', cls:'paid', icon:'✅', label:'Đã thanh toán'},
+{key:'Chờ khám', cls:'wait', icon:'', label:'Chờ khám'},
+{key:'Đang khám', cls:'exam', icon:'', label:'Đang khám'},
+{key:'Xong khám', cls:'done', icon:'', label:'Hoàn tất khám — chờ thanh toán'},
+{key:'Đã thu', cls:'paid', icon:'', label:'Đã thanh toán'},
 ];
 let html='';
 groups.forEach(g => {
@@ -560,12 +561,12 @@ const rows = q.filter(r => r.TRANG_THAI === g.key);
 html += `<div class="sect-label">${g.icon} ${g.label} (${rows.length})</div>`;
 if(!rows.length){ html += '<div class="empty">— trống —</div>'; return; }
 rows.forEach(r => {
-const svcBtn = g.key!=='Đã thu' ? `<button class="qbtn" title="Thêm dịch vụ" onclick="openSvc('${r.MA_BN}')">➕ DV</button>` : '';
+const svcBtn = g.key!=='Đã thu' ? `<button class="qbtn" title="Thêm dịch vụ" onclick="openSvc('${r.MA_BN}')"> DV</button>` : '';
 const liQ = (g.key==='Chờ khám') ? legInfo(r) : null;
 const acts = (
-g.key==='Chờ khám' ? ((liQ && !liQ.pend.length && liQ.done.length) ? `<button class="qbtn pay" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Đủ DV — thanh toán</button>` : `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')">📢 Gọi</button>`) + `<button class="qbtn" onclick="togglePriority('${r.MA_CHO}')">${String(r.UU_TIEN||'').trim()==='Có'?'↩ Bỏ ưu tiên':'⬆ Ưu tiên'}</button><button class="qbtn crit" onclick="openCancel('${r.MA_CHO}')">✕ Hủy</button>` :
+g.key==='Chờ khám' ? ((liQ && !liQ.pend.length && liQ.done.length) ? `<button class="qbtn pay" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Đủ DV — thanh toán</button>` : `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')"> Gọi</button>`) + `<button class="qbtn" onclick="togglePriority('${r.MA_CHO}')">${String(r.UU_TIEN||'').trim()==='Có'?'↩ Bỏ ưu tiên':' Ưu tiên'}</button><button class="qbtn crit" onclick="openCancel('${r.MA_CHO}')">✕ Hủy</button>` :
 g.key==='Đang khám' ? `<button class="qbtn" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Hoàn tất khám</button>` :
-g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')">💳 Thanh toán</button>` : '') + svcBtn;
+g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')"> Thanh toán</button>` : '') + svcBtn;
 const dvTxt = dvNames(r);
 html += `<div class="qrow ${g.cls}${String(r.UU_TIEN||'').trim()==='Có'&&g.key==='Chờ khám'?' prio':''}">
 <div class="stt num">${r.STT||'–'}</div>
@@ -584,7 +585,7 @@ if (st==='Đang khám') patch.GIO_GOI = nowTime();
 if (st==='Xong khám') patch.GIO_XONG = nowTime();
 const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:maCho, row:patch});
 if (j.ok){ ver=j.v; toast('✓ Đã chuyển: ' + (st==='Xong khám'?'Hoàn tất khám':st)); loadAll(true); }
-else toast('⚠️ ' + (j.error||'lỗi'));
+else toast('⚠ ' + (j.error||'lỗi'));
 }
 let gcCho = null;
 /* đơn có dịch vụ siêu âm? (nhóm/tên chứa "siêu âm" hoặc SHG) */
@@ -621,20 +622,20 @@ if (li.sa.length){
 const saFree = byLoad(saList.filter(t=>!busy(t)));
 if (saFree.length){
 goiY = saFree[0];
-why = '🔊 Còn <b>siêu âm</b> — <b>'+goiY+'</b> đang trống' + ((yc && busy(yc))?(' · '+yc+' đang bận → siêu âm trước, quay lại sau'):'');
+why = ' Còn <b>siêu âm</b> — <b>'+goiY+'</b> đang trống' + ((yc && busy(yc))?(' · '+yc+' đang bận → siêu âm trước, quay lại sau'):'');
 } else {
 const khTarget = (yc && !busy(yc)) ? yc : byLoad(khList.filter(t=>!busy(t)))[0];
-if (li.kh.length && khTarget){ goiY = khTarget; why = '💡 Phòng siêu âm đang bận · <b>'+khTarget+'</b> đang trống → khám trước, siêu âm sau'; }
-else { goiY = byLoad(saList)[0]||''; if (goiY) why = '🔊 Còn <b>siêu âm</b> — đề xuất: <b>'+goiY+'</b> (ít bận nhất)'; }
+if (li.kh.length && khTarget){ goiY = khTarget; why = ' Phòng siêu âm đang bận · <b>'+khTarget+'</b> đang trống → khám trước, siêu âm sau'; }
+else { goiY = byLoad(saList)[0]||''; if (goiY) why = ' Còn <b>siêu âm</b> — đề xuất: <b>'+goiY+'</b> (ít bận nhất)'; }
 }
 } else {
 /* CHỈ còn khám (hoặc đơn trống) — không đưa về phòng siêu âm nữa */
 if (yc){
 goiY = yc;
-if (busy(yc)){ const free = byLoad(khList.filter(t=>!busy(t)))[0]; if (free) why = '💡 '+yc+' đang bận · <b>'+free+'</b> đang trống — hỏi BN nếu muốn khám sớm hơn'; }
+if (busy(yc)){ const free = byLoad(khList.filter(t=>!busy(t)))[0]; if (free) why = ' '+yc+' đang bận · <b>'+free+'</b> đang trống — hỏi BN nếu muốn khám sớm hơn'; }
 } else {
 goiY = byLoad(khList.filter(t=>!busy(t)))[0] || byLoad(khList)[0] || '';
-if (goiY) why = '💡 Đề xuất: <b>'+goiY+'</b>'+(busy(goiY)?' (ít bận nhất)':' (đang trống)');
+if (goiY) why = ' Đề xuất: <b>'+goiY+'</b>'+(busy(goiY)?' (ít bận nhất)':' (đang trống)');
 }
 }
 const sel = goiY || yc;
@@ -647,7 +648,7 @@ $('gcBs').innerHTML = bss.map(b=>{
 const ten = String(b.TEN_BS).trim();
 const busy = queueToday().some(q=>q.TRANG_THAI==='Đang khám' && String(q.BS_KHAM||'').trim()===ten);
 const isSA = stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1;
-return `<button class="btn ${ten===sel?'btn-brand':'btn-ghost'}" onclick="gcGo(this.dataset.bs)" data-bs="${ten.replace(/"/g,'&quot;')}" style="flex:1 1 150px;">${ten}${isSA?' <span style="font-size:10px;opacity:.85;">🔊</span>':''}${busy?' <span style="font-size:10.5px;opacity:.75;">· đang khám</span>':''}</button>`;
+return `<button class="btn ${ten===sel?'btn-brand':'btn-ghost'}" onclick="gcGo(this.dataset.bs)" data-bs="${ten.replace(/"/g,'&quot;')}" style="flex:1 1 150px;">${ten}${isSA?' <span style="font-size:9.5px;opacity:.8;letter-spacing:.5px;">SIÊU ÂM</span>':''}${busy?' <span style="font-size:10.5px;opacity:.75;">· đang khám</span>':''}</button>`;
 }).join('') || '<div class="empty">Chưa có bác sĩ đang làm việc.</div>';
 show('gcOvl');
 }
@@ -655,10 +656,10 @@ async function gcGo(tenBS){
 const r = queueToday().find(x=>x.MA_CHO===gcCho); if(!r) return;
 hide('gcOvl');
 const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:gcCho, row:{TRANG_THAI:'Đang khám', BS_KHAM:tenBS, GIO_GOI: nowTime()}});
-if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
+if (!j.ok){ toast('⚠ '+(j.error||'lỗi')); return; }
 ver = j.v; chime();
 announce(r.STT, bnName(r.MA_BN), tenBS);
-toast('📢 Mời số <b>'+(r.STT||'')+'</b> — <b>'+bnName(r.MA_BN)+'</b> vào phòng '+tenBS);
+toast(' Mời số <b>'+(r.STT||'')+'</b> — <b>'+bnName(r.MA_BN)+'</b> vào phòng '+tenBS);
 loadAll(true);
 }
 /* đọc loa: "Mời số …, …, vào phòng khám bác sĩ …" — giọng NỮ tiếng Việt của Google (online, chạy trên mọi máy) */
@@ -688,7 +689,7 @@ const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
 const on = String(r.UU_TIEN||'').trim()==='Có';
 const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:maCho, row:{UU_TIEN: on?'':'Có'}});
 if (j.ok){ ver=j.v; toast(on ? '✓ Đã bỏ ưu tiên' : '✓ <b>'+bnName(r.MA_BN)+'</b> được ưu tiên khám trước'); loadAll(true); }
-else toast('⚠️ ' + (j.error||'lỗi'));
+else toast('⚠ ' + (j.error||'lỗi'));
 }
 
 /* ================== HỦY ĐƠN ================== */
@@ -703,13 +704,13 @@ show('ccOvl');
 async function doCancel(){
 if (!ccCho) return;
 const why = $('ccWhy').value;
-if (!why){ toast('⚠️ Chọn lý do hủy trước'); $('ccWhy').focus(); return; }
+if (!why){ toast('⚠ Chọn lý do hủy trước'); $('ccWhy').focus(); return; }
 const r = queueToday().find(x=>x.MA_CHO===ccCho); if(!r){ hide('ccOvl'); return; }
 const reason = (why + ($('ccNote').value.trim()?(' — '+$('ccNote').value.trim()):'')).trim();
 $('loading').classList.add('on');
 try{
 const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:ccCho, row:{TRANG_THAI:'Hủy', LY_DO_HUY:reason}});
-if (!j.ok){ toast('⚠️ '+(j.error||'lỗi')); return; }
+if (!j.ok){ toast('⚠ '+(j.error||'lỗi')); return; }
 ver=j.v;
 // hủy các dòng DV còn 'Chỉ định' của đơn này — song song
 const pend = rowsToObj('SO_KHAM').filter(l=>String(l.MA_CHO||'')===ccCho && String(l.TRANG_THAI_DV||'').trim()==='Chỉ định');
@@ -729,7 +730,7 @@ return rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có')
 const ten = String(b.TEN_BS).trim();
 const busy = q.filter(r=>r.TRANG_THAI==='Đang khám' && String(r.BS_KHAM||'').trim()===ten).length;
 const waiting = q.filter(r=>r.TRANG_THAI==='Chờ khám' && (String(r.BS_KHAM||'').trim()===ten || String(r.BS_YEU_CAU||'').trim()===ten)).length;
-return { ten, busy, waiting, label: ten + (busy? ' — 🟡 đang khám' : ' — 🟢 đang trống') + (waiting? (' · '+waiting+' chờ') : '') };
+return { ten, busy, waiting, label: ten + (busy? ' —  đang khám' : ' —  đang trống') + (waiting? (' · '+waiting+' chờ') : '') };
 });
 }
 /* ---- tìm dịch vụ trong modal tiếp nhận (giống bàn khám) ---- */
@@ -783,23 +784,23 @@ return `<div style="display:flex;align-items:center;gap:9px;padding:7px 10px;bor
 function openReception(maBN, hen){
 rcBN = maBN; rcHen = hen || null;
 const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===maBN);
-if (!b){ toast('⚠️ Không tìm thấy hồ sơ '+maBN); return; }
+if (!b){ toast('⚠ Không tìm thấy hồ sơ '+maBN); return; }
 // chặn trùng ngay từ đầu
 const dup = queueToday().find(x => x.MA_BN === maBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
-if (dup){ toast('⚠️ <b>'+bnName(maBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); return; }
-$('rcTitle').textContent = '🏥 Tiếp nhận — ' + b.HO_TEN + ' (' + maBN + ')';
+if (dup){ toast('⚠ <b>'+bnName(maBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); return; }
+$('rcTitle').textContent = ' Tiếp nhận — ' + b.HO_TEN + ' (' + maBN + ')';
 const bss = bsStatusList();
 rcSel = [];
 $('rcBody').innerHTML = `
-${rcHen ? `<div class="rcHen">🗓 <b>Check-in từ lịch hẹn</b> ${rcHen.GIO_HEN?('lúc '+fmtT(rcHen.GIO_HEN)):''}${rcHen.LY_DO?(' — '+rcHen.LY_DO):''}${rcHen.BS_PHU_TRACH?(' · BS '+rcHen.BS_PHU_TRACH):''}</div>` : ''}
+${rcHen ? `<div class="rcHen"> <b>Check-in từ lịch hẹn</b> ${rcHen.GIO_HEN?('lúc '+fmtT(rcHen.GIO_HEN)):''}${rcHen.LY_DO?(' — '+rcHen.LY_DO):''}${rcHen.BS_PHU_TRACH?(' · BS '+rcHen.BS_PHU_TRACH):''}</div>` : ''}
 <div class="sect-label">Dịch vụ yêu cầu (chọn trước — bác sĩ sẽ xác nhận khi thực hiện)</div>
 <div id="rcSelList"></div>
 <div style="position:relative;">
-<input id="rcDvSearch" placeholder="🔎 Tìm dịch vụ — gõ vài chữ, Enter để thêm (vd: sieu am, kham thai…)" autocomplete="off" style="width:100%;"
+<input id="rcDvSearch" placeholder=" Tìm dịch vụ — gõ vài chữ, Enter để thêm (vd: sieu am, kham thai…)" autocomplete="off" style="width:100%;"
  oninput="rcDvSuggest()" onkeydown="rcDvKey(event)" onfocus="rcDvSuggest()" onblur="setTimeout(()=>{const b=$('rcDvSug'); if(b) b.style.display='none';},180)">
 <div id="rcDvSug" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--brand3);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 12px 28px rgba(10,82,64,.14);z-index:70;max-height:250px;overflow:auto;display:none;"></div>
 </div>
-<div class="rcGroup" style="margin-top:9px;"><div class="gname">⚡ Hay dùng</div><div class="rcChips">
+<div class="rcGroup" style="margin-top:9px;"><div class="gname"> Hay dùng</div><div class="rcChips">
 ${topDVs(6).map(d=>`<button type="button" class="rcChip" onclick="rcDvPick('${d.MA_DV}')">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></button>`).join('')}
 </div></div>
 <div style="font-size:11.5px;color:var(--ink3);margin:6px 0 12px;">Chưa rõ bệnh nhân cần gì? Bỏ trống — bác sĩ sẽ chỉ định trong lúc khám.</div>
@@ -824,7 +825,7 @@ const btn = $('rcSaveBtn');
 if (btn.disabled) return;
 const q = queueToday();
 const dup = q.find(x => x.MA_BN === rcBN && ['Chờ khám','Đang khám'].includes(String(x.TRANG_THAI).trim()));
-if (dup){ toast('⚠️ <b>'+bnName(rcBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); hide('rcOvl'); return; }
+if (dup){ toast('⚠ <b>'+bnName(rcBN)+'</b> đã có trong hàng chờ — số <b>'+(dup.STT||'?')+'</b> ('+dup.TRANG_THAI+')'); hide('rcOvl'); return; }
 const dvIds = rcSel.slice();
 const bs = $('rcBs').value;
 const note = $('rcNote').value.trim();
@@ -836,7 +837,7 @@ const row = { MA_CHO:maCho, NGAY:todayStr(), STT:stt, MA_BN:rcBN, TRANG_THAI:'Ch
 DV_YEU_CAU:dvIds.join('|'), BS_YEU_CAU:bs, MA_HEN:(rcHen?rcHen.MA_HEN:''), UU_TIEN:($('rcUuTien').checked?'Có':''),
 LY_DO_HUY:'', GIO_TIEP_NHAN:nowTime(), GIO_GOI:'', GIO_XONG:'', GIO_THU:'' };
 const j = await api('append', {table:'HANG_CHO', row});
-if (!j.ok){ toast('⚠️ ' + (j.error||'lỗi')); return; }
+if (!j.ok){ toast('⚠ ' + (j.error||'lỗi')); return; }
 ver=j.v;
 // ghi các dòng Sổ khám 'Chỉ định' — SONG SONG để nhanh (mỗi dòng đã có mã riêng)
 const dvs = rowsToObj('DICH_VU');
@@ -854,7 +855,7 @@ if (rcHen) calls.push(api('update', {table:'LICH_HEN', keyCol:'MA_HEN', keyVal:r
 const rs = await Promise.all(calls);
 rs.forEach(j2=>{ if (j2 && j2.ok && j2.v!=null) ver = Math.max(Number(ver)||0, Number(j2.v)||0); });
 const fails = rs.filter(j2=>!(j2&&j2.ok)).length;
-if (fails) toast('⚠️ '+fails+' mục chưa ghi được — kiểm tra lại hàng chờ và Sổ khám.');
+if (fails) toast('⚠ '+fails+' mục chưa ghi được — kiểm tra lại hàng chờ và Sổ khám.');
 hide('rcOvl');
 chime();
 toast('✓ Đã tiếp nhận <b>'+bnName(rcBN)+'</b> — số thứ tự <b>'+stt+'</b>'+(dvIds.length?(' · '+dvIds.length+' dịch vụ yêu cầu'):''));
@@ -988,13 +989,13 @@ box.innerHTML = hits.length ? hits.map(b=>`<div class="gsRow" onclick="dhBN='${b
 box.style.display='block';
 }
 async function dhSave(){
-if (!dhBN){ toast('⚠️ Chọn bệnh nhân trong danh sách gợi ý'); return; }
-if (!$('dhNgay').value){ toast('⚠️ Chọn ngày hẹn'); return; }
+if (!dhBN){ toast('⚠ Chọn bệnh nhân trong danh sách gợi ý'); return; }
+if (!$('dhNgay').value){ toast('⚠ Chọn ngày hẹn'); return; }
 const row = { MA_HEN: nextId('H',5,'LICH_HEN','MA_HEN'), NGAY_HEN:$('dhNgay').value, GIO_HEN:$('dhGio').value, MA_BN:dhBN,
 LY_DO:$('dhLydo').value.trim(), BS_PHU_TRACH:$('dhBs').value, TRANG_THAI:'Đã hẹn', GHI_CHU:'', LOAI:'', TU_DONG:'' };
 const j = await api('append', {table:'LICH_HEN', row});
 if (j.ok){ ver=j.v; hide('dhOvl'); toast('✓ Đã đặt hẹn — <b>'+bnName(dhBN)+'</b> ngày '+$('dhNgay').value.split('-').reverse().join('/')); loadAll(true); }
-else toast('⚠️ ' + (j.error||'lỗi'));
+else toast('⚠ ' + (j.error||'lỗi'));
 }
 async function dhCancel(maHen){
 if (!confirm('Hủy lịch hẹn này?')) return;
@@ -1018,8 +1019,8 @@ stripVN(b.HO_TEN).includes(q) || String(b.SDT||'').includes(q) || stripVN(b.MA_B
 box.innerHTML = hits.length ? hits.map(b =>
 `<div class="gsRow" onclick="openProfile('${b.MA_BN}');$('gsResults').style.display='none';">
 <div style="flex:1;"><span class="nm">${b.HO_TEN}</span> <span class="meta num">${b.MA_BN}</span><div class="meta">${b.SDT||'—'} · ${b.DIA_CHI||''}</div></div>
-<button class="qbtn" onclick="event.stopPropagation();openReception('${b.MA_BN}');$('gsResults').style.display='none';$('gsInput').value='';">🏥 Tiếp nhận</button>
-</div>`).join('') : '<div class="gsRow"><div class="meta">Không tìm thấy — bấm "➕ BN mới" để tạo hồ sơ.</div></div>';
+<button class="qbtn" onclick="event.stopPropagation();openReception('${b.MA_BN}');$('gsResults').style.display='none';$('gsInput').value='';"> Tiếp nhận</button>
+</div>`).join('') : '<div class="gsRow"><div class="meta">Không tìm thấy — bấm " BN mới" để tạo hồ sơ.</div></div>';
 box.style.display='block';
 }
 document.addEventListener('click', e => { if (!e.target.closest('.toolbar')) $('gsResults').style.display='none'; });
@@ -1029,12 +1030,12 @@ function openProfile(maBN){ PKProfile.open(maBN); }
 function openNewBN(){ ['nbTen','nbSdt','nbNs','nbDc','nbGc'].forEach(i=>$(i).value=''); show('newOvl'); const t=$('gsInput').value.trim(); if(t && !/\d/.test(t)) $('nbTen').value=t; }
 async function saveNewBN(){
 const ten = $('nbTen').value.trim();
-if (!ten){ toast('⚠️ Nhập họ tên'); return; }
+if (!ten){ toast('⚠ Nhập họ tên'); return; }
 const ma = nextId('BN',4,'BENH_NHAN','MA_BN');
 const row = { MA_BN:ma, HO_TEN:ten, NGAY_SINH:$('nbNs').value.trim(), GIOI_TINH:'Nữ', SDT:$('nbSdt').value.trim(), DIA_CHI:$('nbDc').value.trim(), TIEN_SU:'', GHI_CHU:$('nbGc').value.trim(), NGAY_LAP: todayStr() };
 const j = await api('append', {table:'BENH_NHAN', row});
 if (j.ok){ ver=j.v; hide('newOvl'); toast('✓ Đã tạo hồ sơ <b>'+ten+'</b> ('+ma+')'); await loadAll(true); openReception(ma); }
-else toast('⚠️ ' + (j.error||'lỗi'));
+else toast('⚠ ' + (j.error||'lỗi'));
 }
 
 /* ================== THANH TOÁN ================== */
@@ -1072,11 +1073,11 @@ if (!selPay){ $('payBox').innerHTML = '<div class="empty">Chọn bệnh nhân �
 const total = payTotal();
 $('payBox').innerHTML = `
 <div style="font-weight:800;font-size:15px;margin-bottom:2px;cursor:pointer;" onclick="openProfile(selPay.maBN)">${bnName(selPay.maBN)} <span class="num" style="color:var(--ink3);font-weight:600;font-size:12px;">${selPay.maBN}</span></div>
-<div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ đã thực hiện <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)">➕ Thêm DV</button></div>
-${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠️ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
-${selPay.pending.length?`<div class="shortnote" style="display:block;">⏳ Còn <b>${selPay.pending.length}</b> dịch vụ chỉ định chưa xác nhận thực hiện — chưa tính tiền:<br>${selPay.pending.map(l=>'· '+l.TEN_DV).join('<br>')}<br><span style="font-size:11px;">Bác sĩ / trợ lý xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span></div>`:''}
-${(selPay.drugs&&selPay.drugs.length)?`<div class="sect-label">Thuốc theo toa (đã soạn)</div>${selPay.drugs.map(d=>`<div class="payline"><span class="dv">💊 ${d.ten} ×${d.sl}</span><span class="num">${fmtD(d.tien)}</span></div>`).join('')}`:''}
-${(selPay.waitingToas&&selPay.waitingToas.length)?`<div class="shortnote" style="display:block;">💊 Toa ${selPay.waitingToas.join(', ')} đang chờ Dược sỹ soạn — CHƯA tính tiền thuốc. Chờ soạn xong rồi thu, hoặc thu trước phần dịch vụ.</div>`:''}
+<div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ đã thực hiện <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)"> Thêm DV</button></div>
+${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
+${selPay.pending.length?`<div class="shortnote" style="display:block;"> Còn <b>${selPay.pending.length}</b> dịch vụ chỉ định chưa xác nhận thực hiện — chưa tính tiền:<br>${selPay.pending.map(l=>'· '+l.TEN_DV).join('<br>')}<br><span style="font-size:11px;">Bác sĩ / trợ lý xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span></div>`:''}
+${(selPay.drugs&&selPay.drugs.length)?`<div class="sect-label">Thuốc theo toa (đã soạn)</div>${selPay.drugs.map(d=>`<div class="payline"><span class="dv"> ${d.ten} ×${d.sl}</span><span class="num">${fmtD(d.tien)}</span></div>`).join('')}`:''}
+${(selPay.waitingToas&&selPay.waitingToas.length)?`<div class="shortnote" style="display:block;"> Toa ${selPay.waitingToas.join(', ')} đang chờ Dược sỹ soạn — CHƯA tính tiền thuốc. Chờ soạn xong rồi thu, hoặc thu trước phần dịch vụ.</div>`:''}
 <div class="totline"><span>Tổng thanh toán${(selPay.drugs&&selPay.drugs.length)?' (dịch vụ + thuốc)':''}</span><span class="num" id="payTot">${fmtD(total)}</span></div>
 <div class="fieldrow">
 <div style="flex:1;"><label>Giảm giá (đ)</label><input type="number" id="pDisc" value="0" min="0" oninput="updPay()" style="width:100%;"></div>
@@ -1088,16 +1089,16 @@ ${(selPay.waitingToas&&selPay.waitingToas.length)?`<div class="shortnote" style=
 </div>
 <div id="posBox" style="background:#f2f8f4;border:1px solid #cfe5d8;border-radius:12px;padding:10px 12px;margin:4px 0 2px;">
 <div class="fieldrow" style="align-items:flex-end;">
-<div style="flex:1;"><label>💵 Khách đưa (đ)</label><input type="number" id="pCash" oninput="updPay()" placeholder="tiền khách đưa" style="width:100%;"></div>
+<div style="flex:1;"><label> Khách đưa (đ)</label><input type="number" id="pCash" oninput="updPay()" placeholder="tiền khách đưa" style="width:100%;"></div>
 <div style="flex:1;text-align:right;"><label>Tiền thối lại</label><div id="pChange" class="num" style="font-size:21px;font-weight:800;color:var(--brand);">—</div></div>
 </div>
 <div id="pCashQuick" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;"></div>
 </div>
 <div class="shortnote" id="pShort"></div>
-<div class="qrbox" id="pQR">🏦 <b>Chuyển khoản:</b> ${BANK_INFO || 'Chưa cấu hình thông tin tài khoản ngân hàng (BANK_INFO)'}<br><span style="font-size:11.5px;">Nội dung: <b class="num">${selPay.maBN} ${todayStr().replaceAll('-','')}</b></span></div>
+<div class="qrbox" id="pQR"> <b>Chuyển khoản:</b> ${BANK_INFO || 'Chưa cấu hình thông tin tài khoản ngân hàng (BANK_INFO)'}<br><span style="font-size:11.5px;">Nội dung: <b class="num">${selPay.maBN} ${todayStr().replaceAll('-','')}</b></span></div>
 <div class="fieldrow"><div style="flex:1;"><label>Ghi chú</label><input id="pNote" style="width:100%;" placeholder="tùy chọn"></div></div>
 <div class="paybtnrow">
-<button class="btn btn-ghost" onclick="printReceipt(false)">🖨️ In tạm tính</button>
+<button class="btn btn-ghost" onclick="printReceipt(false)"> In tạm tính</button>
 <button class="btn btn-brand" id="pConfirm" onclick="confirmPay()">✓ Xác nhận thu ${fmtD(total)}</button>
 </div>`;
 const pp = $('pPaid'); pp.value = total; updPay();
@@ -1113,7 +1114,7 @@ if (document.activeElement !== $('pPaid') && paid !== due) $('pPaid').value = du
 const paidNow = Number($('pPaid').value)||0;
 const short = due - paidNow;
 const sn = $('pShort');
-if (short > 0){ sn.style.display='block'; sn.innerHTML = '⚠️ Thu thiếu <b class="num">'+fmtD(short)+'</b> — sẽ ghi nhận để Quản lý đối soát.'; }
+if (short > 0){ sn.style.display='block'; sn.innerHTML = '⚠ Thu thiếu <b class="num">'+fmtD(short)+'</b> — sẽ ghi nhận để Quản lý đối soát.'; }
 else sn.style.display='none';
 $('pQR').style.display = $('pMethod').value==='Chuyển khoản' ? 'block' : 'none';
 $('pConfirm').textContent = '✓ Xác nhận thu ' + fmtD(paidNow);
@@ -1140,10 +1141,10 @@ $('pCashQuick').innerHTML = qs.slice(0,6).map(v=>`<button class="qbtn${cash===v?
 async function confirmPay(){
 if(!selPay) return;
 const total = payTotal();
-if (!selPay.lines.length && !(selPay.drugs&&selPay.drugs.length)){ toast('⚠️ Chưa có dịch vụ đã thực hiện hoặc thuốc đã soạn để thanh toán'); return; }
+if (!selPay.lines.length && !(selPay.drugs&&selPay.drugs.length)){ toast('⚠ Chưa có dịch vụ đã thực hiện hoặc thuốc đã soạn để thanh toán'); return; }
 const disc = Number($('pDisc').value)||0;
 const why = $('pDiscWhy').value;
-if (disc > 0 && !why){ toast('⚠️ Có giảm giá thì bắt buộc chọn lý do'); $('pDiscWhy').focus(); return; }
+if (disc > 0 && !why){ toast('⚠ Có giảm giá thì bắt buộc chọn lý do'); $('pDiscWhy').focus(); return; }
 const paid = Number($('pPaid').value)||0;
 const due = total - disc;
 const method = $('pMethod').value;
@@ -1153,7 +1154,7 @@ if (due - paid > 0) note = ('THU THIẾU '+(due-paid).toLocaleString('vi-VN')+'�
 $('pConfirm').disabled = true;
 const row = { MA_TT: nextId('T',5,'THANH_TOAN','MA_TT'), NGAY: todayStr(), MA_BN: selPay.maBN, TONG_HD: total, DA_THU: paid, CON_LAI: due - paid, HINH_THUC: method, THU_NGAN: me.email, GHI_CHU: note };
 const j = await api('append', {table:'THANH_TOAN', row});
-if (!j.ok){ toast('⚠️ Lỗi ghi thanh toán: '+(j.error||'')); $('pConfirm').disabled=false; return; }
+if (!j.ok){ toast('⚠ Lỗi ghi thanh toán: '+(j.error||'')); $('pConfirm').disabled=false; return; }
 const cpCalls = [ api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal: selPay.maCho, row:{TRANG_THAI:'Đã thu', GIO_THU: nowTime()}}) ];
 (selPay.billableToas||[]).forEach(mt=>cpCalls.push(api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:mt, row:{MA_TT: row.MA_TT}}).catch(e=>({ok:false}))));
 await Promise.all(cpCalls);
@@ -1206,7 +1207,8 @@ td{padding:7px 4px;border-bottom:1px dotted #d8d8d0;vertical-align:top;}
 .sig .name{margin-top:34px;font-weight:bold;}
 .ft{margin-top:14px;border-top:1px solid #d8d8d0;padding-top:7px;font-size:10px;color:#666;text-align:center;line-height:1.6;}
 .draft{position:fixed;top:40%;left:0;right:0;text-align:center;font-size:48px;color:rgba(208,59,59,.12);font-weight:bold;transform:rotate(-18deg);pointer-events:none;}
-</style></head><body>
+</style>
+</head><body>
 ${final?'':'<div class="draft">TẠM TÍNH</div>'}
 <div class="sheet">
 <div class="hd"><div>
@@ -1222,7 +1224,7 @@ ${b.SDT?('<span>SĐT: '+b.SDT+'</span>'):''}
 </div>
 <table>
 <thead><tr><th style="width:24px;">TT</th><th>Dịch vụ</th><th class="r">SL</th><th class="r">Đơn giá</th><th class="r">Thành tiền</th></tr></thead>
-<tbody>${lines.map((l,i)=>`<tr><td>${i+1}</td><td>${l.TEN_DV}</td><td class="r">${l.SO_LUONG||1}</td><td class="r">${(Number(l.DON_GIA)||0).toLocaleString('vi-VN')}</td><td class="r">${(Number(l.THANH_TIEN)||0).toLocaleString('vi-VN')}</td></tr>`).join('')}${(selPay&&selPay.drugs&&selPay.drugs.length)?selPay.drugs.map((d,i)=>`<tr><td>${lines.length+i+1}</td><td>💊 ${d.ten}</td><td class="r">${d.sl}</td><td class="r">${d.gia.toLocaleString('vi-VN')}</td><td class="r">${d.tien.toLocaleString('vi-VN')}</td></tr>`).join(''):''}</tbody>
+<tbody>${lines.map((l,i)=>`<tr><td>${i+1}</td><td>${l.TEN_DV}</td><td class="r">${l.SO_LUONG||1}</td><td class="r">${(Number(l.DON_GIA)||0).toLocaleString('vi-VN')}</td><td class="r">${(Number(l.THANH_TIEN)||0).toLocaleString('vi-VN')}</td></tr>`).join('')}${(selPay&&selPay.drugs&&selPay.drugs.length)?selPay.drugs.map((d,i)=>`<tr><td>${lines.length+i+1}</td><td> ${d.ten}</td><td class="r">${d.sl}</td><td class="r">${d.gia.toLocaleString('vi-VN')}</td><td class="r">${d.tien.toLocaleString('vi-VN')}</td></tr>`).join(''):''}</tbody>
 <tfoot>
 <tr class="tot"><td colspan="4" class="lbl">Tổng cộng</td><td class="r"><b>${total.toLocaleString('vi-VN')} đ</b></td></tr>
 ${disc>0?`<tr class="tot"><td colspan="4" class="lbl">Giảm giá${why?(' <i style="font-size:10px;">('+why+')</i>'):''}</td><td class="r">−${disc.toLocaleString('vi-VN')} đ</td></tr>`:''}
@@ -1237,7 +1239,7 @@ ${BANK_INFO?`<div class="pay"><div class="qr">QR<br>chuyển khoản</div><div c
 <div class="box"><div class="role">Khách hàng</div><div class="hint">(ký, ghi rõ họ tên)</div></div>
 <div class="box"><div class="role">Thu ngân</div><div class="hint">(ký, ghi rõ họ tên)</div><div class="name">${me?me.email.split('@')[0]:''}</div></div>
 </div>
-<div class="ft">Cảm ơn Quý khách — chúc mẹ tròn con vuông! 🌿<br>Phiếu in từ hệ thống PK Diệu Sinh${row?(' · mã tra cứu '+row.MA_TT):''} · in lúc ${now.toLocaleString('vi-VN')}</div>
+<div class="ft">Cảm ơn Quý khách — chúc mẹ tròn con vuông! <br>Phiếu in từ hệ thống PK Diệu Sinh${row?(' · mã tra cứu '+row.MA_TT):''} · in lúc ${now.toLocaleString('vi-VN')}</div>
 </div>
 <script>window.print();<\/script></body></html>`);
 w.document.close();
@@ -1247,7 +1249,7 @@ w.document.close();
 let svcBN = null, svcOptHtml = '', svcBsHtml = '';
 function openSvc(maBN){
 svcBN = maBN;
-$('svcTitle').textContent = '➕ Thêm dịch vụ — ' + bnName(maBN) + ' (' + maBN + ')';
+$('svcTitle').textContent = ' Thêm dịch vụ — ' + bnName(maBN) + ' (' + maBN + ')';
 const dvs = rowsToObj('DICH_VU').filter(d => String(d.CON_AP_DUNG||'').trim() !== 'Không');
 svcOptHtml = '<option value="">— chọn dịch vụ —</option>' + dvs.map(d =>
 `<option value="${d.MA_DV}">${d.TEN_DV} — ${fmtD(d.DON_GIA)}${d.NHOM?' ('+d.NHOM+')':''}</option>`).join('');
@@ -1262,7 +1264,7 @@ const div = document.createElement('div');
 div.className = 'svcRow';
 div.style.cssText = 'border:1px solid #e2e2da;border-radius:12px;padding:12px;margin-top:10px;position:relative;';
 div.innerHTML = `
-<button class="qbtn" title="Xóa dòng" onclick="delSvcRow(this)" style="position:absolute;top:8px;right:8px;">🗑</button>
+<button class="qbtn" title="Xóa dòng" onclick="delSvcRow(this)" style="position:absolute;top:8px;right:8px;">✕</button>
 <div class="fgrid">
 <div class="full" style="padding-right:36px;"><label>Dịch vụ *</label><select class="sSel" onchange="updSvcRows()" style="width:100%;"></select></div>
 <div><label>Số lượng</label><input type="number" class="sQty" value="1" min="1" oninput="updSvcRows()"></div>
@@ -1311,7 +1313,7 @@ $('svcSum').textContent = fmtD(sum);
 }
 async function saveSvc(){
 const items = [...$('svcRows').querySelectorAll('.svcRow')].map(svcRowData).filter(x => x.d);
-if (!items.length){ toast('⚠️ Chọn dịch vụ trước'); return; }
+if (!items.length){ toast('⚠ Chọn dịch vụ trước'); return; }
 const btn = $('svcSaveBtn');
 if (btn.disabled) return;
 btn.disabled = true; btn.textContent = 'Đang lưu…';
@@ -1328,7 +1330,7 @@ MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?
 // ghi SONG SONG để nhanh
 const rs = await Promise.all(rows.map(r=>api('append', {table:'SO_KHAM', row:r.row}).catch(e=>({ok:false, error:String(e&&e.message||e)}))));
 rs.forEach((j,i)=>{ if (j && j.ok){ if (j.v!=null) ver = Math.max(Number(ver)||0, Number(j.v)||0); okCount++; sum += rows[i].x.tien; } });
-if (okCount < items.length) toast('⚠️ '+(items.length-okCount)+' dòng chưa ghi được — đã lưu '+okCount+'/'+items.length+'. Kiểm tra lại Sổ khám.');
+if (okCount < items.length) toast('⚠ '+(items.length-okCount)+' dòng chưa ghi được — đã lưu '+okCount+'/'+items.length+'. Kiểm tra lại Sổ khám.');
 } finally { btn.disabled = false; btn.textContent = '✓ Thêm vào Sổ khám'; }
 if (okCount === items.length){
 hide('svcOvl');
