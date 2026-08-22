@@ -144,8 +144,8 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <div class="wrap">
 <div>
 <div class="ttabs">
-<button class="ttab on" data-p="t-dangkham">🧑‍⚕️ Đang khám <span id="dkBadge"></span></button>
-<button class="ttab" data-p="t-sokham">🩺 Nhập sổ khám</button>
+<button class="ttab" onclick="location.href='ban-kham.html'" style="background:var(--brand);color:#fff;">🩺 Bàn khám — giao diện bác sĩ ↗</button>
+<button class="ttab on" data-p="t-sokham">🩺 Nhập sổ khám</button>
 <button class="ttab" data-p="t-hoso">👩 Hồ sơ BN <span id="hsBadge"></span></button>
 <button class="ttab" data-p="t-thaiky">🤰 Thai kỳ</button>
 <button class="ttab" data-p="t-lichhen">📅 Lịch hẹn</button>
@@ -154,11 +154,11 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <div class="tbody">
 
 <!-- ==== NHẬP SỔ KHÁM ==== -->
-<div class="tpane on" id="t-dangkham">
+<div class="tpane" id="t-dangkham">
 <div id="dkBox"></div>
 </div>
 
-<div class="tpane" id="t-sokham">
+<div class="tpane on" id="t-sokham">
 <div class="sect-label">Bệnh nhân</div>
 <div class="pk"><input id="skPk" placeholder="🔍 Tìm BN — tên, SĐT hoặc mã…" oninput="pkSearch('sk')" autocomplete="off"><div class="pkResults" id="skPkR"></div></div>
 <div id="skSel" class="empty" style="margin-top:6px;">Chưa chọn bệnh nhân.</div>
@@ -323,6 +323,7 @@ setTimeout(()=>clearInterval(t), 10000);
 $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
 tryResume();
 document.querySelectorAll('.ttab').forEach(b=>b.addEventListener('click',()=>{
+if (!b.dataset.p) return; // nút điều hướng (Bàn khám) không phải tab
 document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
 document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
 b.classList.add('on'); $(b.dataset.p).classList.add('on');
@@ -503,9 +504,14 @@ function renderTk(){
 const rows = rowsToObj('THAI_KY').filter(t=>String(t.TRANG_THAI||'')!=='Kết thúc');
 $('tkList').innerHTML = rows.length ? rows.map(t=>{
 const c = tkCalc(t.KINH_CUOI);
-return `<div class="histrow"><span style="flex:1;">${pname(t.MA_BN)} <span class="num" style="color:var(--ink3);">${t.MA_BN}</span><br>
-${c?('<span class="chip">'+c.weeks+'t'+c.days+'ng</span> <span class="chip">Dự sinh '+c.edd.toLocaleDateString('vi-VN')+'</span>'+(c.next?(' <span class="chip due">▶ '+c.next[0]+'t: '+c.next[1]+'</span>'):'')):'<span style="color:var(--crit);">kinh cuối không hợp lệ</span>'}</span>
-<button class="qbtn warn" onclick="tkEnd('${t.MA_TK}')">Kết thúc</button></div>`;
+return `<div class="histrow" style="padding:11px 10px;align-items:flex-start;">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:7px;">
+<div style="font-weight:700;font-size:13px;">${pname(t.MA_BN)} <span class="num" style="color:var(--ink3);font-weight:600;">${t.MA_BN}</span></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+${c?('<span class="chip">'+c.weeks+'t '+c.days+'ng</span><span class="chip">Dự sinh '+c.edd.toLocaleDateString('vi-VN')+'</span>'+(c.next?('<span class="chip due">▶ '+c.next[0]+'t: '+c.next[1]+'</span>'):'')):'<span style="color:var(--crit);">kinh cuối không hợp lệ</span>'}
+</div>
+</div>
+<button class="qbtn warn" style="margin-top:2px;" onclick="tkEnd('${t.MA_TK}')">Kết thúc</button></div>`;
 }).join('') : '<div class="empty">Chưa theo dõi thai kỳ nào.</div>';
 }
 async function tkEnd(maTK){
