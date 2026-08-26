@@ -50,7 +50,6 @@ main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-h
 .waitNums{display:flex;gap:1vw;flex-wrap:wrap;align-items:center;flex:1;}
 .wnum{background:#123a2e;border:2px solid #2c5949;color:#fff;border-radius:1vw;min-width:6.5vh;padding:.9vh 1.4vh;font-size:3.4vh;font-weight:800;text-align:center;}
 .wempty{color:#2c5949;font-size:2.2vh;font-weight:700;}
-.payNums .wnum{border-color:#3d5a8a;background:#16304a;color:var(--blue);}
 
 /* banner gọi số */
 #callBanner{position:fixed;inset:0;background:rgba(4,26,20,.93);display:none;align-items:center;justify-content:center;z-index:100;text-align:center;}
@@ -90,7 +89,6 @@ main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-h
 <main>
 <div class="roomsWrap" id="roomsWrap"></div>
 <div class="waitBar"><span class="lbl"> Số đang chờ</span><div class="waitNums" id="waitNums"></div></div>
-<div class="waitBar payNums"><span class="lbl"> Mời thanh toán</span><div class="waitNums" id="payNums"></div></div>
 </main>
 </div>
 
@@ -286,9 +284,6 @@ return (Number(a.STT)||0)-(Number(b.STT)||0);
 });
 $('waitNums').innerHTML = waits.length ? waits.slice(0,12).map(r=>`<span class="wnum num">${r.STT||'?'}</span>`).join('') + (waits.length>12?('<span class="wempty">+'+(waits.length-12)+'</span>'):'') : '<span class="wempty">— không có số chờ —</span>';
 
-/* mời thanh toán */
-const pays = q.filter(r=>r.TRANG_THAI==='Xong khám').sort((a,b)=>(Number(a.STT)||0)-(Number(b.STT)||0));
-$('payNums').innerHTML = pays.length ? pays.map(r=>`<span class="wnum num">${r.STT||'?'}</span>`).join('') : '<span class="wempty">— chưa có —</span>';
 }
 </script>
 </body>
