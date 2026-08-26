@@ -36,20 +36,13 @@ header .sub{font-size:1.6vh;color:#cfe6de;}
 #dateTxt{font-size:1.6vh;color:#cfe6de;text-align:right;}
 
 main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-height:0;}
-.roomsWrap{flex:1;display:grid;gap:1.4vw;min-height:0;align-content:center;}
-.room{background:#0c2f25;border:2px solid #1d4a3c;border-radius:1.6vw;padding:2vh 1.2vw;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:1vh;min-height:0;}
-.room .rname{font-size:2.6vh;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;}
-.room .rnum{font-size:12vh;font-weight:900;color:#fff;line-height:1;}
-.room .rnum.empty{color:#2c5949;font-size:7vh;font-weight:700;}
-.room.called{border-color:var(--warn);background:#123a2e;animation:pulse 1s ease infinite alternate;}
-.room.called .rnum{color:var(--warn);}
-@keyframes pulse{from{box-shadow:0 0 0 0 rgba(250,178,25,.35);}to{box-shadow:0 0 3.2vh .6vh rgba(250,178,25,.28);}}
 
-.waitBar{background:#0c2f25;border:2px solid #1d4a3c;border-radius:1.4vw;padding:1.6vh 1.6vw;display:flex;align-items:center;gap:1.6vw;}
-.waitBar .lbl{font-size:2.2vh;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
-.waitNums{display:flex;gap:1vw;flex-wrap:wrap;align-items:center;flex:1;}
-.wnum{background:#123a2e;border:2px solid #2c5949;color:#fff;border-radius:1vw;min-width:6.5vh;padding:.9vh 1.4vh;font-size:3.4vh;font-weight:800;text-align:center;}
-.wempty{color:#2c5949;font-size:2.2vh;font-weight:700;}
+/* Số đang chờ = nội dung CHÍNH toàn màn hình */
+.waitBar{flex:1;background:#0c2f25;border:2px solid #1d4a3c;border-radius:1.4vw;padding:3vh 2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh;min-height:0;}
+.waitBar .lbl{font-size:4.5vh;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.14em;white-space:nowrap;}
+.waitNums{display:flex;gap:1.6vw;flex-wrap:wrap;align-items:center;justify-content:center;max-width:90vw;}
+.wnum{background:#123a2e;border:3px solid #2c5949;color:#fff;border-radius:1.2vw;min-width:14vh;padding:2.4vh 2.8vh;font-size:9vh;font-weight:900;text-align:center;line-height:1;}
+.wempty{color:#2c5949;font-size:4vh;font-weight:700;}
 
 /* banner gọi số */
 #callBanner{position:fixed;inset:0;background:rgba(4,26,20,.93);display:none;align-items:center;justify-content:center;z-index:100;text-align:center;}
@@ -87,8 +80,7 @@ main{flex:1;display:flex;flex-direction:column;padding:1.6vh 2vw;gap:1.6vh;min-h
 <div><div id="clock" class="num">--:--</div><div id="dateTxt"></div></div>
 </header>
 <main>
-<div class="roomsWrap" id="roomsWrap"></div>
-<div class="waitBar"><span class="lbl"> Số đang chờ</span><div class="waitNums" id="waitNums"></div></div>
+<div class="waitBar"><span class="lbl">Số đang chờ</span><div class="waitNums" id="waitNums"></div></div>
 </main>
 </div>
 
@@ -250,31 +242,6 @@ if (r && r.STT) showBanner(r.STT, String(r.BS_KHAM||'').trim());
 });
 }
 lastCalls = calls; firstLoad = false;
-
-/* phòng: chỉ hiện các BS đang có bệnh nhân + BS đang làm việc có phòng */
-const active = bss.map(b=>{
-const ten = String(b.TEN_BS).trim();
-const cur = q.find(r=>r.TRANG_THAI==='Đang khám' && String(r.BS_KHAM||'').trim()===ten);
-return {ten, stt: cur ? (cur.STT||'—') : null, called: cur ? (Date.now() - 0) : 0, gio: cur ? cur.GIO_GOI : ''};
-});
-const showRooms = active.filter(a=>a.stt !== null);
-const rooms = showRooms.length ? showRooms : active.slice(0,4);
-const n = Math.max(rooms.length, 1);
-const cols = n<=2 ? n : (n<=4 ? 2 : 3);
-const rw = $('roomsWrap');
-rw.style.gridTemplateColumns = 'repeat('+cols+',1fr)';
-rw.innerHTML = rooms.map(a=>{
-/* phòng vừa gọi trong ~60s thì viền vàng nhấp nháy */
-let recent = false;
-if (a.gio){
-const m = String(a.gio).match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-if (m){ const d=new Date(); const called=new Date(); called.setHours(+m[1],+m[2],+(m[3]||0),0); recent = (d-called) < 60000 && (d-called) > -60000; }
-}
-return `<div class="room${recent?' called':''}">
-<div class="rname">Phòng ${a.ten}</div>
-<div class="rnum num${a.stt===null?' empty':''}">${a.stt===null?'—':a.stt}</div>
-</div>`;
-}).join('') || '<div class="room"><div class="rname">Phòng khám</div><div class="rnum empty">Chưa mở ca</div></div>';
 
 /* số đang chờ theo thứ tự */
 const waits = q.filter(r=>r.TRANG_THAI==='Chờ khám').sort((a,b)=>{
