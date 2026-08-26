@@ -771,10 +771,23 @@ const d = rowsToObj('DICH_VU').find(x=>x.MA_DV===maDV); if(!d) return;
 if (!cur){ toast('⚠ Mở bệnh nhân trước khi thêm dịch vụ'); return; }
 const gia = Number(d.DON_GIA)||0;
 const maLuot = 'L'+String(nextNum('L','SO_KHAM','MA_LUOT')).padStart(5,'0');
-const j = await api('append', {table:'SO_KHAM', row:{ MA_LUOT:maLuot, NGAY:todayStr(), MA_BN:cur.maBN, TEN_DV:d.TEN_DV,
+/* dịch vụ thuộc PHÒNG KHÁC (BS khám thêm siêu âm, hoặc ngược lại) → tạo CHỈ ĐỊNH
+   mang tên BS ra y lệnh, tự chuyển sang hàng chờ phòng kia — không ghi hoàn thành hộ */
+const otherRoom = isSaTen(d.TEN_DV, d.NHOM) !== isSaBS(myBS());
+const row = otherRoom
+? { MA_LUOT:maLuot, NGAY:todayStr(), MA_BN:cur.maBN, TEN_DV:d.TEN_DV,
+BS_THUC_HIEN:'', BS_CHI_DINH:myBS(), DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:'', ANH_KET_QUA:'',
+MA_CHO:cur.maCho, TRANG_THAI_DV:'Chỉ định', NGUOI_XAC_NHAN:'', GIO_XAC_NHAN:'' }
+: { MA_LUOT:maLuot, NGAY:todayStr(), MA_BN:cur.maBN, TEN_DV:d.TEN_DV,
 BS_THUC_HIEN:myBS(), BS_CHI_DINH:myBS(), DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:'', ANH_KET_QUA:'',
-MA_CHO:cur.maCho, TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() }});
-if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+d.TEN_DV+'</b> — đồng bộ ngay mọi màn hình'); loadAll(true); }
+MA_CHO:cur.maCho, TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() };
+const j = await api('append', {table:'SO_KHAM', row});
+if (j.ok){
+ver=j.v;
+if (otherRoom) toast('→ Đã CHỈ ĐỊNH <b>'+d.TEN_DV+'</b> (y lệnh: '+myBS()+') — bệnh nhân sẽ được chuyển '+(isSaBS(myBS())?'phòng khám':'phòng siêu âm')+' khi xong phần ở đây');
+else toast('✓ Đã thêm <b>'+d.TEN_DV+'</b> — đồng bộ ngay mọi màn hình');
+loadAll(true);
+}
 else toast('⚠ '+(j.error||'lỗi'));
 }
 function delLine(i){ lines.splice(i,1); renderWorkspace(); }

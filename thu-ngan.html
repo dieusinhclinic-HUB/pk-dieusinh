@@ -219,6 +219,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div class="spacer"></div>
 <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
 <span class="userchip" id="userChip">…</span>
+<button class="hbtn" onclick="window.open('tv.html','pkTV')" title="Mở màn hình gọi số cho TV phòng chờ — kéo sang TV rồi bấm F11 để toàn màn hình">Màn hình TV</button>
 <button class="hbtn" onclick="openShift()"> Chốt ca</button>
 <button class="hbtn" onclick="logout()">Thoát</button>
 </header>
@@ -787,13 +788,29 @@ rcDvSelIdx = -1;
 rcRenderSel();
 }
 function rcDelDv(i){ rcSel.splice(i,1); rcRenderSel(); }
+function isSaDv(d){ if(!d) return false; const t = stripVN(((d.NHOM)||'')+' '+((d.TEN_DV)||'')); return t.indexOf('sieu am')!==-1 || t.indexOf('shg')!==-1; }
 function rcRenderSel(){
 const host = $('rcSelList'); if (!host) return;
 const dvs = rowsToObj('DICH_VU');
-host.innerHTML = rcSel.length ? rcSel.map((ma,i)=>{
+let html = rcSel.length ? rcSel.map((ma,i)=>{
 const d = dvs.find(x=>x.MA_DV===ma) || {TEN_DV:ma, DON_GIA:0};
 return `<div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--hair);border-radius:10px;background:#fff;margin-bottom:6px;font-size:13px;"><span style="flex:1;">✓ ${d.TEN_DV}</span><span class="num" style="font-weight:700;">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')} đ</span><button type="button" onclick="rcDelDv(${i})" style="background:none;border:none;color:var(--crit);cursor:pointer;font-size:15px;">✕</button></div>`;
 }).join('') : '<div style="font-size:12px;color:var(--ink3);margin-bottom:6px;">Chưa chọn dịch vụ nào.</div>';
+/* đơn có SIÊU ÂM → hỏi bác sĩ khám nào CHỈ ĐỊNH (BS dặn từ trước / gọi điện) — không bắt buộc */
+const hasSA = rcSel.some(ma=>isSaDv(dvs.find(x=>x.MA_DV===ma)));
+if (hasSA){
+const prevVal = ($('rcSaBs') && $('rcSaBs').value) || '';
+const saList = sieuAmBS();
+const khBs = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có' && saList.indexOf(String(b.TEN_BS).trim())===-1);
+html += `<div id="rcSaWrap" style="border:1px solid #d9cfe9;background:#f6f2fb;border-radius:8px;padding:9px 11px;margin:4px 0 8px;">
+<div style="font-size:11.5px;color:#5b4680;font-weight:600;margin-bottom:5px;">Đơn có SIÊU ÂM — bác sĩ khám nào chỉ định? (dặn từ hôm trước / gọi điện — bỏ trống nếu chưa rõ)</div>
+<select id="rcSaBs" style="width:100%;"><option value="">— chưa rõ / lễ tân tiếp nhận —</option>${khBs.map(b=>`<option value="${String(b.TEN_BS).trim()}">${String(b.TEN_BS).trim()}</option>`).join('')}</select>
+</div>`;
+host.innerHTML = html;
+if (prevVal && $('rcSaBs')) $('rcSaBs').value = prevVal;
+return;
+}
+host.innerHTML = html;
 }
 function openReception(maBN, hen){
 rcBN = maBN; rcHen = hen || null;
@@ -856,11 +873,14 @@ ver=j.v;
 // ghi các dòng Sổ khám 'Chỉ định' — SONG SONG để nhanh (mỗi dòng đã có mã riêng)
 const dvs = rowsToObj('DICH_VU');
 let base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1),10);
+const saBs = ($('rcSaBs') && $('rcSaBs').value) || '';   // BS khám đã chỉ định siêu âm (dặn trước / gọi điện)
 const skRows = dvIds.map((id,i)=>{
 const d = dvs.find(x=>x.MA_DV===id); if(!d) return null;
 const gia = Number(d.DON_GIA)||0;
+const cd = isSaDv(d) ? (saBs || bs) : bs;               // dòng siêu âm mang tên BS ra y lệnh
+const gc = isSaDv(d) ? (saBs ? ('Chỉ định của '+saBs+' — LT tiếp nhận') : 'LT tiếp nhận (BS dặn trước)') : '';
 return { MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:rcBN, TEN_DV:d.TEN_DV,
-BS_THUC_HIEN:'', BS_CHI_DINH:bs, DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:'', ANH_KET_QUA:'',
+BS_THUC_HIEN:'', BS_CHI_DINH:cd, DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:gc, ANH_KET_QUA:'',
 MA_CHO:maCho, TRANG_THAI_DV:'Chỉ định', NGUOI_XAC_NHAN:'', GIO_XAC_NHAN:'' };
 }).filter(Boolean);
 const calls = skRows.map(r=>api('append', {table:'SO_KHAM', row:r}).catch(e=>({ok:false, error:String(e&&e.message||e)})));
@@ -1337,10 +1357,17 @@ const order = queueToday().find(x=>x.MA_BN===svcBN && !['Đã thu','Hủy'].incl
 const base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1), 10);
 let okCount = 0, sum = 0;
 try{
-const rows = items.map((x,i)=>({ x, row:{ MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
+/* dòng SIÊU ÂM không được "hoàn thành" từ quầy — luôn thành CHỈ ĐỊNH để chuyển phòng siêu âm */
+const rows = items.map((x,i)=>({ x, row: isSaDv(x.d)
+? { MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
+BS_THUC_HIEN: '', BS_CHI_DINH: x.bsCd, DON_GIA: x.gia, SO_LUONG: x.qty,
+THANH_TIEN: x.tien, GHI_CHU: (who + (x.note?'. '+x.note:'')).trim(), ANH_KET_QUA: '',
+MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Chỉ định', NGUOI_XAC_NHAN:'', GIO_XAC_NHAN:'' }
+: { MA_LUOT: 'L'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_BN: svcBN, TEN_DV: x.d.TEN_DV,
 BS_THUC_HIEN: x.bsTh, BS_CHI_DINH: x.bsCd, DON_GIA: x.gia, SO_LUONG: x.qty,
 THANH_TIEN: x.tien, GHI_CHU: (who + (x.note?'. '+x.note:'')).trim(), ANH_KET_QUA: '',
 MA_CHO: order?order.MA_CHO:'', TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime() } }));
+if (items.some(x=>isSaDv(x.d))) toast('Dịch vụ SIÊU ÂM được ghi dạng CHỈ ĐỊNH — phòng siêu âm sẽ thực hiện và xác nhận');
 // ghi SONG SONG để nhanh
 const rs = await Promise.all(rows.map(r=>api('append', {table:'SO_KHAM', row:r.row}).catch(e=>({ok:false, error:String(e&&e.message||e)}))));
 rs.forEach((j,i)=>{ if (j && j.ok){ if (j.v!=null) ver = Math.max(Number(ver)||0, Number(j.v)||0); okCount++; sum += rows[i].x.tien; } });
