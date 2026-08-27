@@ -88,10 +88,25 @@ function addRow(){
     '<div><label>Liều / lần *</label><input class="tLieu" placeholder="vd 1"></div>' +
     '<div><label>Lần / ngày *</label><input class="tLan" type="number" min="1" placeholder="vd 2"></div>' +
     '<div><label>Số ngày *</label><input class="tNgay" type="number" min="1" placeholder="vd 5"></div>' +
-    '<div><label>Thời điểm dùng</label><input class="tTd" placeholder="sáng/tối, sau ăn…"></div>' +
+    '<div><label>Thời điểm dùng</label><select class="tTdSel"></select><input class="tTd" placeholder="tự ghi thời điểm…" style="display:none;margin-top:4px;"></div>' +
     '<div><label>SL (tự nhân)</label><input class="tSl" type="number" min="0"></div>' +
     '</div>';
   div.querySelector('.tThuoc').innerHTML = thuocOpts();
+  /* Thời điểm dùng: CHỌN thay vì gõ (góp ý BS Thủy) — chọn "Khác…" mới hiện ô tự ghi */
+  var TD_OPTS = ['','Sáng','Tối','Sáng & tối','Sáng, trưa, tối','Sau ăn','Sáng sau ăn','Tối sau ăn','Sáng & tối, sau ăn','Trước ăn 30 phút','Trước khi ngủ','Đặt âm đạo buổi tối, trước khi ngủ','Khi đau','Khác (tự ghi)…'];
+  var tdSel = div.querySelector('.tTdSel'), tdInp = div.querySelector('.tTd');
+  tdSel.innerHTML = TD_OPTS.map(function(o){ return '<option value="'+o+'">'+(o||'— chọn —')+'</option>'; }).join('');
+  tdSel.addEventListener('change', function(){
+    if (tdSel.value === 'Khác (tự ghi)…'){ tdInp.style.display='block'; tdInp.value=''; tdInp.focus(); }
+    else { tdInp.style.display='none'; tdInp.value = tdSel.value; }
+  });
+  /* nạp lại toa cũ (sửa toa): khớp lựa chọn có sẵn, không khớp thì về "Khác" */
+  div.syncTd = function(){
+    var v = String(tdInp.value||'').trim();
+    if (!v){ tdSel.value=''; tdInp.style.display='none'; return; }
+    if (TD_OPTS.indexOf(v) !== -1){ tdSel.value = v; tdInp.style.display='none'; }
+    else { tdSel.value = 'Khác (tự ghi)…'; tdInp.style.display='block'; }
+  };
   function upd(){
     var ma = div.querySelector('.tThuoc').value;
     var ton = TON[ma]||0, giu = DANG_SOAN[ma]||0, khaDung = ton-giu;
@@ -204,6 +219,7 @@ window.PKToa = {
           div.querySelector('.tLan').value = l.LAN_NGAY||'';
           div.querySelector('.tNgay').value = l.SO_NGAY||'';
           div.querySelector('.tTd').value = l.THOI_DIEM||'';
+          if (div.syncTd) div.syncTd();
           div.dispatchEvent(new Event('change'));
           if (l.SO_LUONG) div.querySelector('.tSl').value = l.SO_LUONG;
         });

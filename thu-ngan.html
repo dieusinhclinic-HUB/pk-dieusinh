@@ -840,8 +840,9 @@ ${topDVs(6).map(d=>`<button type="button" class="rcChip" onclick="rcDvPick('${d.
 <option value="">— Bác sĩ nào cũng được —</option>
 ${bss.map(x=>`<option value="${x.ten}">${x.label}</option>`).join('')}
 </select>
-<div class="sect-label">Ghi chú tiếp nhận</div>
-<input id="rcNote" style="width:100%;" placeholder="Tùy chọn — lý do khám, triệu chứng…" value="${rcHen&&rcHen.LY_DO?String(rcHen.LY_DO).replace(/"/g,'&quot;'):''}">`;
+<div class="sect-label">Triệu chứng lâm sàng / Lý do khám</div>
+<textarea id="rcNote" rows="2" style="width:100%;resize:vertical;" placeholder="VD: đau bụng dưới 2 ngày · trễ kinh 1 tuần · ra huyết bất thường · khám thai định kỳ…">${rcHen&&rcHen.LY_DO?String(rcHen.LY_DO).replace(/</g,'&lt;'):''}</textarea>
+<div style="font-size:11px;color:var(--ink3);margin:3px 0 8px;">Bác sĩ sẽ thấy nội dung này ngay khi mở bệnh nhân — ghi ngắn gọn, đủ ý.</div>`;
 rcRenderSel();
 if (rcHen && rcHen.BS_PHU_TRACH){
 const el = $('rcBs');

@@ -635,7 +635,8 @@ const cardBN = `<div class="card">
 </div>
 ${b.TIEN_SU?('<div class="allergy">⚠ '+b.TIEN_SU+'</div>'):''}
 </div>
-${(reqTxt||order.GHI_CHU)?`<div class="reqbox"> <b>Tiếp nhận:</b> ${reqTxt?('yêu cầu '+reqTxt):''}${order.GHI_CHU?((reqTxt?' · ':'')+order.GHI_CHU):''}${order.GIO_TIEP_NHAN?(' · lúc '+fmtT(order.GIO_TIEP_NHAN)):''}</div>`:''}
+${order.GHI_CHU?`<div class="reqbox" style="background:#fdf6e6;border-color:#ecd9a8;"><b>Triệu chứng / lý do khám:</b> ${order.GHI_CHU}</div>`:''}
+${reqTxt?`<div class="reqbox"> <b>Tiếp nhận:</b> yêu cầu ${reqTxt}${order.GIO_TIEP_NHAN?(' · lúc '+fmtT(order.GIO_TIEP_NHAN)):''}</div>`:''}
 </div></div>`;
 
 /* ---- 1b · THAI KỲ (luôn hiện với mọi bệnh nhân) ---- */
