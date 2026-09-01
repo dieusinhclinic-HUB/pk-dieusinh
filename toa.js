@@ -312,7 +312,7 @@ window.PKToa = {
       '.sig{text-align:center;width:46%;}.sig .date{font-style:italic;color:#666;font-size:11px;}' +
       '.sig .role{font-weight:bold;margin-top:2px;}.sig .name{margin-top:32px;font-weight:bold;font-size:13px;}' +
       '</style></head><body><div class="sheet">' +
-      '<div class="top"><div class="cs"><div class="nm">Phòng khám Sản Phụ khoa Diệu Sinh</div>28 Tăng Bạt Hổ, TP. Quy Nhơn, Gia Lai</div>' +
+      '<div class="top"><div class="cs"><div class="nm">Phòng khám Sản Phụ khoa Diệu Sinh</div>28 Tăng Bạt Hổ, Phường Chợ Lớn, TP. Hồ Chí Minh</div>' +
       '<div style="text-align:right;font-size:10.5px;">Mã toa: <span class="ma">'+esc(toa.MA_TOA)+'</span></div></div>' +
       '<div class="title"><b>ĐƠN THUỐC</b></div>' +
       '<div class="bn">Họ tên: <b>'+esc(String(bn.HO_TEN||toa.MA_BN).toUpperCase())+'</b>' +
