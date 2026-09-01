@@ -39,7 +39,7 @@ ovl.id = 'tkOvl';
 ovl.innerHTML = '<div class="tkM"><div class="tkH"><h3 id="tkTitle"> Kê toa thuốc</h3><button class="x" onclick="PKToa.close()">✕</button></div><div class="tkB" id="tkBody"></div><div class="tkF" id="tkFoot"></div></div>';
 document.body.appendChild(ovl);
 
-var ctx = null, THUOCS = [], TON = {}, DANG_SOAN = {};
+var ctx = null, THUOCS = [], TON = {}, DANG_SOAN = {}, DD_HIST = {};
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function obj(D,t){ var d=D&&D[t]; if(!d) return []; return d.rows.map(function(r){ var o={}; d.header.forEach(function(h,i){ o[String(h).trim()]=r[i]; }); return o; }); }
@@ -72,7 +72,11 @@ async function loadComposeData(){
   // thuốc đang nằm trong toa Chờ soạn/Đã soạn (chưa phát) → giữ chỗ
   DANG_SOAN = {};
   var toaMo = {}; obj(j.tables,'TOA_THUOC').forEach(function(t){ if (t.TRANG_THAI==='Chờ soạn'||t.TRANG_THAI==='Đã soạn') toaMo[t.MA_TOA]=1; });
-  obj(j.tables,'TOA_CT').forEach(function(c){ if (toaMo[c.MA_TOA]) DANG_SOAN[c.MA_THUOC]=(DANG_SOAN[c.MA_THUOC]||0)+(Number(c.SO_LUONG)||0); });
+  DD_HIST = {}; /* đường dùng đã kê gần nhất cho từng thuốc → gợi ý ưu tiên (máy "học" theo cách phòng khám kê) */
+  obj(j.tables,'TOA_CT').forEach(function(c){
+    if (toaMo[c.MA_TOA]) DANG_SOAN[c.MA_THUOC]=(DANG_SOAN[c.MA_THUOC]||0)+(Number(c.SO_LUONG)||0);
+    var dd = String(c.DUONG_DUNG||'').trim(); if (dd) DD_HIST[c.MA_THUOC] = dd;
+  });
   return { bacsi: obj(j.tables,'BAC_SI').filter(function(b){ return String(b.DANG_LAM_VIEC||'').trim()==='Có'; }),
            toaAll: obj(j.tables,'TOA_THUOC') };
 }
@@ -80,6 +84,7 @@ async function loadComposeData(){
 var DD_OPTS = ['Uống','Đặt âm đạo','Đặt hậu môn','Bôi ngoài','Ngâm rửa','Tiêm','Khác (tự ghi)…'];
 function goiYDuongDung(t){ /* gợi ý theo tên/ĐVT/nhóm — bác sĩ vẫn xem và đổi được */
   if (!t) return '';
+  if (DD_HIST[t.MA_THUOC]) return DD_HIST[t.MA_THUOC];
   var s = (String(t.TEN_THUOC||'')+' '+String(t.DVT||'')+' '+String(t.NHOM||'')+' '+String(t.GHI_CHU||'')).toLowerCase();
   if (/hậu môn/.test(s)) return 'Đặt hậu môn';
   if (/đặt|âm đạo|ovule|pessar/.test(s)) return 'Đặt âm đạo';
