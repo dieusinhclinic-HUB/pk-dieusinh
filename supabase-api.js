@@ -20,7 +20,7 @@ var COLS = {
   HANG_CHO:   ['MA_CHO','NGAY','STT','MA_BN','TRANG_THAI','BS_KHAM','GHI_CHU','DV_YEU_CAU','BS_YEU_CAU','MA_HEN','UU_TIEN','LY_DO_HUY','GIO_TIEP_NHAN','GIO_GOI','GIO_XONG','GIO_THU'],
   SO_KHAM:    ['MA_LUOT','NGAY','MA_BN','TEN_DV','BS_THUC_HIEN','BS_CHI_DINH','DON_GIA','SO_LUONG','THANH_TIEN','GHI_CHU','ANH_KET_QUA','MA_CHO','TRANG_THAI_DV','NGUOI_XAC_NHAN','GIO_XAC_NHAN','KET_QUA'],
   TOA_THUOC:  ['MA_TOA','NGAY','MA_CHO','MA_BN','BS_KE','NGUOI_NHAP','TRANG_THAI','MA_TT','GHI_CHU','GIO_KE','GIO_SOAN','GIO_PHAT','NGUOI_SOAN','NGUOI_PHAT'],
-  TOA_CT:     ['MA_CT','MA_TOA','MA_THUOC','TEN_THUOC','LIEU_LAN','LAN_NGAY','SO_NGAY','THOI_DIEM','SO_LUONG','SL_PHAT','DA_SOAN','DA_PHAT','GHI_CHU'],
+  TOA_CT:     ['MA_CT','MA_TOA','MA_THUOC','TEN_THUOC','LIEU_LAN','LAN_NGAY','SO_NGAY','DUONG_DUNG','THOI_DIEM','SO_LUONG','SL_PHAT','DA_SOAN','DA_PHAT','GHI_CHU'],
   THANH_TOAN: ['MA_TT','NGAY','MA_BN','TONG_HD','DA_THU','CON_LAI','HINH_THUC','THU_NGAN','GHI_CHU'],
   LICH_HEN:   ['MA_HEN','NGAY_HEN','GIO_HEN','MA_BN','LY_DO','BS_PHU_TRACH','TRANG_THAI','GHI_CHU','LOAI','TU_DONG'],
   THAI_KY:    ['MA_TK','MA_BN','KINH_CUOI','TRANG_THAI','GHI_CHU'],
@@ -94,7 +94,7 @@ window.SB_FILES = {
   }
 };
 
-window.SB_API = async function(action, extra){
+var SB_API_RAW = async function(action, extra){
   extra = extra || {};
   try{
     if (action === 'ping')    return { ok:true, app:'PK_DieuSinh_SB', v:'1.0' };
@@ -170,6 +170,23 @@ window.SB_API = async function(action, extra){
     if (/JWT|token|session|auth/i.test(m) && !(await hasSession())) return { error:'AUTH_REQUIRED' };
     return { ok:false, error: m };
   }
+};
+/* PGRST303 "JWT issued at future": đồng hồ PostgREST chậm hơn Auth vài chục giây → token MỚI cấp bị từ chối,
+   token cũ vài chục giây thì qua. Lỗi phía máy chủ Supabase, không do máy người dùng. Cách xử lý: đợi rồi gọi lại
+   (2s → 4s → 8s → 16s, tổng ~30s) — người dùng chỉ thấy "đang tải" lâu hơn một chút thay vì báo lỗi. */
+function isClockSkew(r){
+  var m = r && (r.error || '');
+  return typeof m === 'string' && /issued at future|PGRST303/i.test(m);
+}
+window.SB_API = async function(action, extra){
+  var waits = [2000, 4000, 8000, 16000];
+  var r = await SB_API_RAW(action, extra);
+  for (var i=0; i<waits.length && isClockSkew(r); i++){
+    await new Promise(function(res){ setTimeout(res, waits[i]); });
+    r = await SB_API_RAW(action, extra);
+  }
+  if (isClockSkew(r)) r = { ok:false, error:'Máy chủ đang lệch giờ tạm thời (JWT issued at future). Đợi khoảng 30 giây rồi bấm lại — dữ liệu không mất.' };
+  return r;
 };
 
 /* ==== Bổ sung TÊN HIỂN THỊ cho phiên đăng nhập cũ (trước khi có tính năng tên) ==== */

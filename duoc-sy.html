@@ -460,7 +460,7 @@ function renderToa(){
         (t.TRANG_THAI==='Chờ soạn' ? '<th class="r">Đủ hàng ✓</th>' : t.TRANG_THAI==='Đã soạn' ? '<th class="r">SL phát</th><th class="r">Đã phát ✓</th>' : '<th class="r">SL đã phát</th>') + '</tr></thead><tbody>' +
         lines.map(l=>{
           const tk = ton[String(l.MA_THUOC)]||0;
-          const lieu = `${l.LIEU_LAN}/lần × ${l.LAN_NGAY} lần/ngày × ${l.SO_NGAY} ngày${l.THOI_DIEM?(' — '+l.THOI_DIEM):''}`;
+          const lieu = `${l.DUONG_DUNG?(l.DUONG_DUNG+' '):''}${l.LIEU_LAN}/lần × ${l.LAN_NGAY} lần/ngày × ${l.SO_NGAY} ngày${l.THOI_DIEM?(' — '+l.THOI_DIEM):''}`;
           let act = '';
           if (t.TRANG_THAI==='Chờ soạn')
             act = `<td class="r"><input type="checkbox" ${String(l.DA_SOAN)==='x'?'checked':''} onchange="toaTickSoan('${l.MA_CT}', this.checked)" style="width:17px;height:17px;accent-color:#0f6e56;"></td>`;

@@ -21,7 +21,7 @@ css.textContent =
 '.tkB{padding:14px 18px;}' +
 '.tkF{padding:12px 18px;border-top:1px solid var(--hair,#e1e0d9);display:flex;gap:10px;justify-content:space-between;align-items:center;position:sticky;bottom:0;background:#fff;}' +
 '.tkRow{border:1px solid var(--hair,#e1e0d9);border-radius:12px;padding:11px;margin-bottom:9px;position:relative;background:#fcfcfb;}' +
-'.tkGrid{display:grid;grid-template-columns:2.2fr .8fr .8fr .8fr 1.2fr .8fr;gap:8px;}' +
+'.tkGrid{display:grid;grid-template-columns:2.2fr .7fr .7fr .7fr 1.1fr 1.2fr .7fr;gap:8px;}' +
 '.tkGrid label{font-size:10px;color:var(--ink3,#8a9187);font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px;}' +
 '.tkGrid input,.tkGrid select{width:100%;font-size:13px;border:1.5px solid var(--hair,#e1e0d9);border-radius:8px;padding:6px 8px;background:#fff;}' +
 '.tkTon{font-size:11px;margin-top:3px;color:var(--ink3,#8a9187);}' +
@@ -66,6 +66,8 @@ async function loadComposeData(){
   var j = await window.api('readAll', {tables:['THUOC','KHO_GD','TOA_THUOC','TOA_CT','BAC_SI']});
   if (!j || !j.ok) throw new Error((j&&j.error)||'Không tải được dữ liệu thuốc');
   THUOCS = obj(j.tables,'THUOC').filter(function(t){ return String(t.CON_AP_DUNG||'').trim()!=='Không'; });
+  /* danh mục xếp A→Z theo tên (góp ý BS Thủy) — chọn thuốc nhanh hơn */
+  THUOCS.sort(function(a,b){ return String(a.TEN_THUOC||'').localeCompare(String(b.TEN_THUOC||''), 'vi', {sensitivity:'base'}); });
   TON = tinhTon(obj(j.tables,'KHO_GD'));
   // thuốc đang nằm trong toa Chờ soạn/Đã soạn (chưa phát) → giữ chỗ
   DANG_SOAN = {};
@@ -73,6 +75,19 @@ async function loadComposeData(){
   obj(j.tables,'TOA_CT').forEach(function(c){ if (toaMo[c.MA_TOA]) DANG_SOAN[c.MA_THUOC]=(DANG_SOAN[c.MA_THUOC]||0)+(Number(c.SO_LUONG)||0); });
   return { bacsi: obj(j.tables,'BAC_SI').filter(function(b){ return String(b.DANG_LAM_VIEC||'').trim()==='Có'; }),
            toaAll: obj(j.tables,'TOA_THUOC') };
+}
+/* Đường dùng — in rõ trên toa thay chữ "Dùng" (góp ý BS Thủy) */
+var DD_OPTS = ['Uống','Đặt âm đạo','Đặt hậu môn','Bôi ngoài','Ngâm rửa','Tiêm','Khác (tự ghi)…'];
+function goiYDuongDung(t){ /* gợi ý theo tên/ĐVT/nhóm — bác sĩ vẫn xem và đổi được */
+  if (!t) return '';
+  var s = (String(t.TEN_THUOC||'')+' '+String(t.DVT||'')+' '+String(t.NHOM||'')+' '+String(t.GHI_CHU||'')).toLowerCase();
+  if (/hậu môn/.test(s)) return 'Đặt hậu môn';
+  if (/đặt|âm đạo|ovule|pessar/.test(s)) return 'Đặt âm đạo';
+  if (/ngâm|rửa|vệ sinh|dung dịch vs/.test(s)) return 'Ngâm rửa';
+  if (/bôi|kem|gel|thoa|tuýp|tube|cream|mỡ/.test(s)) return 'Bôi ngoài';
+  if (/tiêm|ống tiêm|inj|ampoule/.test(s)) return 'Tiêm';
+  if (/viên|gói|siro|nang|chai uống|ml/.test(s)) return 'Uống';
+  return '';
 }
 function thuocOpts(){
   return '<option value="">— chọn thuốc —</option>' + THUOCS.map(function(t){
@@ -88,12 +103,34 @@ function addRow(){
     '<div><label>Liều / lần *</label><input class="tLieu" placeholder="vd 1"></div>' +
     '<div><label>Lần / ngày *</label><input class="tLan" type="number" min="1" placeholder="vd 2"></div>' +
     '<div><label>Số ngày *</label><input class="tNgay" type="number" min="1" placeholder="vd 5"></div>' +
+    '<div><label>Đường dùng *</label><select class="tDdSel"></select><input class="tDd" placeholder="tự ghi đường dùng…" style="display:none;margin-top:4px;"></div>' +
     '<div><label>Thời điểm dùng</label><select class="tTdSel"></select><input class="tTd" placeholder="tự ghi thời điểm…" style="display:none;margin-top:4px;"></div>' +
     '<div><label>SL (tự nhân)</label><input class="tSl" type="number" min="0"></div>' +
     '</div>';
   div.querySelector('.tThuoc').innerHTML = thuocOpts();
   /* Thời điểm dùng: CHỌN thay vì gõ (góp ý BS Thủy) — chọn "Khác…" mới hiện ô tự ghi */
-  var TD_OPTS = ['','Sáng','Tối','Sáng & tối','Sáng, trưa, tối','Sau ăn','Sáng sau ăn','Tối sau ăn','Sáng & tối, sau ăn','Trước ăn 30 phút','Trước khi ngủ','Đặt âm đạo buổi tối, trước khi ngủ','Khi đau','Khác (tự ghi)…'];
+  var TD_OPTS = ['','Sáng','Tối','Sáng & tối','Sáng, trưa, tối','Sau ăn','Sáng sau ăn','Tối sau ăn','Sáng & tối, sau ăn','Trước ăn 30 phút','Trước khi ngủ','Tối, trước khi ngủ','Khi đau','Khác (tự ghi)…'];
+  /* Đường dùng: chọn từ danh sách; đổi thuốc → gợi ý lại (chỉ khi ô còn trống hoặc đang là gợi ý máy) */
+  var ddSel = div.querySelector('.tDdSel'), ddInp = div.querySelector('.tDd'), ddAuto = '';
+  ddSel.innerHTML = '<option value="">— chọn —</option>' + DD_OPTS.map(function(o){ return '<option value="'+o+'">'+o+'</option>'; }).join('');
+  ddSel.addEventListener('change', function(){
+    if (ddSel.value === 'Khác (tự ghi)…'){ ddInp.style.display='block'; ddInp.value=''; ddInp.focus(); }
+    else { ddInp.style.display='none'; ddInp.value = ddSel.value; }
+    ddAuto = '';
+  });
+  div.syncDd = function(){
+    var v = String(ddInp.value||'').trim();
+    if (!v){ ddSel.value=''; ddInp.style.display='none'; return; }
+    if (DD_OPTS.indexOf(v) !== -1){ ddSel.value = v; ddInp.style.display='none'; }
+    else { ddSel.value = 'Khác (tự ghi)…'; ddInp.style.display='block'; }
+  };
+  div.querySelector('.tThuoc').addEventListener('change', function(){
+    var cur = String(ddInp.value||'').trim();
+    if (cur && cur !== ddAuto) return; // bác sĩ đã tự chọn → không đè
+    var ma = div.querySelector('.tThuoc').value;
+    var t = THUOCS.find(function(x){ return String(x.MA_THUOC)===ma; });
+    ddAuto = goiYDuongDung(t); ddInp.value = ddAuto; div.syncDd();
+  });
   var tdSel = div.querySelector('.tTdSel'), tdInp = div.querySelector('.tTd');
   tdSel.innerHTML = TD_OPTS.map(function(o){ return '<option value="'+o+'">'+(o||'— chọn —')+'</option>'; }).join('');
   tdSel.addEventListener('change', function(){
@@ -137,9 +174,11 @@ function readRows(){
     var lan = Number(div.querySelector('.tLan').value)||0;
     var ngay = Number(div.querySelector('.tNgay').value)||0;
     var sl = Number(div.querySelector('.tSl').value)||0;
+    var dd = String(div.querySelector('.tDd').value).trim();
     if (!lieu || !lan || !ngay){ err = 'Dòng '+(idx+1)+' ('+t.TEN_THUOC+'): phải nhập đủ liều/lần, lần/ngày và số ngày — hệ thống không tự điền liều.'; }
+    if (!dd){ err = err || ('Dòng '+(idx+1)+' ('+t.TEN_THUOC+'): chọn đường dùng (uống / đặt âm đạo / đặt hậu môn / bôi ngoài / ngâm rửa).'); }
     if (!sl){ err = err || ('Dòng '+(idx+1)+': số lượng chưa có.'); }
-    out.push({ ma:ma, ten:t.TEN_THUOC, lieu:lieu, lan:lan, ngay:ngay, td:String(div.querySelector('.tTd').value).trim(), sl:sl });
+    out.push({ ma:ma, ten:t.TEN_THUOC, lieu:lieu, lan:lan, ngay:ngay, td:String(div.querySelector('.tTd').value).trim(), dd:dd, sl:sl });
   });
   return {rows:out, err:err};
 }
@@ -166,7 +205,7 @@ async function save(){
     if (!j || !j.ok) throw new Error((j&&j.error)||'lỗi');
     var calls = r.rows.map(function(x,i){
       return window.api('append', {table:'TOA_CT', row:{ MA_CT:maToa+'-'+(i+1), MA_TOA:maToa, MA_THUOC:x.ma, TEN_THUOC:x.ten,
-        LIEU_LAN:x.lieu, LAN_NGAY:x.lan, SO_NGAY:x.ngay, THOI_DIEM:x.td, SO_LUONG:x.sl, SL_PHAT:0, DA_SOAN:'', DA_PHAT:'', GHI_CHU:'' }})
+        LIEU_LAN:x.lieu, LAN_NGAY:x.lan, SO_NGAY:x.ngay, DUONG_DUNG:x.dd, THOI_DIEM:x.td, SO_LUONG:x.sl, SL_PHAT:0, DA_SOAN:'', DA_PHAT:'', GHI_CHU:'' }})
         .catch(function(e){ return {ok:false}; });
     });
     var rs = await Promise.all(calls);
@@ -220,7 +259,9 @@ window.PKToa = {
           div.querySelector('.tNgay').value = l.SO_NGAY||'';
           div.querySelector('.tTd').value = l.THOI_DIEM||'';
           if (div.syncTd) div.syncTd();
-          div.dispatchEvent(new Event('change'));
+          div.querySelector('.tDd').value = l.DUONG_DUNG||'';
+          if (div.syncDd) div.syncDd();
+          div.querySelector('.tThuoc').dispatchEvent(new Event('change', {bubbles:true}));
           if (l.SO_LUONG) div.querySelector('.tSl').value = l.SO_LUONG;
         });
         if (o.ghiChuCu) document.getElementById('tkGc').value = o.ghiChuCu;
@@ -235,11 +276,12 @@ window.PKToa = {
 
   /* ---------- IN TOA (A5 — theo Phụ lục I TT 26/2025) ---------- */
   printToa: async function(maToa){
-    var j = await window.api('readAll', {tables:['TOA_THUOC','TOA_CT','BENH_NHAN']});
-    if (!j || !j.ok){ alert('Không tải được toa.'); return; }
+    var j = await window.api('readAll', {tables:['TOA_THUOC','TOA_CT','BENH_NHAN','THUOC']});
+    if (!j || !j.ok){ alert('Không tải được toa: '+((j&&j.error)||'')); return; }
     var toa = obj(j.tables,'TOA_THUOC').find(function(t){ return t.MA_TOA===maToa; });
     if (!toa){ alert('Không tìm thấy toa '+maToa); return; }
-    var lines = obj(j.tables,'TOA_CT').filter(function(c){ return c.MA_TOA===maToa; });
+    var dvt = {}; obj(j.tables,'THUOC').forEach(function(t){ dvt[t.MA_THUOC] = t.DVT||''; });
+    var lines = obj(j.tables,'TOA_CT').filter(function(c){ return c.MA_TOA===maToa; }).map(function(c){ c._DVT = dvt[c.MA_THUOC]||''; return c; });
     var bn = obj(j.tables,'BENH_NHAN').find(function(b){ return b.MA_BN===toa.MA_BN; }) || {};
     PKToa.printData(toa, lines, bn);
   },
@@ -265,7 +307,7 @@ window.PKToa = {
       '.sig{text-align:center;width:46%;}.sig .date{font-style:italic;color:#666;font-size:11px;}' +
       '.sig .role{font-weight:bold;margin-top:2px;}.sig .name{margin-top:32px;font-weight:bold;font-size:13px;}' +
       '</style></head><body><div class="sheet">' +
-      '<div class="top"><div class="cs"><div class="nm">Phòng khám chuyên khoa Diệu Sinh</div>28 Tăng Bạt Hổ, TP. Quy Nhơn, Gia Lai<br>Chuyên khoa Sản — Phụ khoa</div>' +
+      '<div class="top"><div class="cs"><div class="nm">Phòng khám Sản Phụ khoa Diệu Sinh</div>28 Tăng Bạt Hổ, TP. Quy Nhơn, Gia Lai</div>' +
       '<div style="text-align:right;font-size:10.5px;">Mã toa: <span class="ma">'+esc(toa.MA_TOA)+'</span></div></div>' +
       '<div class="title"><b>ĐƠN THUỐC</b></div>' +
       '<div class="bn">Họ tên: <b>'+esc(String(bn.HO_TEN||toa.MA_BN).toUpperCase())+'</b>' +
@@ -275,8 +317,14 @@ window.PKToa = {
       '<ol>' + lines.map(function(l){
         var sl = Number(l.SO_LUONG)||0;
         var slTxt = (sl<10?('0'+sl):String(sl));
+        /* "Uống 1 viên/lần × 2 lần/ngày, trong 5 ngày — Sáng & tối." — đường dùng in rõ thay chữ "Dùng" */
+        var dd = String(l.DUONG_DUNG||'').trim() || 'Dùng';
+        var lieu = String(l.LIEU_LAN||'').trim();
+        var u = String(l._DVT||'').trim().toLowerCase();
+        if (/^đặt/i.test(dd)) u = u.replace(/\s*đặt\b/,'').trim(); /* "Đặt âm đạo 1 viên/lần" thay "1 viên đặt/lần" */
+        if (/^[\d.,\/½¼]+$/.test(lieu) && u) lieu += ' ' + u; /* liều chỉ ghi số → thêm đơn vị (viên, gói…) */
         return '<li><span class="ten">'+esc(l.TEN_THUOC)+'</span> <span class="sl">SL: '+slTxt+'</span><br>' +
-          '<span class="cach">Dùng '+esc(l.LIEU_LAN)+'/lần × '+esc(l.LAN_NGAY)+' lần/ngày, trong '+esc(l.SO_NGAY)+' ngày' +
+          '<span class="cach"><b>'+esc(dd)+'</b> '+esc(lieu)+'/lần × '+esc(l.LAN_NGAY)+' lần/ngày, trong '+esc(l.SO_NGAY)+' ngày' +
           (l.THOI_DIEM?(' — '+esc(l.THOI_DIEM)):'') + '.</span></li>';
       }).join('') + '</ol>' +
       (toa.GHI_CHU?('<div class="loidan"><b><u>Lời dặn:</u></b> '+esc(toa.GHI_CHU)+' <i>Đơn có giá trị lấy thuốc trong 05 ngày kể từ ngày kê.</i></div>'):'<div class="loidan"><i>Đơn có giá trị lấy thuốc trong 05 ngày kể từ ngày kê.</i></div>') +
