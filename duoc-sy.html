@@ -167,6 +167,21 @@
         </div>
         <div class="hint">Tồn = Tồn đầu + Nhập − Xuất ± Kiểm kê. Đỏ = tồn ≤ mức tối thiểu. Bấm / để nhập/xuất nhanh thuốc đó.</div>
       </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="sect">Thêm thuốc mới vào danh mục</div>
+        <div class="fgrid">
+          <div class="full"><label>Tên thuốc *</label><input id="tNewTen" placeholder="vd: Duphaston 10mg"></div>
+          <div><label>Đơn vị tính</label><input id="tNewDvt" placeholder="Viên, Gói, Tuýp, Chai…"></div>
+          <div><label>Nhóm</label><input id="tNewNhom" placeholder="vd: Nội tiết, Kháng sinh, Đặt"></div>
+          <div><label>Giá bán (đ)</label><input id="tNewGia" type="number" min="0" placeholder="vd 10000"></div>
+          <div><label>Giá vốn (đ) — tùy chọn</label><input id="tNewVon" type="number" min="0"></div>
+          <div><label>Tồn tối thiểu (cảnh báo)</label><input id="tNewMin" type="number" min="0" value="0"></div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
+          <button class="btn btn-brand" onclick="thuocAdd()">Thêm thuốc</button>
+          <span class="hint" style="margin:0;">Thêm xong hệ thống mở sẵn form NHẬP KHO để ghi tồn ban đầu. Chưa có giá bán thì khi thanh toán thuốc này tính 0đ.</span>
+        </div>
+      </div>
     </div>
 
     <!-- ===== GIAO DỊCH ===== -->
@@ -659,6 +674,26 @@ async function vtAdd(){
   const j = await api('append', {table:'VAT_TU', row});
   if (j.ok){ ver=j.v; toast('✓ Đã thêm <b>'+ten+'</b> ('+row.MA_VT+') — giờ ghi Nhập để có tồn'); $('vtNewTen').value=''; $('vtNewDvt').value=''; $('vtNewNhom').value=''; $('vtNewMin').value=0; loadAll(true); }
   else toast('⚠ '+(j.error||'lỗi'));
+}
+async function thuocAdd(){
+  const ten = $('tNewTen').value.trim();
+  if (!ten){ toast('⚠ Nhập tên thuốc'); return; }
+  const trung = drugList().find(t=>strip(t.TEN_THUOC)===strip(ten));
+  if (trung && !confirm('Đã có thuốc tên gần giống: '+trung.TEN_THUOC+' ('+trung.MA_THUOC+').\nVẫn thêm thuốc MỚI?')) return;
+  const row = { MA_THUOC: nextId('T',3,'THUOC','MA_THUOC'), TEN_THUOC: ten, HOAT_CHAT:'',
+    DVT: $('tNewDvt').value.trim(), NHOM: $('tNewNhom').value.trim(),
+    GIA_VON: Number($('tNewVon').value)||0, GIA_BAN: Number($('tNewGia').value)||0,
+    TON_TOI_THIEU: Number($('tNewMin').value)||0, CON_AP_DUNG:'Có',
+    GHI_CHU: 'Thêm '+todayStr()+' bởi '+(me?me.email.split('@')[0]:''), MA_VACH:'' };
+  const j = await api('append', {table:'THUOC', row});
+  if (j.ok){
+    ver = j.v;
+    toast('✓ Đã thêm <b>'+ten+'</b> ('+row.MA_THUOC+') — ghi NHẬP để có tồn kho'+(row.GIA_BAN?'':' · <b>chưa có giá bán</b>'));
+    ['tNewTen','tNewDvt','tNewNhom','tNewGia','tNewVon'].forEach(id=>$(id).value='');
+    $('tNewMin').value = 0;
+    await loadAll(true);
+    quickGd(row.MA_THUOC, 'Nhập');
+  } else toast('⚠ '+(j.error||'lỗi'));
 }
 function renderVtLs(){
   const box = $('vtLsBox'); if (!box) return;
