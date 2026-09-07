@@ -285,3 +285,27 @@ window.SB_API = async function(action, extra){
   }, 600);
 })();
 })();
+
+/* ==== BÁO CÓ BẢN CẬP NHẬT ====
+   Mỗi lần publish, version.json được tăng số. Trang đang mở kiểm tra 5 phút/lần;
+   thấy số khác lúc mở trang → hiện nút "Có bản cập nhật" — bấm mới tải lại, KHÔNG tự reload giữa lúc đang làm việc. */
+(function(){
+  if (window.top !== window) return;               // trong iframe (Bàn thư ký) thì trang cha lo
+  var v0 = null;
+  function check(){
+    fetch('version.json?ts='+Date.now(), {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){
+      if (!j || !j.v) return;
+      if (v0 === null){ v0 = j.v; return; }
+      if (j.v !== v0 && !document.getElementById('pkUpd')){
+        var b = document.createElement('div');
+        b.id = 'pkUpd';
+        b.innerHTML = 'Hệ thống có bản cập nhật mới &nbsp;<button id="pkUpdGo" style="border:none;border-radius:8px;padding:7px 14px;font-weight:800;cursor:pointer;background:#fff;color:#0C4F44;">Cập nhật ngay</button>';
+        b.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:9999;background:#0C4F44;color:#fff;font-size:13.5px;font-weight:600;padding:11px 14px;border-radius:12px;box-shadow:0 10px 26px rgba(10,60,45,.35);display:flex;align-items:center;gap:6px;font-family:inherit;';
+        document.body.appendChild(b);
+        document.getElementById('pkUpdGo').onclick = function(){ location.reload(); };
+      }
+    }).catch(function(){});
+  }
+  check();
+  setInterval(check, 5*60*1000);
+})();
