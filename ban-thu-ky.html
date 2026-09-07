@@ -177,6 +177,7 @@ td{padding:8px;border-bottom:1px solid #eeeee9;vertical-align:middle;}
 <div id="skSel" class="empty" style="margin-top:6px;">Chưa chọn bệnh nhân.</div>
 <div class="sect-label">Chỉ định dịch vụ</div>
 <div class="frow">
+<div class="f" style="flex:1;"><label>Nhóm dịch vụ</label><select id="skNhom" onchange="skFillDv()"></select></div>
 <div class="f" style="flex:2;"><label>Dịch vụ</label><select id="skDv"></select></div>
 <div class="f"><label>SL</label><input type="number" id="skQty" value="1" min="1"></div>
 <div class="f"><label>BS thực hiện</label><select id="skBsTh"></select></div>
@@ -380,8 +381,28 @@ function fillSelects(){
 const bss = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
 const bsOpts = '<option value="">—</option>' + bss.map(b=>`<option>${b.TEN_BS}</option>`).join('');
 ['skBsTh','skBsCd','lhBs','kdBs'].forEach(id=>$(id).innerHTML=bsOpts);
-const dvs = rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không');
-$('skDv').innerHTML = dvs.map(d=>`<option value="${d.MA_DV}">${d.TEN_DV} — ${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}đ</option>`).join('');
+/* chọn theo nhóm (giống bàn khám): Nhóm → Dịch vụ; Xét nghiệm chia nhóm nhỏ */
+const curN = $('skNhom').value;
+$('skNhom').innerHTML = '<option value="">— Nhóm —</option>' + ['Khám','Siêu âm','Xét nghiệm','Thủ thuật'].map(g=>`<option${g===curN?' selected':''}>${g}</option>`).join('');
+skFillDv();
+}
+function skFillDv(){
+const g = $('skNhom').value;
+const cur = $('skDv').value;
+if (!g){ $('skDv').innerHTML = '<option value="">— chọn nhóm trước —</option>'; return; }
+const list = rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không' && String(d.NHOM||'').trim()===g)
+  .sort((a,b)=>String(a.TEN_DV).localeCompare(String(b.TEN_DV),'vi',{sensitivity:'base'}));
+const opt = d=>`<option value="${d.MA_DV}">${d.TEN_DV} — ${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}đ</option>`;
+let html = '<option value="">— Chọn dịch vụ ('+list.length+') —</option>';
+if (g === 'Xét nghiệm'){
+  const subs = {};
+  list.forEach(d=>{ const m = String(d.GHI_CHU||'').match(/Bảng giá 2026 — (.+)$/); const k = m ? m[1].trim() : 'Thường dùng'; (subs[k]=subs[k]||[]).push(d); });
+  const order = ['Thường dùng','Huyết học','Đông máu','Sinh hoá','Miễn dịch','Viêm','Sốt xuất huyết','Nước tiểu','Tuyến giáp','Nội tiết','Xương khớp – Tim Mạch','Dấu ấn ung thư','Tiền sản'];
+  Object.keys(subs).sort((a,b)=>{ const ia=order.indexOf(a), ib=order.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); })
+    .forEach(k=>{ html += '<optgroup label="'+k+'">' + subs[k].map(opt).join('') + '</optgroup>'; });
+} else html += list.map(opt).join('');
+$('skDv').innerHTML = html;
+if (cur && list.some(d=>d.MA_DV===cur)) $('skDv').value = cur;
 }
 
 /* ================== TIỆN ÍCH ================== */

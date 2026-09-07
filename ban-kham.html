@@ -87,6 +87,10 @@ header.bar .sub{font-size:12px;opacity:.85;}
 /* dịch vụ */
 .wscol{display:flex;flex-direction:column;gap:12px;min-width:0;}
 .dvchips{display:flex;gap:7px;flex-wrap:wrap;}
+.dvpickrow{display:flex;gap:8px;flex-wrap:wrap;}
+.dvpickrow select{flex:1;min-width:180px;font-size:13px;border:1.5px solid var(--brand3);border-radius:10px;padding:8px 10px;background:#fff;font-weight:600;}
+#dvNhom{flex:0 0 190px;}
+.dvsearchwrap input{width:100%;}
 .dvsearchwrap{position:relative;}
 .dvsearchwrap input{width:100%;padding:11px 13px;font-size:14px;border-radius:11px;}
 .dvsug{position:absolute;top:calc(100% - 2px);left:0;right:0;background:#fff;border:1.5px solid var(--brand3);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 12px 28px rgba(10,82,64,.14);z-index:80;max-height:300px;overflow:auto;display:none;}
@@ -679,8 +683,12 @@ const cardDV = `<div class="card">
 <div class="hd"><h2> Dịch vụ & chỉ định</h2><div class="spacer"></div><span class="num" style="font-size:14.5px;font-weight:800;color:var(--brand);">${fmtD(total)}</span></div>
 <div class="bd">
 ${linesHtml || '<div class="empty">Chưa có dịch vụ — tìm và thêm bên dưới.</div>'}
-<div class="dvsearchwrap" style="margin-top:11px;">
-<input id="dvSearch" placeholder=" Tìm dịch vụ — gõ vài chữ, Enter để thêm (vd: sieu am, kham thai…)" autocomplete="off"
+<div class="dvpickrow" style="margin-top:11px;">
+<select id="dvNhom" onchange="dvNhomChange(this.value)">${dvNhomOpts()}</select>
+<select id="dvItem" onchange="if(this.value){addLine(this.value);this.value='';}">${dvItemOpts()}</select>
+</div>
+<div class="dvsearchwrap" style="margin-top:8px;">
+<input id="dvSearch" placeholder="… hoặc gõ tìm nhanh" autocomplete="off"
  oninput="dvSuggest()" onkeydown="dvKey(event)" onfocus="dvSuggest()" onblur="setTimeout(dvHide,180)" value="${dvQuery.replace(/"/g,'&quot;')}">
 <div class="dvsug" id="dvSug"></div>
 </div>
@@ -737,6 +745,34 @@ else toast('⚠ '+(j.error||'lỗi'));
 let dvQuery='', dvSel=-1;
 function normVN(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u0111/g,'d').replace(/\u0110/g,'d').toLowerCase(); }
 function dvAll(){ return rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không'); }
+/* ===== chọn theo NHÓM (yêu cầu bác sĩ): dropdown Nhóm → dropdown Dịch vụ; Xét nghiệm chia nhóm nhỏ ===== */
+let dvNhomSel = '';
+const DV_NHOMS = ['Khám','Siêu âm','Xét nghiệm','Thủ thuật'];
+function dvNhomOpts(){
+  return '<option value="">— Nhóm dịch vụ —</option>' + DV_NHOMS.map(g=>`<option${g===dvNhomSel?' selected':''}>${g}</option>`).join('');
+}
+function dvSubOf(d){ const m = String(d.GHI_CHU||'').match(/Bảng giá 2026 — (.+)$/); return m ? m[1].trim() : ''; }
+function dvItemOpts(){
+  if (!dvNhomSel) return '<option value="">— chọn nhóm trước —</option>';
+  const list = dvAll().filter(d=>String(d.NHOM||'').trim()===dvNhomSel)
+    .sort((a,b)=>String(a.TEN_DV).localeCompare(String(b.TEN_DV),'vi',{sensitivity:'base'}));
+  const opt = d=>`<option value="${d.MA_DV}">${d.TEN_DV} — ${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}đ</option>`;
+  let html = '<option value="">— Chọn dịch vụ ('+list.length+') —</option>';
+  if (dvNhomSel === 'Xét nghiệm'){
+    const subs = {};
+    list.forEach(d=>{ const g = dvSubOf(d) || 'Thường dùng'; (subs[g]=subs[g]||[]).push(d); });
+    const order = ['Thường dùng','Huyết học','Đông máu','Sinh hoá','Miễn dịch','Viêm','Sốt xuất huyết','Nước tiểu','Tuyến giáp','Nội tiết','Xương khớp – Tim Mạch','Dấu ấn ung thư','Tiền sản'];
+    Object.keys(subs).sort((a,b)=>{ const ia=order.indexOf(a), ib=order.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); })
+      .forEach(g=>{ html += '<optgroup label="'+g+'">' + subs[g].map(opt).join('') + '</optgroup>'; });
+  } else {
+    html += list.map(opt).join('');
+  }
+  return html;
+}
+function dvNhomChange(v){
+  dvNhomSel = v;
+  const el = $('dvItem'); if (el) el.innerHTML = dvItemOpts();
+}
 function dvMatches(){
 const q = normVN(dvQuery).trim();
 if (!q) return [];
