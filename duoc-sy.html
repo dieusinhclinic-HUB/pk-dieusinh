@@ -51,6 +51,11 @@
   .ttabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
   .ttab{border:1.5px solid var(--hair);background:#fff;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink2);}
   .ttab.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .stab{border:none;background:transparent;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink3);}
+  .stab.on{background:var(--brand-soft,#e4efe9);color:var(--brand);}
+  #scanOvl{position:fixed;inset:0;background:rgba(20,30,25,.5);display:none;align-items:flex-start;justify-content:center;z-index:400;padding:40px 16px;}
+  #scanOvl.on{display:flex;}
+  #scanOvl .card{width:min(760px,100%);max-height:85vh;overflow:auto;}
   .tpane{display:none;}
   .tpane.on{display:block;}
   .card{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:14px 16px;margin-bottom:14px;}
@@ -131,16 +136,13 @@
       <div class="kpi warn"><div class="v num" id="kpiLow">0</div><div class="l">Sắp hết / hết hàng</div></div>
     </div>
 
-    <div class="ttabs">
-      <button class="ttab on" data-p="paneToa"> Toa thuốc <span id="toaBadge"></span></button>
-      <button class="ttab" data-p="paneToaHx"> Toa đã phát</button>
-      <button class="ttab" data-p="paneTon"> Tồn kho</button>
-      <button class="ttab" data-p="paneGd">↕ Nhập / Xuất / Kiểm kê</button>
-      <button class="ttab" data-p="paneVt"> Vật tư</button>
-      <button class="ttab" data-p="paneScan"> Quét mã</button>
-      <button class="ttab" data-p="paneTb"> Thiết bị</button>
-      <button class="ttab" data-p="paneLs"> Lịch sử</button>
+    <div class="ttabs" id="mainTabs">
+      <button class="ttab on" data-g="gToa">Toa thuốc <span id="toaBadge"></span></button>
+      <button class="ttab" data-g="gKho">Kho — Thuốc &amp; Vật tư</button>
+      <button class="ttab" data-g="gTb">Thiết bị</button>
+      <button class="ttab" id="scanOpenBtn" onclick="scanOpen()" style="margin-left:auto;border-style:dashed;">▦ Quét mã</button>
     </div>
+    <div class="ttabs" id="subTabs" style="margin-top:-4px;"></div>
 
     <!-- ===== TOA THUỐC ===== -->
     <div class="tpane on" id="paneToa">
@@ -248,15 +250,19 @@
     </div>
 
     <!-- ===== QUÉT MÃ VẠCH ===== -->
-    <div class="tpane" id="paneScan">
+    <div id="scanOvl" onclick="if(event.target===this) scanClose()">
       <div class="card">
-        <div class="sect"> Quét mã vạch — cắm súng quét USB là dùng được ngay (súng gõ mã như bàn phím)</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <div class="sect" style="margin-bottom:0;flex:1;">Quét mã vạch — cắm súng quét USB là dùng được ngay</div>
+          <button class="qbtn" onclick="scanClose()">✕ Đóng</button>
+        </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
           <div style="display:flex;border:1.5px solid var(--brand3);border-radius:10px;overflow:hidden;">
-            <button id="scanModeX" class="ttab on" style="border:none;border-radius:0;" onclick="scanMode('Xuất')"> XUẤT kho</button>
-            <button id="scanModeN" class="ttab" style="border:none;border-radius:0;" onclick="scanMode('Nhập')"> NHẬP kho</button>
+            <button id="scanModeT" class="ttab on" style="border:none;border-radius:0;" onclick="scanMode('Tra')">TRA CỨU</button>
+            <button id="scanModeN" class="ttab" style="border:none;border-radius:0;" onclick="scanMode('Nhập')">NHẬP kho</button>
+            <button id="scanModeX" class="ttab" style="border:none;border-radius:0;" onclick="scanMode('Xuất')">XUẤT kho</button>
           </div>
-          <span class="hint" style="flex:1;">Mỗi lần quét = +1 đơn vị (sửa được bên dưới), bấm nút xác nhận khi xong. Quét tem THIẾT BỊ (serial hoặc mã TB) → mở thẳng hồ sơ máy.</span>
+          <span class="hint" style="flex:1;">Chọn VIỆC CẦN LÀM trước rồi mới quét, hệ thống không tự đoán. TRA CỨU chỉ xem tồn — không ghi gì. Quét tem THIẾT BỊ → mở hồ sơ máy (mọi chế độ).</span>
         </div>
         <input id="scanIn" placeholder=" Bấm vào đây rồi quét — hoặc gõ mã vạch và Enter" autocomplete="off"
           style="width:100%;font-size:17px;padding:13px 15px;border:2px solid var(--brand3);border-radius:12px;font-weight:700;"
@@ -269,8 +275,9 @@
             <button class="qbtn" onclick="$('scanLink').style.display='none'">Bỏ qua</button>
           </div>
         </div>
+        <div id="scanInfo" style="margin-top:12px;"></div>
         <div id="scanList" style="margin-top:12px;"></div>
-        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;">
+        <div id="scanFoot" style="margin-top:12px;display:flex;gap:10px;align-items:center;">
           <button class="btn btn-brand" id="scanGo" onclick="scanConfirm()">✓ Ghi 0 giao dịch</button>
           <button class="btn btn-ghost" onclick="scanPending={};renderScan();">Xóa danh sách</button>
         </div>
@@ -374,13 +381,8 @@ window.addEventListener('load', () => {
   const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
   setTimeout(()=>clearInterval(t), 10000);
   $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
-  document.querySelectorAll('.ttab').forEach(b=>b.addEventListener('click',()=>{
-    if (!b.dataset.p) return; // nút phụ (vd chế độ quét) không phải tab
-    document.querySelectorAll('.ttab[data-p]').forEach(x=>x.classList.remove('on'));
-    document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on'); $(b.dataset.p).classList.add('on');
-    if (b.dataset.p === 'paneScan'){ setTimeout(()=>{ const el=$('scanIn'); if(el) el.focus(); }, 60); }
-  }));
+  document.querySelectorAll('#mainTabs .ttab[data-g]').forEach(b=>b.addEventListener('click',()=>showGroup(b.dataset.g)));
+  showGroup('gToa');
   tryResume();
 });
 async function onCredential(resp){
@@ -617,10 +619,7 @@ function fillVgSelect(){
   if (cur) el.value = cur;
 }
 function quickVg(ma, loai){
-  document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
-  document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
-  document.querySelector('.ttab[data-p="paneVt"]').classList.add('on');
-  $('paneVt').classList.add('on');
+  showPane('paneVt');
   $('vgVt').value = ma; $('vgLoai').value = loai; vgInfo();
   $('vgSl').focus();
 }
@@ -861,14 +860,56 @@ async function tbAdd(){
 }
 
 /* ================== QUÉT MÃ VẠCH ================== */
-let scanPending = {}, scanDir = 'Xuất', scanLastCode = '';
+/* ===== 3 TAB CHÍNH — mỗi tab gom các mục con cùng chủ đề ===== */
+const TAB_GROUPS = {
+  gToa: [['paneToa','Toa hôm nay'],['paneToaHx','Toa đã phát']],
+  gKho: [['paneTon','Tồn kho thuốc'],['paneGd','Nhập / Xuất / Kiểm kê'],['paneVt','Vật tư'],['paneLs','Lịch sử giao dịch']],
+  gTb:  [['paneTb','Thiết bị']]
+};
+function groupOf(p){ for (const g in TAB_GROUPS) if (TAB_GROUPS[g].some(x=>x[0]===p)) return g; return 'gToa'; }
+function showGroup(g, pane){
+  const panes = TAB_GROUPS[g] || TAB_GROUPS.gToa;
+  const p = pane || panes[0][0];
+  document.querySelectorAll('#mainTabs .ttab[data-g]').forEach(x=>x.classList.toggle('on', x.dataset.g===g));
+  const st = $('subTabs');
+  st.style.display = panes.length>1 ? '' : 'none';
+  st.innerHTML = panes.map(x=>`<button class="stab${x[0]===p?' on':''}" onclick="showGroup('${g}','${x[0]}')">${x[1]}</button>`).join('');
+  document.querySelectorAll('.tpane').forEach(x=>x.classList.toggle('on', x.id===p));
+}
+function showPane(p){ showGroup(groupOf(p), p); }
+
+/* ===== QUÉT MÃ — cửa sổ nổi, mở bằng nút hoặc quét thẳng từ bất kỳ đâu ===== */
+let scanPending = {}, scanDir = 'Tra', scanLastCode = '';
+function scanOpen(mode){
+  $('scanOvl').classList.add('on');
+  scanMode(mode || scanDir || 'Tra');
+}
+function scanClose(){ $('scanOvl').classList.remove('on'); $('scanLink').style.display='none'; }
 function scanMode(m){
   scanDir = m;
+  $('scanModeT').classList.toggle('on', m==='Tra');
   $('scanModeX').classList.toggle('on', m==='Xuất');
   $('scanModeN').classList.toggle('on', m==='Nhập');
   renderScan();
   $('scanIn').focus();
 }
+/* Súng quét gõ như bàn phím rất nhanh + Enter. Nghe ngầm TOÀN trang:
+   đang không gõ vào ô nào mà có chuỗi ký tự nhanh kết thúc bằng Enter → coi là quét, tự mở cửa sổ TRA CỨU. */
+(function(){
+  let buf = '', last = 0;
+  document.addEventListener('keydown', function(e){
+    const a = document.activeElement;
+    if (a && (a.tagName==='INPUT' || a.tagName==='TEXTAREA' || a.tagName==='SELECT' || a.isContentEditable)) return;
+    const now = Date.now();
+    if (now - last > 90) buf = '';
+    last = now;
+    if (e.key === 'Enter'){
+      if (buf.length >= 4){ const code = buf; buf=''; if (!$('scanOvl').classList.contains('on')) scanOpen('Tra'); handleScan(code); }
+      return;
+    }
+    if (e.key.length === 1) buf += e.key;
+  });
+})();
 function scanBeep(ok){
   try{
     const c = new (window.AudioContext||window.webkitAudioContext)();
@@ -895,10 +936,8 @@ function handleScan(code){
     const tb = rowsToObj('THIET_BI').find(x=>String(x.SERIAL||'').trim()===code || String(x.MA_TB)===code);
     if (tb){
       scanBeep(true);
-      document.querySelectorAll('.ttab[data-p]').forEach(x=>x.classList.remove('on'));
-      document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
-      document.querySelector('.ttab[data-p="paneTb"]').classList.add('on');
-      $('paneTb').classList.add('on');
+      scanClose();
+      showPane('paneTb');
       const h = $('tbp_'+tb.MA_TB); if (h) h.innerHTML='';
       tbPanel(tb.MA_TB);
       const card = $('tbp_'+tb.MA_TB); if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
@@ -916,6 +955,19 @@ function handleScan(code){
   }
   $('scanLink').style.display = 'none';
   scanBeep(true);
+  if (scanDir === 'Tra'){
+    const ton = hit.type==='VT' ? (vtStockMap()[hit.ma]||0) : (stockMap()[hit.ma]||0);
+    const th = hit.type==='VT' ? null : drugList().find(t=>t.MA_THUOC===hit.ma);
+    const gia = th ? (Number(th.GIA_BAN)||0) : 0;
+    $('scanInfo').innerHTML = `<div class="histrow" style="background:var(--brand-soft,#e4efe9);border-radius:10px;">
+      <span class="tag ${hit.type==='VT'?'open':'in'}">${hit.type==='VT'?'Vật tư':'Thuốc'}</span>
+      <span style="flex:1;"><b>${hit.ten}</b> — tồn <b>${ton}</b> ${hit.dvt}${gia?(' · giá bán <b class="num">'+gia.toLocaleString('vi-VN')+'đ</b>'):''}</span>
+      <button class="qbtn" onclick="scanMode('Nhập');handleScan('${String(code).replace(/'/g,'')}')" style="color:#0a7a0a;">+ Nhập</button>
+      <button class="qbtn" onclick="scanMode('Xuất');handleScan('${String(code).replace(/'/g,'')}')">− Xuất</button>
+    </div>`;
+    return;
+  }
+  $('scanInfo').innerHTML = '';
   const key = hit.type + '|' + hit.ma;
   if (!scanPending[key]) scanPending[key] = Object.assign({qty:0}, hit);
   scanPending[key].qty++;
@@ -959,7 +1011,10 @@ function renderScan(){
     </div>`;
   }).join('') : '<div class="empty">Chưa quét mặt hàng nào.</div>';
   const go = $('scanGo');
-  if (go) go.textContent = (scanDir==='Xuất'?' Ghi XUẤT ':' Ghi NHẬP ') + items.length + ' mặt hàng';
+  if (go) go.textContent = (scanDir==='Xuất'?'✓ Ghi XUẤT ':'✓ Ghi NHẬP ') + items.length + ' mặt hàng';
+  const ft = $('scanFoot'); if (ft) ft.style.display = (scanDir==='Tra') ? 'none' : 'flex';
+  const bx2 = $('scanList'); if (bx2 && scanDir==='Tra') bx2.innerHTML = '';
+  if (scanDir!=='Tra'){ const si=$('scanInfo'); if(si) si.innerHTML=''; }
 }
 async function scanConfirm(){
   const items = Object.entries(scanPending);
@@ -1037,10 +1092,7 @@ function fillGdSelect(){
   if (cur) $('gdThuoc').value = cur;
 }
 function quickGd(ma, loai){
-  document.querySelectorAll('.ttab').forEach(x=>x.classList.remove('on'));
-  document.querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
-  document.querySelector('.ttab[data-p="paneGd"]').classList.add('on');
-  $('paneGd').classList.add('on');
+  showPane('paneGd');
   $('gdThuoc').value = ma; $('gdLoai').value = loai; gdInfo();
   $('gdSl').focus();
 }
