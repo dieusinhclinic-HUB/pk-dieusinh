@@ -179,6 +179,11 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div class="bd" id="bsBox"></div>
 </div>
 <div class="card">
+<div class="hd"><h2>Hoa hồng người giới thiệu <span style="font-weight:400;color:var(--ink3);font-size:11px;">(10% siêu âm + xét nghiệm, lượt đã thu tiền)</span></h2><div class="spacer"></div><input type="month" id="gtMonth" onchange="renderGT()" style="border:1.5px solid var(--hair);border-radius:9px;padding:5px 8px;font-size:12.5px;"></div>
+<div class="bd" id="gtBox"></div>
+</div>
+
+<div class="card">
 <div class="hd"><h2>⚠ Cần đối soát</h2></div>
 <div class="bd" id="flagBox"></div>
 </div>
@@ -403,6 +408,33 @@ $('nhomBox').innerHTML = entries.length ? entries.map(([g,v])=>`
 + `<div style="font-size:11px;color:var(--ink3);margin-top:6px;">Theo giá trị dịch vụ trong Sổ khám (nhóm lấy từ danh mục dịch vụ). Nhóm Thuốc = toa đã thanh toán, tính theo giá bán.</div>`
 : '<div class="empty">Chưa có dữ liệu trong kỳ.</div>';
 }
+function renderGT(){
+const box = $('gtBox'); if (!box) return;
+const mEl = $('gtMonth');
+if (mEl && !mEl.value){ const d=new Date(); mEl.value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+const ym = mEl ? mEl.value : '';
+const dvs = rowsToObj('DICH_VU');
+const nhomOf = ten => { const d = dvs.find(x=>String(x.TEN_DV).trim()===String(ten).trim()); return (d && String(d.NHOM||'').trim()) || ''; };
+/* lượt trong tháng, có người giới thiệu, ĐÃ THU tiền */
+const chos = rowsToObj('HANG_CHO').filter(r=>String(r.NGAY||'').slice(0,7)===ym && String(r.NGUOI_GT||'').trim() && String(r.TRANG_THAI).trim()==='Đã thu');
+const choMap = {}; chos.forEach(r=>choMap[r.MA_CHO]=String(r.NGUOI_GT).trim());
+const by = {};
+rowsToObj('SO_KHAM').forEach(l=>{
+  const gt = choMap[l.MA_CHO]; if (!gt) return;
+  if (String(l.TRANG_THAI_DV||'').trim()!=='Hoàn thành') return;
+  const g = nhomOf(l.TEN_DV);
+  if (g!=='Siêu âm' && g!=='Xét nghiệm') return;
+  if (!by[gt]) by[gt] = { luot:{}, sa:0, xn:0 };
+  by[gt].luot[l.MA_CHO]=1;
+  if (g==='Siêu âm') by[gt].sa += Number(l.THANH_TIEN)||0; else by[gt].xn += Number(l.THANH_TIEN)||0;
+});
+const entries = Object.entries(by).sort((a,b)=>(b[1].sa+b[1].xn)-(a[1].sa+a[1].xn));
+box.innerHTML = entries.length ? `<table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+<thead><tr style="font-size:10.5px;color:var(--ink3);text-transform:uppercase;text-align:left;"><th style="padding:5px 8px;">Người giới thiệu</th><th class="r" style="text-align:right;padding:5px 8px;">Lượt</th><th style="text-align:right;padding:5px 8px;">Siêu âm</th><th style="text-align:right;padding:5px 8px;">Xét nghiệm</th><th style="text-align:right;padding:5px 8px;">Hoa hồng 10%</th></tr></thead><tbody>` +
+entries.map(([gt,v])=>{ const tong=v.sa+v.xn; return `<tr style="border-top:1px solid var(--hair);"><td style="padding:7px 8px;font-weight:700;">${gt}</td><td style="text-align:right;padding:7px 8px;" class="num">${Object.keys(v.luot).length}</td><td style="text-align:right;padding:7px 8px;" class="num">${fmtD(v.sa)}</td><td style="text-align:right;padding:7px 8px;" class="num">${fmtD(v.xn)}</td><td style="text-align:right;padding:7px 8px;font-weight:800;color:var(--brand);" class="num">${fmtD(Math.round(tong*0.1))}</td></tr>`; }).join('') +
+`</tbody></table><div style="font-size:11px;color:var(--ink3);margin-top:6px;">Chỉ tính lượt ĐÃ THU trong tháng, dịch vụ Hoàn thành thuộc nhóm Siêu âm/Xét nghiệm. Lễ tân ghi người giới thiệu lúc tiếp nhận hoặc đặt hẹn.</div>`
+: '<div class="empty">Tháng này chưa có lượt khám nào ghi người giới thiệu.</div>';
+}
 function renderBS(){
 const visits = rowsToObj('SO_KHAM').filter(s=>inRange(s.NGAY)).filter(lineCounted);
 const by = {};
@@ -464,7 +496,7 @@ a.download = 'thanh_toan_' + todayStr() + '.csv';
 a.click();
 toast('✓ Đã xuất CSV thanh toán (mở được bằng Excel)');
 }
-function renderAll(){ renderKpis(); renderPipe(); renderNhom(); renderChart(); renderMethods(); renderBS(); renderFlags(); }
+function renderAll(){ renderKpis(); renderPipe(); renderNhom(); renderChart(); renderMethods(); renderBS(); renderGT(); renderFlags(); }
 </script>
 
 <!-- ===== NHÂN SỰ (chỉ Quản lý) ===== -->

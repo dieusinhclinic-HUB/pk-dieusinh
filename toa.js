@@ -151,15 +151,20 @@ function addRow(){
   };
   function upd(){
     var ma = div.querySelector('.tThuoc').value;
+    var t0 = THUOCS.find(function(x){ return String(x.MA_THUOC)===ma; });
+    var isCombo = t0 && String(t0.NHOM||'').trim()==='Combo';
     var ton = TON[ma]||0, giu = DANG_SOAN[ma]||0, khaDung = ton-giu;
     var tonEl = div.querySelector('.tkTon');
-    if (ma){ tonEl.textContent = 'Tồn: '+ton+(giu?(' · đang soạn: '+giu):'')+' · khả dụng: '+khaDung; }
+    if (isCombo){ tonEl.textContent = 'Bộ combo — kho trừ theo từng thuốc bên trong'; tonEl.className='tkTon'; }
+    else if (ma){ tonEl.textContent = 'Tồn: '+ton+(giu?(' · đang soạn: '+giu):'')+' · khả dụng: '+khaDung; }
     else tonEl.textContent = '';
     var sl = Math.ceil(numLieu(div.querySelector('.tLieu').value) * (Number(div.querySelector('.tLan').value)||0) * (Number(div.querySelector('.tNgay').value)||0));
     if (document.activeElement !== div.querySelector('.tSl')) div.querySelector('.tSl').value = sl||'';
     var need = Number(div.querySelector('.tSl').value)||0;
-    tonEl.className = 'tkTon' + (ma && need>khaDung ? ' thieu' : '');
-    if (ma && need>khaDung) tonEl.textContent += ' — ⚠ VƯỢT tồn khả dụng';
+    if (!isCombo){
+      tonEl.className = 'tkTon' + (ma && need>khaDung ? ' thieu' : '');
+      if (ma && need>khaDung) tonEl.textContent += ' — ⚠ VƯỢT tồn khả dụng';
+    }
   }
   ['change','input'].forEach(function(ev){ div.addEventListener(ev, upd); });
   div.querySelector('.tkDel').addEventListener('click', function(){

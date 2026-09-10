@@ -436,6 +436,7 @@ function stockMap(){
   return m;
 }
 function drugList(){ return rowsToObj('THUOC').filter(t => String(t.CON_AP_DUNG||'').trim() !== 'Không'); }
+function drugListNoCombo(){ return drugList().filter(t => String(t.NHOM||'').trim() !== 'Combo'); }
 function nextId(prefix, pad, table, col){
   let mx = 0;
   rowsToObj(table).forEach(r => {
@@ -451,6 +452,17 @@ const nowTime = () => { const d=new Date(); return String(d.getHours()).padStart
 const hhmm = v => { const m=String(v||'').match(/^(\d{1,2}):(\d{2})/); return m ? (m[1].padStart(2,'0')+':'+m[2]) : ''; };
 function bnTen(ma){ const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===ma); return b ? b.HO_TEN : ma; }
 let toaOpen = null;
+/* ==== COMBO: thuốc NHOM='Combo' — THANH_PHAN dạng 'T012:2|T045:1' (mã:số lượng cho 1 bộ) ==== */
+function comboParts(maThuoc){
+  const t = rowsToObj('THUOC').find(x=>String(x.MA_THUOC)===String(maThuoc));
+  if (!t || String(t.NHOM||'').trim()!=='Combo') return null;
+  const parts = String(t.THANH_PHAN||'').split('|').map(x=>x.trim()).filter(Boolean).map(x=>{
+    const m = x.split(':');
+    const th = rowsToObj('THUOC').find(y=>String(y.MA_THUOC)===m[0].trim());
+    return { ma:m[0].trim(), sl:Number(m[1])||1, ten: th?th.TEN_THUOC:m[0], dvt: th?(th.DVT||''):'' };
+  });
+  return { ten:t.TEN_THUOC, parts };
+}
 function toaPaid(t){
   if (String(t.MA_TT||'').trim()) return true;
   if (String(t.MA_CHO||'').trim()){
@@ -488,7 +500,12 @@ function renderToa(){
           else if (t.TRANG_THAI==='Đã soạn')
             act = `<td class="r"><input type="number" id="slp_${l.MA_CT}" value="${Number(l.SL_PHAT)||Number(l.SO_LUONG)||0}" min="0" style="width:64px;font-size:12px;" ${paid?'':'disabled'}></td><td class="r"><input type="checkbox" ${String(l.DA_PHAT)==='x'?'checked':''} ${paid?'':'disabled'} onchange="toaTickPhat('${l.MA_CT}', this.checked)" style="width:17px;height:17px;accent-color:#0f6e56;"></td>`;
           else act = `<td class="r num">${l.SL_PHAT||l.SO_LUONG}</td>`;
-          return `<tr><td><b>${l.TEN_THUOC}</b></td><td style="font-size:12px;">${lieu}</td><td class="r num">${l.SO_LUONG}</td><td class="r num" style="${tk<(Number(l.SO_LUONG)||0)?'color:#d03b3b;font-weight:700;':''}">${tk}</td>${act}</tr>`;
+          const cb = comboParts(l.MA_THUOC);
+          const cbHtml = cb ? ('<div style="font-size:11.5px;color:#5b2fa0;margin-top:3px;">▸ BỘ COMBO — lấy: ' + (cb.parts.length ? cb.parts.map(p=>{
+              const tkP = ton[p.ma]||0;
+              return '<b>'+(p.sl*(Number(l.SO_LUONG)||1))+'</b> '+(p.dvt||'')+' '+p.ten+' <span style="color:'+(tkP < p.sl*(Number(l.SO_LUONG)||1) ? '#d03b3b' : 'var(--ink3)')+';">(tồn '+tkP+')</span>';
+            }).join(' · ') : '<b style="color:#d03b3b;">CHƯA khai thành phần — kho sẽ KHÔNG tự trừ, báo Quản lý</b>') + '</div>') : '';
+          return `<tr><td><b>${l.TEN_THUOC}</b>${cbHtml}</td><td style="font-size:12px;">${lieu}</td><td class="r num">${l.SO_LUONG}</td><td class="r num" style="${!cb && tk<(Number(l.SO_LUONG)||0)?'color:#d03b3b;font-weight:700;':''}">${cb?'—':tk}</td>${act}</tr>`;
         }).join('') + '</tbody></table>' +
         (t.GHI_CHU?('<div class="hint">Lời dặn: '+t.GHI_CHU+'</div>'):'');
       const allSoan = lines.length && lines.every(l=>String(l.DA_SOAN)==='x');
@@ -533,14 +550,25 @@ async function toaXongPhat(maToa){
   if (!lines.length || !lines.every(l=>String(l.DA_PHAT)==='x')){ toast('⚠ Tick đủ từng dòng trước khi xác nhận phát'); return; }
   let base = parseInt(nextId('K',5,'KHO_GD','MA_GD').slice(1),10);
   const who = me?me.email.split('@')[0]:'';
-  const rs = await Promise.all(lines.map((l,i)=>api('append', {table:'KHO_GD', row:{
-    MA_GD:'K'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_THUOC: l.MA_THUOC, LOAI:'Xuất',
-    SO_LUONG: Number(l.SL_PHAT)||Number(l.SO_LUONG)||0, LO:'', HSD:'',
-    GHI_CHU: ('Phát toa '+maToa+' — bởi '+who) }}).catch(e=>({ok:false}))));
+  /* combo → trừ kho TỪNG thành phần; thuốc thường → trừ chính nó */
+  const ghiKho = [];
+  let comboThieuTP = 0;
+  lines.forEach(l=>{
+    const slPhat = Number(l.SL_PHAT)||Number(l.SO_LUONG)||0;
+    const cb = comboParts(l.MA_THUOC);
+    if (cb){
+      if (!cb.parts.length){ comboThieuTP++; return; }
+      cb.parts.forEach(p=>ghiKho.push({ ma:p.ma, sl:p.sl*slPhat, gc:'Phát toa '+maToa+' — trong '+cb.ten+' — bởi '+who }));
+    } else ghiKho.push({ ma:l.MA_THUOC, sl:slPhat, gc:'Phát toa '+maToa+' — bởi '+who });
+  });
+  const rs = await Promise.all(ghiKho.map((g,i)=>api('append', {table:'KHO_GD', row:{
+    MA_GD:'K'+String(base+i).padStart(5,'0'), NGAY: todayStr(), MA_THUOC: g.ma, LOAI:'Xuất',
+    SO_LUONG: g.sl, LO:'', HSD:'', GHI_CHU: g.gc }}).catch(e=>({ok:false}))));
+  if (comboThieuTP) toast('⚠ '+comboThieuTP+' combo CHƯA khai thành phần — kho chưa trừ phần đó, báo Quản lý bổ sung');
   const fail = rs.filter(x=>!(x&&x.ok)).length;
   if (fail){ toast('⚠ '+fail+' dòng chưa trừ được kho — thử lại'); loadAll(true); return; }
   const j = await api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:maToa, row:{TRANG_THAI:'Đã phát', GIO_PHAT: nowTime(), NGUOI_PHAT: me?me.email:''}});
-  if (j.ok){ ver=j.v; toast('✓ Đã phát toa <b>'+maToa+'</b> — kho đã trừ '+lines.length+' mặt hàng'); toaOpen=null; loadAll(true); }
+  if (j.ok){ ver=j.v; toast('✓ Đã phát toa <b>'+maToa+'</b> — kho đã trừ '+ghiKho.length+' mặt hàng'); toaOpen=null; loadAll(true); }
   else toast('⚠ '+(j.error||'lỗi'));
 }
 
@@ -1050,7 +1078,7 @@ async function scanConfirm(){
 
 function renderAll(){ renderToa(); renderToaHx(); renderKpis(); renderTon(); fillGdSelect(); gdInfo(); renderLs(); renderVt(); fillVgSelect(); vgInfo(); renderVtLs(); renderTb(); renderScan(); }
 function renderKpis(){
-  const st = stockMap(), ds = drugList();
+  const st = stockMap(), ds = drugListNoCombo();
   let units=0, val=0, low=0;
   ds.forEach(t => {
     const ton = st[t.MA_THUOC]||0;
@@ -1065,7 +1093,7 @@ function renderKpis(){
 function renderTon(){
   const q = strip($('tkSearch').value);
   const st = stockMap();
-  const rows = drugList()
+  const rows = drugListNoCombo()
     .filter(t => !q || strip(t.TEN_THUOC).includes(q) || strip(t.MA_THUOC).includes(q))
     .map(t => {
       const ton = st[t.MA_THUOC]||0;
@@ -1087,7 +1115,7 @@ function renderTon(){
 function fillGdSelect(){
   const st = stockMap();
   const cur = $('gdThuoc').value;
-  $('gdThuoc').innerHTML = '<option value="">— chọn thuốc —</option>' + drugList().map(t =>
+  $('gdThuoc').innerHTML = '<option value="">— chọn thuốc —</option>' + drugListNoCombo().map(t =>
     `<option value="${t.MA_THUOC}">${t.MA_THUOC} · ${t.TEN_THUOC} (tồn ${st[t.MA_THUOC]||0} ${t.DVT||''})</option>`).join('');
   if (cur) $('gdThuoc').value = cur;
 }
