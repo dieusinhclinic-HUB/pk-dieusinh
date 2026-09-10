@@ -7,6 +7,14 @@
 if (window.PKJourney) return;
 var css = document.createElement('style');
 css.textContent = '\n.jnboard{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;align-items:start;}\n@media(max-width:1100px){.jnboard{grid-template-columns:repeat(3,1fr);}}@media(max-width:1400px) and (min-width:1101px){.jnboard{grid-template-columns:repeat(4,1fr);}}\n.jncol{background:#efeee8;border-radius:11px;padding:8px;min-height:60px;}\n.jncol h4{margin:0 0 7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;}\n.jncol h4 .n{background:var(--brand);color:#fff;border-radius:99px;padding:0 7px;font-size:10.5px;}\n.jncard{background:#fff;border:1px solid var(--hair);border-radius:9px;padding:7px 9px;margin-bottom:6px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);}\n.jncard:hover{border-color:var(--brand3,#9dbfb3);}\n.jncard.sel{border:1.5px solid var(--brand);}\n.jncard b{font-size:12.5px;}\n.jncard .m{font-size:10.5px;color:var(--ink3);margin-top:1px;}\n.jnstt{display:inline-block;background:var(--brand);color:#fff;border-radius:6px;padding:0 6px;font-weight:800;margin-right:4px;font-size:11.5px;}\n.jnw{font-weight:800;font-size:10.5px;border-radius:99px;padding:1px 7px;display:inline-block;margin-top:4px;background:#e4efe9;color:var(--brand);}\n.jnw.w2{background:#fdf3dc;color:#8a6205;}\n.jnw.w3{background:#fdecec;color:#d03b3b;}\n.jnempty{font-size:11px;color:var(--ink3);text-align:center;padding:8px 0;}\n#jnDetail .steps{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:12px;background:#fff;border:1px solid var(--hair);border-radius:11px;padding:11px 14px;margin-top:10px;}\n#jnDetail .st{display:flex;align-items:center;gap:4px;}\n#jnDetail .dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;}\n#jnDetail .done .dot{background:var(--brand);}\n#jnDetail .cur .dot{background:#b98a00;}\n#jnDetail .todo .dot{background:#cfd4cf;}\n#jnDetail .todo .lb{color:var(--ink3);font-weight:500;}\n#jnDetail .lb{font-weight:700;}\n#jnDetail .t{color:var(--ink3);font-size:10px;}\n#jnDetail .arr{color:#c6ccc6;margin:0 2px;}\n';
+css.textContent += `
+.jnstrip{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--ink2,#5a615c);}
+.jnstrip .jnd{width:7px;height:7px;border-radius:50%;background:#d3d8d3;display:inline-block;}
+.jnstrip .jnd.d{background:var(--brand,#0C4F44);}
+.jnstrip .jnd.c{background:#b98a00;}
+.jnstrip .jntxt{margin-left:4px;font-weight:600;}
+.jnstrip .jnw{margin-top:0;margin-left:2px;}
+`;
 document.head.appendChild(css);
 var PKJ = { sel:null, boardId:'jnBoard', detailId:'jnDetail' };
 function jnToday(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -146,10 +154,47 @@ det.innerHTML = `<div class="steps"><div style="width:100%;font-size:12.5px;marg
   steps.map((x,i)=>`<div class="st ${x.s}"><span class="dot">${x.s==='done'?'✓':(x.s==='cur'?'●':'○')}</span><span class="lb">${x.lb}</span>${x.t?`<span class="t">${x.t}</span>`:''}</div>${i<steps.length-1?'<span class="arr">→</span>':''}`).join('') + '</div>';
 }
 
+/* dải hành trình NGẮN gắn thẳng vào từng dòng hàng chờ (lễ tân) */
+var jnCache = { t:0, c:null };
+function jnDataCached(){
+  var now = Date.now();
+  if (jnCache.c && now - jnCache.t < 3000) return jnCache.c;
+  jnCache = { t: now, c: jnData() };
+  return jnCache.c;
+}
+function jnRowStrip(maCho){
+  try{
+    var c = jnDataCached();
+    var kinds = [['cho',1],['kham',2],['sa',2],['xn',2],['pay',3],['thuoc',4],['ve',5]];
+    for (var i=0;i<kinds.length;i++){
+      var k = kinds[i][0], pos = kinds[i][1];
+      var it = (c[k]||[]).find(function(x){ return x.r.MA_CHO===maCho; });
+      if (!it) continue;
+      var r = it.r, txt='', min=null, wlbl='chờ';
+      if (k==='cho'){ txt = 'chờ khám' + (it.pend.length?(' · còn: '+it.pend.map(function(l){return l.TEN_DV;}).join(', ').slice(0,44)):''); min=jnMin(it.from); }
+      if (k==='kham'){ txt = 'đang khám — '+(r.BS_KHAM||''); min=jnMin(it.from); wlbl='trong phòng'; }
+      if (k==='sa'){ var dang = String(r.TRANG_THAI).trim()==='Đang khám'; txt = dang?('đang siêu âm — '+(r.BS_KHAM||'')):('chờ siêu âm — '+it.pendSa.map(function(l){return l.TEN_DV;}).join(', ').slice(0,40)); min=jnMin(it.from); if (dang) wlbl='trong phòng'; }
+      if (k==='xn'){ txt = 'chờ xét nghiệm — '+it.pend.map(function(l){return l.TEN_DV;}).join(', ').slice(0,44); min=jnMin(it.from); }
+      if (k==='pay'){ txt = 'chờ thanh toán'; min=jnMin(it.from); }
+      if (k==='thuoc'){ txt = 'chờ phát thuốc ('+it.toaPend.map(function(t){return t.TRANG_THAI.toLowerCase();}).join(', ')+')'; min=jnMin(r.GIO_THU); }
+      if (k==='ve'){
+        var a=jnParseSec(r.GIO_TIEP_NHAN), b2=jnParseSec(r.GIO_THU);
+        var tt=(a!=null&&b2!=null&&b2>=a)?Math.round((b2-a)/60):null;
+        txt = 'xong — ra về'+(tt!=null?(' · tổng '+(tt>=60?(Math.floor(tt/60)+'g'+String(tt%60).padStart(2,'0')+'′'):(tt+'′'))):'');
+      }
+      var dots='';
+      for (var d2=1; d2<=5; d2++) dots += '<span class="jnd '+(d2<pos?'d':(d2===pos?'c':''))+'"></span>';
+      var badge = (min!=null && k!=='ve') ? jnWait(min, wlbl) : '';
+      return '<span class="jnstrip">'+dots+'<span class="jntxt">'+txt+'</span>'+badge+'</span>';
+    }
+  }catch(e){}
+  return '';
+}
 window.PKJourney = {
   render: function(boardId, detailId){ if (boardId) PKJ.boardId = boardId; if (detailId) PKJ.detailId = detailId; jnRender(); },
   rerender: function(){ jnRender(); },
-  toggle: function(ma){ PKJ.sel = (PKJ.sel===ma) ? null : ma; jnRender(); }
+  toggle: function(ma){ PKJ.sel = (PKJ.sel===ma) ? null : ma; jnRender(); },
+  rowStrip: jnRowStrip
 };
 setInterval(function(){ try{ if (document.getElementById(PKJ.boardId)) jnRender(); }catch(e){} }, 60000);
 })();
