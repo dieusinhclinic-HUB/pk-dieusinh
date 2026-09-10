@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://bhixwqpyvspmtumbvbhc.supabase.co">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-api.js"></script>
+<script src="hanh-trinh.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -223,7 +224,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div class="spacer"></div>
 <span style="font-size:12px;"><span class="syncdot" id="syncDot"></span><span id="syncTxt">đồng bộ</span></span>
 <span class="userchip" id="userChip">…</span>
-<button class="hbtn" onclick="window.open('tv.html','pkTV')" title="Mở màn hình gọi số cho TV phòng chờ — kéo sang TV rồi bấm F11 để toàn màn hình">Màn hình TV</button>
+<button class="hbtn" onclick="jnOpen()" title="Xem từng bệnh nhân đang ở chặng nào">Hành trình</button><button class="hbtn" onclick="window.open('tv.html','pkTV')" title="Mở màn hình gọi số cho TV phòng chờ — kéo sang TV rồi bấm F11 để toàn màn hình">Màn hình TV</button>
 <button class="hbtn" onclick="openShift()"> Chốt ca</button>
 <button class="hbtn" onclick="logout()">Thoát</button>
 </header>
@@ -255,6 +256,15 @@ header.bar .sub{font-size:12px;opacity:.85;}
 </div>
 </div>
 </div>
+
+<!-- ===== overlay: hành trình bệnh nhân ===== -->
+<div class="ovl" id="jnOvl"><div class="modal" style="width:min(1500px,98vw);">
+<div class="mh"><h3>Hành trình bệnh nhân hôm nay <span style="font-weight:400;color:var(--ink3);font-size:11px;">(trực tiếp · xanh &lt;15′ · vàng 15–30′ · đỏ &gt;30′ · bấm thẻ xem chi tiết)</span></h3><button class="mclose" onclick="hide('jnOvl')">✕</button></div>
+<div class="mb" style="max-height:74vh;overflow-y:auto;">
+<div class="jnboard" id="jnBoardTN"></div>
+<div id="jnDetailTN"></div>
+</div>
+</div></div>
 
 <!-- ===== modal: BN mới ===== -->
 <div class="ovl" id="newOvl"><div class="modal" style="width:min(540px,100%);">
@@ -1443,7 +1453,8 @@ show('shiftOvl');
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ gtFill(); renderHen(); renderQueue(); if ($('calOvl') && $('calOvl').classList.contains('on')) renderCal(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
+function jnOpen(){ show('jnOvl'); if (window.PKJourney) PKJourney.render('jnBoardTN','jnDetailTN'); }
+function renderAll(){ gtFill(); if (window.PKJourney && $('jnOvl') && $('jnOvl').classList.contains('on')) PKJourney.render('jnBoardTN','jnDetailTN'); renderHen(); renderQueue(); if ($('calOvl') && $('calOvl').classList.contains('on')) renderCal(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
 
 /* hồ sơ 360°: nút hành động của trang này */
 window.PKHooks = { reception: openReception, addSvc: openSvc, datHen: openDatHen };
