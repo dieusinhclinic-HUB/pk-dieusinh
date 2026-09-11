@@ -194,6 +194,20 @@ header.bar .sub{font-size:12px;opacity:.85;}
 </div>
 
 <div class="card">
+<div class="hd"><h2>Doanh thu lũy kế <span style="font-weight:400;color:var(--ink3);font-size:11px;">(tiền ĐÃ THU theo phiếu thu — cột lũy kế cộng dồn từ đầu năm)</span></h2><div class="spacer"></div>
+<div class="seg" id="lkSeg"><button data-k="tuan" class="on" onclick="lkMode='tuan';renderLuyKe()">Theo tuần</button><button data-k="thang" onclick="lkMode='thang';renderLuyKe()">Theo tháng</button></div></div>
+<div class="bd" id="lkBox"></div>
+</div>
+
+<div class="card">
+<div class="hd"><h2>Xuất – Nhập – Tồn thuốc <span style="font-weight:400;color:var(--ink3);font-size:11px;">(từ sổ kho — tồn cuối = tồn đầu + nhập − xuất ± kiểm kê)</span></h2><div class="spacer"></div>
+<input id="xntSearch" placeholder="Tìm thuốc…" oninput="renderXNT()" style="border:1.5px solid var(--hair);border-radius:9px;padding:5px 9px;font-size:12.5px;width:150px;">
+<input type="month" id="xntMonth" onchange="renderXNT()" style="border:1.5px solid var(--hair);border-radius:9px;padding:5px 8px;font-size:12.5px;">
+<button class="btn btn-ghost" onclick="xntCSV()">Xuất CSV</button></div>
+<div class="bd" id="xntBox" style="max-height:430px;overflow:auto;"></div>
+</div>
+
+<div class="card">
 <div class="hd"><h2>⚠ Cần đối soát</h2></div>
 <div class="bd" id="flagBox"></div>
 </div>
@@ -209,7 +223,7 @@ header.bar .sub{font-size:12px;opacity:.85;}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzAbtd6DDILoKn9RROkzccwrkoSZsosl5ObND0-XVrA8RskDIyHQRzAhCaaBVC6RO88HA/exec';
 const CLIENT_ID = '24934364100-lm5evib5edi07vcth61qnd56a9q72ee6.apps.googleusercontent.com';
 const POLL_MS = 1000; // version cục bộ (realtime) — kiểm tra không tốn mạng
-const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU','THUOC','TOA_THUOC','TOA_CT','NGUOI_DUNG','VAT_TU','VT_GD','THIET_BI'];
+const TABLES = ['BENH_NHAN','BAC_SI','SO_KHAM','THANH_TOAN','HANG_CHO','DICH_VU','THUOC','TOA_THUOC','TOA_CT','NGUOI_DUNG','VAT_TU','VT_GD','THIET_BI','KHO_GD'];
 const ALLOWED = ['Quản lý','Kế toán'];
 
 let token=null, me=null, DB={}, ver=-1, pollTimer=null, range='7', selBS=null;
@@ -420,6 +434,84 @@ $('nhomBox').innerHTML = entries.length ? entries.map(([g,v])=>`
 + `<div style="font-size:11px;color:var(--ink3);margin-top:6px;">Theo giá trị dịch vụ trong Sổ khám (nhóm lấy từ danh mục dịch vụ). Nhóm Thuốc = toa đã thanh toán, tính theo giá bán.</div>`
 : '<div class="empty">Chưa có dữ liệu trong kỳ.</div>';
 }
+/* ==== DOANH THU LŨY KẾ theo tuần / tháng (yêu cầu BS Thủy) ==== */
+let lkMode = 'tuan';
+function lkWeekStart(ds){ const d = new Date(ds+'T00:00:00'); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function lkFmtDM(ds){ return ds.slice(8,10)+'/'+ds.slice(5,7); }
+function renderLuyKe(){
+const box = $('lkBox'); if (!box) return;
+document.querySelectorAll('#lkSeg button').forEach(b=>b.classList.toggle('on', b.dataset.k===lkMode));
+const year = String(new Date().getFullYear());
+const pays = rowsToObj('THANH_TOAN').filter(p=>String(p.NGAY||'').slice(0,4)===year);
+const by = {};
+pays.forEach(p=>{
+  const d = dstr(p.NGAY); if (!d) return;
+  const key = lkMode==='thang' ? d.slice(0,7) : lkWeekStart(d);
+  if (!by[key]) by[key] = {tien:0, n:0};
+  by[key].tien += Number(p.DA_THU)||0; by[key].n++;
+});
+const keys = Object.keys(by).sort();
+let run = 0;
+const rows = keys.map(k=>{
+  run += by[k].tien;
+  let label;
+  if (lkMode==='thang') label = 'Tháng '+String(Number(k.slice(5,7)))+'/'+k.slice(0,4);
+  else { const e = new Date(k+'T00:00:00'); e.setDate(e.getDate()+6); const eS = e.getFullYear()+'-'+String(e.getMonth()+1).padStart(2,'0')+'-'+String(e.getDate()).padStart(2,'0'); label = 'Tuần '+lkFmtDM(k)+' – '+lkFmtDM(eS); }
+  return {label, n:by[k].n, tien:by[k].tien, lk:run};
+}).reverse().slice(0, lkMode==='thang'?12:10);
+box.innerHTML = rows.length ? `<table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+<thead><tr style="font-size:10.5px;color:var(--ink3);text-transform:uppercase;text-align:left;"><th style="padding:5px 8px;">Kỳ</th><th style="text-align:right;padding:5px 8px;">Hóa đơn</th><th style="text-align:right;padding:5px 8px;">Doanh thu</th><th style="text-align:right;padding:5px 8px;">Lũy kế ${year}</th></tr></thead><tbody>`+
+rows.map((r,i)=>`<tr style="border-top:1px solid var(--hair);${i===0?'background:var(--brand-soft,#e4efe9);font-weight:700;':''}"><td style="padding:7px 8px;">${r.label}${i===0?' <span style="font-size:10px;color:var(--brand);">(hiện tại)</span>':''}</td><td style="text-align:right;padding:7px 8px;" class="num">${r.n}</td><td style="text-align:right;padding:7px 8px;" class="num">${fmtD(r.tien)}</td><td style="text-align:right;padding:7px 8px;font-weight:800;color:var(--brand);" class="num">${fmtD(r.lk)}</td></tr>`).join('')+
+`</tbody></table>` : '<div class="empty">Chưa có phiếu thu nào trong năm nay.</div>';
+}
+
+/* ==== XUẤT – NHẬP – TỒN THUỐC theo tháng (yêu cầu BS Thủy) ==== */
+let xntRows = [];
+function xntCalc(){
+const mEl = $('xntMonth');
+if (mEl && !mEl.value){ const d=new Date(); mEl.value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+const ym = mEl ? mEl.value : '';
+const gd = rowsToObj('KHO_GD');
+const out = [];
+rowsToObj('THUOC').forEach(t=>{
+  if (String(t.NHOM||'').trim()==='Combo') return; // combo không có tồn riêng
+  let tonDau=0, nhap=0, xuat=0, kk=0;
+  gd.forEach(g=>{
+    if (String(g.MA_THUOC)!==String(t.MA_THUOC)) return;
+    const sl = Number(g.SO_LUONG)||0, d = String(g.NGAY||'').slice(0,10), loai = String(g.LOAI||'').trim();
+    const signed = loai==='Xuất' ? -sl : sl;
+    if (d.slice(0,7) < ym) tonDau += signed;
+    else if (d.slice(0,7) === ym){
+      if (loai==='Xuất') xuat += sl;
+      else if (loai==='Kiểm kê') kk += sl;
+      else nhap += sl; // Nhập + Tồn đầu ghi trong kỳ
+    }
+  });
+  const tonCuoi = tonDau + nhap - xuat + kk;
+  if (tonDau||nhap||xuat||kk||tonCuoi) out.push({ma:t.MA_THUOC, ten:t.TEN_THUOC, dvt:t.DVT||'', tonDau, nhap, xuat, kk, tonCuoi, giaTri: tonCuoi*(Number(t.GIA_BAN)||0)});
+});
+out.sort((a,b)=>String(a.ten).localeCompare(String(b.ten),'vi',{sensitivity:'base'}));
+return out;
+}
+function renderXNT(){
+const box = $('xntBox'); if (!box) return;
+xntRows = xntCalc();
+const q = String(($('xntSearch')||{}).value||'').toLowerCase();
+const strip2 = x=>String(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').toLowerCase();
+const list = xntRows.filter(r=>!q || strip2(r.ten).includes(strip2(q)) || strip2(r.ma).includes(strip2(q)));
+const sum = list.reduce((s,r)=>({nhap:s.nhap+r.nhap, xuat:s.xuat+r.xuat, giaTri:s.giaTri+r.giaTri}), {nhap:0,xuat:0,giaTri:0});
+box.innerHTML = list.length ? `<table style="width:100%;border-collapse:collapse;font-size:12px;">
+<thead><tr style="font-size:10px;color:var(--ink3);text-transform:uppercase;text-align:left;position:sticky;top:0;background:#fff;"><th style="padding:5px 6px;">Mã</th><th style="padding:5px 6px;">Thuốc</th><th style="padding:5px 6px;">Đvt</th><th style="text-align:right;padding:5px 6px;">Tồn đầu</th><th style="text-align:right;padding:5px 6px;">Nhập</th><th style="text-align:right;padding:5px 6px;">Xuất</th><th style="text-align:right;padding:5px 6px;">KK ±</th><th style="text-align:right;padding:5px 6px;">Tồn cuối</th><th style="text-align:right;padding:5px 6px;">Giá trị tồn (giá bán)</th></tr></thead><tbody>`+
+list.map(r=>`<tr style="border-top:1px solid var(--hair);"><td style="padding:5px 6px;color:var(--ink3);" class="num">${r.ma}</td><td style="padding:5px 6px;font-weight:600;">${r.ten}</td><td style="padding:5px 6px;">${r.dvt}</td><td style="text-align:right;padding:5px 6px;" class="num">${r.tonDau}</td><td style="text-align:right;padding:5px 6px;color:#0a7a0a;" class="num">${r.nhap||''}</td><td style="text-align:right;padding:5px 6px;color:#d03b3b;" class="num">${r.xuat||''}</td><td style="text-align:right;padding:5px 6px;" class="num">${r.kk||''}</td><td style="text-align:right;padding:5px 6px;font-weight:800;" class="num">${r.tonCuoi}</td><td style="text-align:right;padding:5px 6px;" class="num">${r.giaTri?fmtD(r.giaTri):'—'}</td></tr>`).join('')+
+`<tr style="border-top:2px solid var(--brand);font-weight:800;"><td colspan="4" style="padding:6px;">TỔNG (${list.length} thuốc)</td><td style="text-align:right;padding:6px;color:#0a7a0a;" class="num">${sum.nhap}</td><td style="text-align:right;padding:6px;color:#d03b3b;" class="num">${sum.xuat}</td><td></td><td></td><td style="text-align:right;padding:6px;color:var(--brand);" class="num">${fmtD(sum.giaTri)}</td></tr></tbody></table>` : '<div class="empty">Không có dữ liệu kho trong tháng này.</div>';
+}
+function xntCSV(){
+const ym = ($('xntMonth')||{}).value||'';
+const lines = [['Ma','Ten thuoc','DVT','Ton dau','Nhap','Xuat','Kiem ke','Ton cuoi','Gia tri ton'].join(',')];
+xntRows.forEach(r=>lines.push([r.ma,'"'+String(r.ten).replace(/"/g,'""')+'"',r.dvt,r.tonDau,r.nhap,r.xuat,r.kk,r.tonCuoi,r.giaTri].join(',')));
+const blob = new Blob(["\ufeff"+lines.join("\n")], {type:'text/csv;charset=utf-8'});
+const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Xuat_nhap_ton_thuoc_'+ym+'.csv'; a.click();
+}
 function renderGT(){
 const box = $('gtBox'); if (!box) return;
 const mEl = $('gtMonth');
@@ -508,7 +600,7 @@ a.download = 'thanh_toan_' + todayStr() + '.csv';
 a.click();
 toast('✓ Đã xuất CSV thanh toán (mở được bằng Excel)');
 }
-function renderAll(){ renderKpis(); if (window.PKJourney) PKJourney.render('jnBoard','jnDetail'); renderPipe(); renderNhom(); renderChart(); renderMethods(); renderBS(); renderGT(); renderFlags(); }
+function renderAll(){ renderKpis(); if (window.PKJourney) PKJourney.render('jnBoard','jnDetail'); renderPipe(); renderNhom(); renderChart(); renderMethods(); renderBS(); renderGT(); renderLuyKe(); renderXNT(); renderFlags(); }
 
 </script>
 
