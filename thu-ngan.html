@@ -1156,6 +1156,22 @@ function payTotal(){
 if (!selPay) return 0;
 return selPay.lines.reduce((s,l)=>s+(Number(l.THANH_TIEN)||0),0) + (selPay.drugs||[]).reduce((s,d)=>s+d.tien,0);
 }
+/* XN gửi lab ngoài: thu ngân được xác nhận "đã lấy mẫu" để tính tiền (chỉ nhóm Xét nghiệm) */
+function isXnLine(l){ const d = rowsToObj('DICH_VU').find(x=>String(x.TEN_DV).trim()===String(l.TEN_DV).trim()); return !!(d && String(d.NHOM||'').trim()==='Xét nghiệm'); }
+async function tnXnDone(maLuot){
+const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if (!l) return;
+const gc = String(l.GHI_CHU||'').trim();
+const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{
+TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime(),
+GHI_CHU: (gc?gc+' · ':'')+'XN gửi lab ngoài — thu ngân xác nhận đã lấy mẫu' }});
+if (j.ok){ ver=j.v; toast('✓ Đã hoàn thành <b>'+l.TEN_DV+'</b> — đã tính vào hóa đơn'); await loadAll(true); }
+else toast('⚠ '+(j.error||'lỗi'));
+}
+async function tnXnDoneAll(){
+if (!selPay) return;
+const xn = selPay.pending.filter(isXnLine);
+for (const l of xn) await tnXnDone(l.MA_LUOT);
+}
 function renderPay(){
 if (!selPay){ $('payBox').innerHTML = '<div class="empty">Chọn bệnh nhân ở nhóm <b>Hoàn tất khám</b> trong hàng chờ để thanh toán.</div>'; return; }
 const total = payTotal();
@@ -1163,7 +1179,17 @@ $('payBox').innerHTML = `
 <div style="font-weight:800;font-size:15px;margin-bottom:2px;cursor:pointer;" onclick="openProfile(selPay.maBN)">${bnName(selPay.maBN)} <span class="num" style="color:var(--ink3);font-weight:600;font-size:12px;">${selPay.maBN}</span></div>
 <div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ đã thực hiện <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)"> Thêm DV</button></div>
 ${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
-${selPay.pending.length?`<div class="shortnote" style="display:block;"> Còn <b>${selPay.pending.length}</b> dịch vụ chỉ định chưa xác nhận thực hiện — chưa tính tiền:<br>${selPay.pending.map(l=>'· '+l.TEN_DV).join('<br>')}<br><span style="font-size:11px;">Bác sĩ / trợ lý xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span></div>`:''}
+${selPay.pending.length?(()=>{
+const xnPend = selPay.pending.filter(isXnLine);
+const khacPend = selPay.pending.filter(l=>!isXnLine(l));
+let h = '<div class="shortnote" style="display:block;"> Còn <b>'+selPay.pending.length+'</b> dịch vụ chỉ định chưa xác nhận — chưa tính tiền:';
+if (xnPend.length){
+h += xnPend.map(l=>`<div style="display:flex;align-items:center;gap:8px;margin-top:5px;"><span style="flex:1;">· ${l.TEN_DV} <span style="font-size:10.5px;color:var(--ink3);">(XN gửi lab ngoài)</span></span><button class="qbtn" style="color:#0a7a0a;" onclick="tnXnDone('${l.MA_LUOT}')">✓ Đã lấy mẫu — hoàn thành</button></div>`).join('');
+if (xnPend.length>1) h += `<div style="margin-top:6px;"><button class="qbtn" style="color:#0a7a0a;font-weight:800;" onclick="tnXnDoneAll()">✓ Đã lấy mẫu — hoàn thành cả ${xnPend.length} xét nghiệm</button></div>`;
+}
+if (khacPend.length) h += '<br>'+khacPend.map(l=>'· '+l.TEN_DV).join('<br>')+'<br><span style="font-size:11px;">Khám / siêu âm / thủ thuật: bác sĩ xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span>';
+return h+'</div>';
+})():''}
 ${(selPay.drugs&&selPay.drugs.length)?`<div class="sect-label">Thuốc theo toa (đã soạn)</div>${selPay.drugs.map(d=>`<div class="payline"><span class="dv"> ${d.ten} ×${d.sl}</span><span class="num">${fmtD(d.tien)}</span></div>`).join('')}`:''}
 ${(selPay.waitingToas&&selPay.waitingToas.length)?`<div class="shortnote" style="display:block;"> Toa ${selPay.waitingToas.join(', ')} đang chờ Dược sỹ soạn — CHƯA tính tiền thuốc. Chờ soạn xong rồi thu, hoặc thu trước phần dịch vụ.</div>`:''}
 <div class="totline"><span>Tổng thanh toán${(selPay.drugs&&selPay.drugs.length)?' (dịch vụ + thuốc)':''}</span><span class="num" id="payTot">${fmtD(total)}</span></div>

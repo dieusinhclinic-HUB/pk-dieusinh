@@ -881,8 +881,22 @@ const pendKh = pend.filter(l=>pendSa.indexOf(l)===-1);
 const pendMine  = isSaBS(myBS()) ? pendSa : pendKh;
 const pendOther = isSaBS(myBS()) ? pendKh : pendSa;
 if (!lines.length && !doneCount){ if(!confirm('Chưa có dịch vụ nào được xác nhận cho lượt khám này. Vẫn kết thúc?')) return; }
-if (pendMine.length){ if(!confirm('Còn '+pendMine.length+' dịch vụ CỦA PHÒNG MÌNH chưa xác nhận ('+pendMine.map(l=>l.TEN_DV).join(', ')+') — sẽ không tính tiền nếu để nguyên. Vẫn kết thúc phần của mình?')) return; }
+/* XN gửi lab ngoài hay bị quên: hỏi ngay lúc kết thúc — OK là đánh dấu hoàn thành luôn */
+const pendXn = pendMine.filter(l=>{ const d = dvs0.find(x=>x.TEN_DV===l.TEN_DV); return d && String(d.NHOM||'').trim()==='Xét nghiệm'; });
+let xnAutoDone = [];
+if (pendXn.length && confirm('Còn '+pendXn.length+' XÉT NGHIỆM chưa đánh dấu ('+pendXn.map(l=>l.TEN_DV).join(', ')+') — thường là gửi lab ngoài.\n\nĐã lấy mẫu xong chưa?\nOK = đánh dấu HOÀN THÀNH luôn (tính tiền được) · Cancel = để lại chưa làm')){
+xnAutoDone = pendXn;
+}
+const pendMineLeft = pendMine.filter(l=>xnAutoDone.indexOf(l)===-1);
+if (pendMineLeft.length){ if(!confirm('Còn '+pendMineLeft.length+' dịch vụ CỦA PHÒNG MÌNH chưa xác nhận ('+pendMineLeft.map(l=>l.TEN_DV).join(', ')+') — sẽ không tính tiền nếu để nguyên. Vẫn kết thúc phần của mình?')) return; }
 $('loading').classList.add('on');
+/* đánh dấu các XN đã lấy mẫu */
+if (xnAutoDone.length){
+const rsx = await Promise.all(xnAutoDone.map(l=>api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:l.MA_LUOT, row:{
+TRANG_THAI_DV:'Hoàn thành', BS_THUC_HIEN: l.BS_THUC_HIEN || myBS(), NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime(),
+GHI_CHU: (String(l.GHI_CHU||'').trim()?String(l.GHI_CHU).trim()+' · ':'')+'XN gửi lab ngoài — đã lấy mẫu' }}).catch(e=>({ok:false}))));
+rsx.forEach(j=>{ if (j && j.ok && j.v!=null) ver = Math.max(Number(ver)||0, Number(j.v)||0); });
+}
 try{
 let base = nextNum('L','SO_KHAM','MA_LUOT');
 const newRows = lines.map((l,i)=>({ MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:cur.maBN, TEN_DV:l.dv.TEN_DV,
