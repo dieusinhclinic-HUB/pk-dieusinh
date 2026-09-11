@@ -9,7 +9,7 @@
 (function(){
 if (window.PKProfile) return;
 
-var TBLS = ['BENH_NHAN','SO_KHAM','THANH_TOAN','LICH_HEN','THAI_KY','HANG_CHO','TOA_THUOC','TOA_CT'];
+var TBLS = ['BENH_NHAN','SO_KHAM','THANH_TOAN','LICH_HEN','THAI_KY','HANG_CHO','TOA_THUOC','TOA_CT','DICH_VU'];
 var MILESTONES = [[8,'Khám thai lần đầu'],[12,'Siêu âm độ mờ da gáy + Double test'],[22,'Siêu âm hình thái'],[26,'Test tiểu đường (GTT)'],[32,'Siêu âm tăng trưởng'],[36,'Khám hàng tuần + GBS']];
 
 var css = document.createElement('style');
@@ -85,6 +85,8 @@ function hhmm(v){
   if (!isNaN(d)) return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   return '';
 }
+var PKP_DVS = [];
+function pkpLaXn(ten){ try{ var d=PKP_DVS.find(function(x){return String(x.TEN_DV).trim()===String(ten).trim();}); return !!(d && String(d.NHOM||'').trim()==='Xét nghiệm'); }catch(e){ return false; } }
 function tdy(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}); }
 function obj(D,t){
   var d = D && D[t]; if(!d) return [];
@@ -119,6 +121,7 @@ function toaHtml(t, ctList){
 }
 
 function render(maBN, D){
+    try{ PKP_DVS = obj(D, 'DICH_VU'); }catch(e){ PKP_DVS=[]; }
   lastData = D;
   var b = obj(D,'BENH_NHAN').find(function(x){ return x.MA_BN===maBN; });
   if (!b){ document.getElementById('pkpBody').innerHTML = '<div class="pkpEmpty">Không tìm thấy hồ sơ ' + esc(maBN) + '.</div>'; return; }
@@ -184,13 +187,13 @@ function render(maBN, D){
       : o.MA_CHO ? '<span class="vst wait">' + esc(o.TRANG_THAI==='Xong khám'?'Chờ thanh toán':(o.TRANG_THAI||'')) + '</span>' : '';
     var gio = [o.GIO_TIEP_NHAN?('tiếp nhận '+hhmm(o.GIO_TIEP_NHAN)):'', o.GIO_GOI?('khám '+hhmm(o.GIO_GOI)):'', o.GIO_THU?('thu '+hhmm(o.GIO_THU)):''].filter(Boolean).join(' → ');
     var bsList = {}; v.lines.forEach(function(l){ if (l.BS_THUC_HIEN) bsList[l.BS_THUC_HIEN]=1; }); if (o.BS_KHAM) bsList[o.BS_KHAM]=1;
-    var tot = v.lines.reduce(function(s,l){ var st=String(l.TRANG_THAI_DV||'').trim(); return s + ((st===''||st==='Hoàn thành') ? (Number(l.THANH_TIEN)||0) : 0); }, 0);
+    var tot = v.lines.reduce(function(s,l){ var st=String(l.TRANG_THAI_DV||'').trim(); return s + ((st===''||st==='Hoàn thành'||(st==='Chỉ định'&&pkpLaXn(l.TEN_DV))) ? (Number(l.THANH_TIEN)||0) : 0); }, 0);
     var body = '';
     /* dịch vụ + kết quả */
     body += v.lines.map(function(l){
       var st = String(l.TRANG_THAI_DV||'').trim();
       var stH = st==='Hủy' ? '<span class="lcancel">✕ hủy</span>'
-        : st==='Chỉ định' ? '<span class="lpend"> chưa thực hiện</span>'
+        : st==='Chỉ định' ? (pkpLaXn(l.TEN_DV) ? '<span class="lpend">gửi lab — chưa lấy mẫu (vẫn tính tiền)</span>' : '<span class="lpend"> chưa thực hiện</span>')
         : '<span class="lok">✓' + (l.GIO_XAC_NHAN?(' '+hhmm(l.GIO_XAC_NHAN)):'') + (l.NGUOI_XAC_NHAN?(' · '+esc(String(l.NGUOI_XAC_NHAN).split('@')[0])):'') + '</span>';
       var kq = String(l.KET_QUA||'').trim();
       var files = String(l.ANH_KET_QUA||'').split('|').filter(Boolean);

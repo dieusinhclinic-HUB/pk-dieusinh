@@ -571,7 +571,7 @@ rows.forEach(r => {
 const svcBtn = g.key!=='Đã thu' ? `<button class="qbtn" title="Thêm dịch vụ" onclick="openSvc('${r.MA_BN}')"> DV</button>` : '';
 const liQ = (g.key==='Chờ khám') ? legInfo(r) : null;
 const acts = (
-g.key==='Chờ khám' ? ((liQ && !liQ.pend.length && liQ.done.length) ? `<button class="qbtn pay" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Đủ DV — thanh toán</button>` : `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')"> Gọi</button>`) + `<button class="qbtn" onclick="togglePriority('${r.MA_CHO}')">${String(r.UU_TIEN||'').trim()==='Có'?'↩ Bỏ ưu tiên':' Ưu tiên'}</button><button class="qbtn crit" onclick="openCancel('${r.MA_CHO}')">✕ Hủy</button>` :
+g.key==='Chờ khám' ? ((liQ && !liQ.pend.filter(l=>!isXnLine(l)).length && (liQ.done.length||liQ.pend.length)) ? `<button class="qbtn pay" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Đủ DV — thanh toán</button>` : `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')"> Gọi</button>`) + `<button class="qbtn" onclick="togglePriority('${r.MA_CHO}')">${String(r.UU_TIEN||'').trim()==='Có'?'↩ Bỏ ưu tiên':' Ưu tiên'}</button><button class="qbtn crit" onclick="openCancel('${r.MA_CHO}')">✕ Hủy</button>` :
 g.key==='Đang khám' ? `<button class="qbtn" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Hoàn tất khám</button>` :
 g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')"> Thanh toán</button>` : '') + svcBtn;
 const dvTxt = dvNames(r);
@@ -1148,7 +1148,9 @@ function selectPay(maCho){
 const r = queueToday().find(x=>x.MA_CHO===maCho); if(!r) return;
 const all = orderLines(maCho, r.MA_BN);
 const db2 = drugBill(maCho);
-selPay = { maCho, maBN:r.MA_BN, lines: all.filter(lineDone), pending: all.filter(l=>!lineDone(l)),
+/* XN gửi lab ngoài: TÍNH TIỀN ngay cả khi chưa bấm lấy mẫu — phòng khám là bên chỉ định */
+all.forEach(l=>{ l.__xnCho = (!lineDone(l) && String(l.TRANG_THAI_DV||'').trim()!=='Hủy' && isXnLine(l)); });
+selPay = { maCho, maBN:r.MA_BN, lines: all.filter(l=>lineDone(l)||l.__xnCho), pending: all.filter(l=>!lineDone(l) && !l.__xnCho),
 drugs: db2.drugs, billableToas: db2.billableToas, waitingToas: db2.waitingToas };
 renderPay();
 }
@@ -1169,7 +1171,7 @@ else toast('⚠ '+(j.error||'lỗi'));
 }
 async function tnXnDoneAll(){
 if (!selPay) return;
-const xn = selPay.pending.filter(isXnLine);
+const xn = selPay.lines.filter(l=>l.__xnCho);
 for (const l of xn) await tnXnDone(l.MA_LUOT);
 }
 function renderPay(){
@@ -1178,18 +1180,8 @@ const total = payTotal();
 $('payBox').innerHTML = `
 <div style="font-weight:800;font-size:15px;margin-bottom:2px;cursor:pointer;" onclick="openProfile(selPay.maBN)">${bnName(selPay.maBN)} <span class="num" style="color:var(--ink3);font-weight:600;font-size:12px;">${selPay.maBN}</span></div>
 <div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ đã thực hiện <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)"> Thêm DV</button></div>
-${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):''}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join(''):'<div class="empty">⚠ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
-${selPay.pending.length?(()=>{
-const xnPend = selPay.pending.filter(isXnLine);
-const khacPend = selPay.pending.filter(l=>!isXnLine(l));
-let h = '<div class="shortnote" style="display:block;"> Còn <b>'+selPay.pending.length+'</b> dịch vụ chỉ định chưa xác nhận — chưa tính tiền:';
-if (xnPend.length){
-h += xnPend.map(l=>`<div style="display:flex;align-items:center;gap:8px;margin-top:5px;"><span style="flex:1;">· ${l.TEN_DV} <span style="font-size:10.5px;color:var(--ink3);">(XN gửi lab ngoài)</span></span><button class="qbtn" style="color:#0a7a0a;" onclick="tnXnDone('${l.MA_LUOT}')">✓ Đã lấy mẫu — hoàn thành</button></div>`).join('');
-if (xnPend.length>1) h += `<div style="margin-top:6px;"><button class="qbtn" style="color:#0a7a0a;font-weight:800;" onclick="tnXnDoneAll()">✓ Đã lấy mẫu — hoàn thành cả ${xnPend.length} xét nghiệm</button></div>`;
-}
-if (khacPend.length) h += '<br>'+khacPend.map(l=>'· '+l.TEN_DV).join('<br>')+'<br><span style="font-size:11px;">Khám / siêu âm / thủ thuật: bác sĩ xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span>';
-return h+'</div>';
-})():''}
+${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.__xnCho?` <span style="background:#fdf3dc;color:#8a6205;border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:700;">gửi lab — chưa lấy mẫu</span> <button class="qbtn" style="color:#0a7a0a;padding:2px 8px;font-size:11px;" onclick="tnXnDone('${l.MA_LUOT}')">✓ đã lấy mẫu</button>`:(l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):'')}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join('')+(selPay.lines.some(l=>l.__xnCho)?'<div style="font-size:11px;color:var(--ink3);margin:2px 0 6px;">XN gửi lab ngoài vẫn TÍNH TIỀN. Bấm ✓ khi đã lấy mẫu — nếu quên, hệ thống tự đánh dấu lúc thu tiền.</div>':''):'<div class="empty">⚠ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
+${selPay.pending.length?`<div class="shortnote" style="display:block;"> Còn <b>${selPay.pending.length}</b> dịch vụ chỉ định chưa xác nhận thực hiện — chưa tính tiền:<br>${selPay.pending.map(l=>'· '+l.TEN_DV).join('<br>')}<br><span style="font-size:11px;">Khám / siêu âm / thủ thuật: bác sĩ xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span></div>`:''}
 ${(selPay.drugs&&selPay.drugs.length)?`<div class="sect-label">Thuốc theo toa (đã soạn)</div>${selPay.drugs.map(d=>`<div class="payline"><span class="dv"> ${d.ten} ×${d.sl}</span><span class="num">${fmtD(d.tien)}</span></div>`).join('')}`:''}
 ${(selPay.waitingToas&&selPay.waitingToas.length)?`<div class="shortnote" style="display:block;"> Toa ${selPay.waitingToas.join(', ')} đang chờ Dược sỹ soạn — CHƯA tính tiền thuốc. Chờ soạn xong rồi thu, hoặc thu trước phần dịch vụ.</div>`:''}
 <div class="totline"><span>Tổng thanh toán${(selPay.drugs&&selPay.drugs.length)?' (dịch vụ + thuốc)':''}</span><span class="num" id="payTot">${fmtD(total)}</span></div>
@@ -1270,6 +1262,13 @@ const row = { MA_TT: nextId('T',5,'THANH_TOAN','MA_TT'), NGAY: todayStr(), MA_BN
 const j = await api('append', {table:'THANH_TOAN', row});
 if (!j.ok){ toast('⚠ Lỗi ghi thanh toán: '+(j.error||'')); $('pConfirm').disabled=false; return; }
 const cpCalls = [ api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal: selPay.maCho, row:{TRANG_THAI:'Đã thu', GIO_THU: nowTime()}}) ];
+/* XN gửi lab còn treo → tự đánh dấu Hoàn thành lúc thu (đồng bộ mọi màn hình) */
+selPay.lines.filter(l=>l.__xnCho).forEach(l=>{
+const gc0 = String(l.GHI_CHU||'').trim();
+cpCalls.push(api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:l.MA_LUOT, row:{
+TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime(),
+GHI_CHU:(gc0?gc0+' · ':'')+'XN gửi lab ngoài — tự xác nhận khi thanh toán' }}).catch(e=>({ok:false})));
+});
 (selPay.billableToas||[]).forEach(mt=>cpCalls.push(api('update', {table:'TOA_THUOC', keyCol:'MA_TOA', keyVal:mt, row:{MA_TT: row.MA_TT}}).catch(e=>({ok:false}))));
 await Promise.all(cpCalls);
 toast('✓ Đã thu <b>'+fmtD(paid)+'</b> — '+bnName(selPay.maBN));
@@ -1484,7 +1483,7 @@ show('shiftOvl');
 }
 
 /* ================== RENDER ================== */
-function renderAll(){ gtFill(); renderHen(); renderQueue(); if ($('calOvl') && $('calOvl').classList.contains('on')) renderCal(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); selPay.lines=all.filter(lineDone); selPay.pending=all.filter(l=>!lineDone(l)); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
+function renderAll(){ gtFill(); renderHen(); renderQueue(); if ($('calOvl') && $('calOvl').classList.contains('on')) renderCal(); if (selPay){ const still = queueToday().find(x=>x.MA_CHO===selPay.maCho && x.TRANG_THAI==='Xong khám'); if(!still){ selPay=null; } else { const all=orderLines(selPay.maCho, selPay.maBN); const db3=drugBill(selPay.maCho); all.forEach(l=>{ l.__xnCho = (!lineDone(l) && String(l.TRANG_THAI_DV||'').trim()!=='Hủy' && isXnLine(l)); }); selPay.lines=all.filter(l=>lineDone(l)||l.__xnCho); selPay.pending=all.filter(l=>!lineDone(l) && !l.__xnCho); selPay.drugs=db3.drugs; selPay.billableToas=db3.billableToas; selPay.waitingToas=db3.waitingToas; } renderPay(); } }
 
 /* hồ sơ 360°: nút hành động của trang này */
 window.PKHooks = { reception: openReception, addSvc: openSvc, datHen: openDatHen };

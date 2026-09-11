@@ -88,7 +88,7 @@ if (kind==='sa'){
   m = dang ? ((r.BS_KHAM||'')+' · vào '+String(r.GIO_GOI||'').slice(0,5)) : ('chờ siêu âm — '+it.pendSa.map(l=>l.TEN_DV).join(', ').slice(0,40));
   w = jnWait(jnMin(it.from), dang?'trong phòng':'chờ SA');
 }
-if (kind==='pay'){ const tong = it.doneLegs.reduce((s,l)=>s+(Number(l.THANH_TIEN)||0),0); m = 'xong khám '+String(r.GIO_XONG||'').slice(0,5)+' · '+it.doneLegs.length+' DV · '+jnFmtD(tong); w = jnWait(jnMin(it.from),'chờ'); }
+if (kind==='pay'){ const billLegs = it.doneLegs.concat(it.pendXn||[]); const tong = billLegs.reduce((s,l)=>s+(Number(l.THANH_TIEN)||0),0); m = 'xong khám '+String(r.GIO_XONG||'').slice(0,5)+' · '+billLegs.length+' DV · '+jnFmtD(tong); w = jnWait(jnMin(it.from),'chờ'); }
 if (kind==='thuoc'){ m = 'đã thu '+String(r.GIO_THU||'').slice(0,5)+' · toa '+it.toaPend.map(t=>t.MA_TOA+' '+t.TRANG_THAI.toLowerCase()).join(', '); w = jnWait(jnMin(it.from),'chờ thuốc'); }
 if (kind==='ve'){
   const a = jnParseSec(r.GIO_TIEP_NHAN), b = jnParseSec(r.GIO_THU);
