@@ -444,12 +444,13 @@ if (!out.length) return s.sa.length ? null : [];
 if (thayFrom && !out.some(l=>String(l.BS_THUC_HIEN||'').trim()===me)) r.__thay = thayFrom;
 return out;
 }
+const saPinnedToMe = s.sa.filter(l=>String(l.BS_THUC_HIEN||'').trim()===me); /* BS khám được ghim tự làm siêu âm này */
 const yc = String(r.BS_YEU_CAU||'').trim();
 if (yc && yc !== me){
-if (!bsDangBan(yc)) return null;
+if (!bsDangBan(yc)){ return saPinnedToMe.length ? saPinnedToMe : null; }
 r.__thay = yc;
 }
-return s.kh;
+return s.kh.concat(saPinnedToMe);
 }
 /* BN đủ điều kiện vào phòng mình: có việc cho phòng mình, hoặc đơn trống (khám thường cổ điển) */
 function eligibleMine(r){
@@ -867,7 +868,12 @@ else toast('⚠ '+(j.error||'lỗi'));
 function delLine(i){ lines.splice(i,1); renderWorkspace(); }
 
 /* xác nhận / hủy từng dòng chỉ định */
-function saBSList(){ return rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có' && stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1).map(b=>String(b.TEN_BS).trim()); }
+function saBSList(){ /* toàn bộ BS đang làm việc — BS siêu âm xếp trước (BS khám cũng có thể tự làm một số siêu âm) */
+const all = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có');
+const sa = all.filter(b=>stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1).map(b=>String(b.TEN_BS).trim());
+const kh = all.filter(b=>stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')===-1).map(b=>String(b.TEN_BS).trim());
+return sa.concat(kh);
+}
 async function setLineTH(maLuot, ten){
 const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{BS_THUC_HIEN: ten}});
 if (j.ok){ ver=j.v; toast(ten?('✓ Siêu âm này sẽ do <b>'+ten+'</b> thực hiện'):'✓ Bỏ chỉ định người thực hiện — phòng SA nào trống sẽ làm'); loadAll(true); }
