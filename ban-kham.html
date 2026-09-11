@@ -421,13 +421,21 @@ const sa=[], kh=[];
 pend.forEach(l=>{ const d = dvs.find(x=>x.TEN_DV===l.TEN_DV); (isSaTen(l.TEN_DV, d&&d.NHOM)?sa:kh).push(l); });
 return {sa, kh, pend};
 }
-/* dịch vụ chờ mà PHÒNG MÌNH phục vụ được — null = BN ghim BS khác */
+/* yêu cầu BS ĐÚNG LOẠI PHÒNG: phòng SA nhìn BS_YEU_CAU_SA, phòng khám nhìn BS_YEU_CAU */
+function ycOfRoom(r){ return String((isSaBS(myBS()) ? r.BS_YEU_CAU_SA : r.BS_YEU_CAU)||'').trim(); }
+function bsDangBan(ten){ return queueToday().some(x=>x.TRANG_THAI==='Đang khám' && String(x.BS_KHAM||'').trim()===String(ten||'').trim()); }
+/* dịch vụ chờ mà PHÒNG MÌNH phục vụ được — null = BN ghim BS khác (đang trống, nhường cho BS đó) */
 function myRoomPend(r){
 const s = pendSplit(r);
-if (isSaBS(myBS())) return s.sa;
-const yc = String(r.BS_YEU_CAU||'').trim();
-if (yc && yc !== myBS()) return null;
-return s.kh;
+const mine = isSaBS(myBS()) ? s.sa : s.kh;
+const yc = ycOfRoom(r);
+r.__thay = '';
+if (yc && yc !== myBS()){
+if (!bsDangBan(yc)) return null;           // BS được yêu cầu đang TRỐNG → để BS đó gọi
+r.__thay = yc;                              // BS được yêu cầu đang BẬN → gợi ý mình nhận thay
+}
+if (isSaBS(myBS())) return mine;
+return mine;
 }
 /* BN đủ điều kiện vào phòng mình: có việc cho phòng mình, hoặc đơn trống (khám thường cổ điển) */
 function eligibleMine(r){
@@ -520,13 +528,14 @@ html += exams.length ? exams.map(r=>`
 const mineW = waits.filter(eligibleMine);
 html += '<div class="sect-label"> Chờ khám ('+waits.length+' · phòng mình: '+mineW.length+')</div>';
 html += waits.length ? waits.map(r=>{
+myRoomPend(r); /* cập nhật cờ __thay cho dòng này */
 const dv = dvNames(r);
 const isMine = eligibleMine(r);
 const mp = myRoomPend(r);
 return `
 <div class="qrow wait${String(r.UU_TIEN||'').trim()==='Có'?' prio':''}" style="${isMine?'':'opacity:.55;'}">
 <div class="stt num">${r.STT||'–'}</div>
-<div style="flex:1;"><div class="nm"><span class="pn" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span> ${qTags(r)}${legTags(r)}</div>
+<div style="flex:1;"><div class="nm"><span class="pn" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span> ${qTags(r)}${legTags(r)}${r.__thay?`<span style="background:#fdf3dc;color:#8a6205;border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:700;margin-left:4px;">YC ${r.__thay} — đang bận, có thể nhận thay</span>`:''}</div>
 <div class="meta num">${r.MA_BN}${r.BS_YEU_CAU?' · YC: '+r.BS_YEU_CAU:''}${dv?' · '+dv:''}${isMine?' · <b style="color:var(--brand);">→ phòng mình'+(mp&&mp.length?' (~'+estMin(mp)+"')":'')+'</b>':' · chờ phòng khác'}</div></div>
 </div>`;
 }).join('') : '<div class="empty">— trống —</div>';
@@ -553,7 +562,17 @@ const others = queueToday().filter(r=>r.TRANG_THAI==='Chờ khám').length;
 toast(others ? 'Không có bệnh nhân nào đang chờ <b>phòng mình</b> ('+others+' BN đang chờ phòng khác)' : 'Hàng chờ trống ');
 return;
 }
-const r = mine[0]; let note = '';
+/* chọn BN đầu hàng; nếu BN yêu cầu BS khác (đang bận) thì HỎI trước — từ chối thì xét người kế tiếp */
+let r = null;
+for (const cand of mine){
+const yc = ycOfRoom(cand);
+if (yc && yc !== myBS()){
+if (!confirm('Số '+(cand.STT||'')+' — '+bn(cand.MA_BN).HO_TEN+' YÊU CẦU '+yc+' (đang bận).\n\nOK = mình nhận thay ngay · Cancel = để dành cho '+yc+', xét người kế tiếp')) continue;
+}
+r = cand; break;
+}
+if (!r){ toast('Các bệnh nhân còn lại đều đang chờ đúng bác sĩ được yêu cầu.'); return; }
+let note = '';
 /* kiểm tra quỹ thời gian trước cuộc hẹn sắp tới của bác sĩ */
 const mins = estMin(myRoomPend(r));
 const hen = nextHenCua(myBS());
