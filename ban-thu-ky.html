@@ -282,10 +282,10 @@ let skBN=null, skList=[], hsBN=null, tkBN=null, lhBN=null, kdBN=null;
 
 const $ = id => document.getElementById(id);
 const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
-const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const todayStr = () => new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}) /* ngày THEO GIỜ VIỆT NAM — máy ở múi giờ nào cũng thấy đúng ngày phòng khám */;
 const sameDay = v => String(v).slice(0,10) === todayStr();
 const dstr = v => String(v).slice(0,10);
-const nowTime = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); };
+const nowTime = () => new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour12:false}) /* giờ Việt Nam */;
 function toast(m){const t=$('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3600);}
 function stripVN(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase(); }
 function chime(){try{const c=new (window.AudioContext||window.webkitAudioContext)();[[880,0],[1174,.18]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;g.gain.setValueAtTime(.2,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.35);o.start(c.currentTime+d);o.stop(c.currentTime+d+.4);});}catch(e){}}
@@ -334,7 +334,7 @@ $('loginMsg').textContent = 'Dùng đúng Gmail đã được phòng khám khai 
 window.addEventListener('load', () => {
 const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
 setTimeout(()=>clearInterval(t), 10000);
-$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric', timeZone:'Asia/Ho_Chi_Minh'});
 tryResume();
 document.querySelectorAll('.ttab').forEach(b=>b.addEventListener('click',()=>{
 if (!b.dataset.p) return;

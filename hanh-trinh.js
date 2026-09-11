@@ -17,7 +17,7 @@ css.textContent += `
 `;
 document.head.appendChild(css);
 var PKJ = { sel:null, boardId:'jnBoard', detailId:'jnDetail' };
-function jnToday(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function jnToday(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}); }
 function jnD(v){ return String(v||'').slice(0,10); }
 function jnParseSec(v){
   if (v==null || v==='') return null;
@@ -33,7 +33,7 @@ function jnFmtD(n){ return (Number(n)||0).toLocaleString('vi-VN') + ' đ'; }
 function jnStrip(x){ return String(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'d').toLowerCase(); }
 function jnIsSaTen(ten, nhom){ const t = jnStrip((nhom||'')+' '+(ten||'')); return t.indexOf('sieu am')!==-1 || t.indexOf('shg')!==-1; }
 function jnIsSaBS(ten){ const b = rowsToObj('BAC_SI').find(x=>String(x.TEN_BS).trim()===String(ten||'').trim()); return !!(b && jnStrip(b.CHUYEN_KHOA).indexOf('sieu am')!==-1); }
-function jnMin(fromV){ const a = jnParseSec(fromV); if (a==null) return null; const d=new Date(); const b=d.getHours()*3600+d.getMinutes()*60+d.getSeconds(); return Math.max(0, Math.round((b-a)/60)); }
+function jnMin(fromV){ const a = jnParseSec(fromV); if (a==null) return null; const t = new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour12:false}).split(':'); const b = Number(t[0])*3600+Number(t[1])*60+Number(t[2]||0); return Math.max(0, Math.round((b-a)/60)); }
 function jnWait(min, label){ if (min==null) return ''; const c = min>30?'w3':(min>=15?'w2':''); return `<span class="jnw ${c}">${label||'chờ'} ${min}′</span>`; }
 function jnData(){
 const dvs = rowsToObj('DICH_VU');

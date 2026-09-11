@@ -105,7 +105,7 @@ let token=null, me=null, DB={}, ver=-1, pollTimer=null;
 let sndReady=false, lastCalls={}, firstLoad=true, bannerTimer=null, bannerQueue=[];
 
 const $ = id => document.getElementById(id);
-const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const todayStr = () => new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}) /* ngày THEO GIỜ VIỆT NAM — máy ở múi giờ nào cũng thấy đúng ngày phòng khám */;
 const sameDay = v => String(v).slice(0,10) === todayStr();
 
 /* ==== API ==== */

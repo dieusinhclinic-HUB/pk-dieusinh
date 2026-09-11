@@ -231,9 +231,9 @@ let token=null, me=null, DB={}, ver=-1, pollTimer=null, range='7', selBS=null;
 const $ = id => document.getElementById(id);
 const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
 const fmtShort = n => { n=Number(n)||0; return n>=1e6 ? (n/1e6).toFixed(1).replace('.0','')+'tr' : n>=1e3 ? Math.round(n/1e3)+'k' : String(n); };
-const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const todayStr = () => new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}) /* ngày THEO GIỜ VIỆT NAM — máy ở múi giờ nào cũng thấy đúng ngày phòng khám */;
 const dstr = v => String(v).slice(0,10);
-const dayOffset = k => { const d=new Date(); d.setDate(d.getDate()-k); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const dayOffset = k => new Date(Date.now()-k*86400000).toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'});
 function toast(m){const t=$('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3600);}
 
 const SESS_KEY='pk_sess', SNAP_KEY='pk_db_tq';
@@ -275,7 +275,7 @@ $('loginMsg').textContent = 'Chỉ Quản lý và Kế toán xem được trang 
 window.addEventListener('load', () => {
 const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
 setTimeout(()=>clearInterval(t), 10000);
-$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric', timeZone:'Asia/Ho_Chi_Minh'});
 tryResume();
 });
 function tryResume(){
@@ -441,7 +441,7 @@ function lkFmtDM(ds){ return ds.slice(8,10)+'/'+ds.slice(5,7); }
 function renderLuyKe(){
 const box = $('lkBox'); if (!box) return;
 document.querySelectorAll('#lkSeg button').forEach(b=>b.classList.toggle('on', b.dataset.k===lkMode));
-const year = String(new Date().getFullYear());
+const year = todayStr().slice(0,4);
 const pays = rowsToObj('THANH_TOAN').filter(p=>String(p.NGAY||'').slice(0,4)===year);
 const by = {};
 pays.forEach(p=>{
@@ -469,7 +469,7 @@ rows.map((r,i)=>`<tr style="border-top:1px solid var(--hair);${i===0?'background
 let xntRows = [];
 function xntCalc(){
 const mEl = $('xntMonth');
-if (mEl && !mEl.value){ const d=new Date(); mEl.value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+if (mEl && !mEl.value){ mEl.value = todayStr().slice(0,7); }
 const ym = mEl ? mEl.value : '';
 const gd = rowsToObj('KHO_GD');
 const out = [];
@@ -515,7 +515,7 @@ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.dow
 function renderGT(){
 const box = $('gtBox'); if (!box) return;
 const mEl = $('gtMonth');
-if (mEl && !mEl.value){ const d=new Date(); mEl.value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+if (mEl && !mEl.value){ mEl.value = todayStr().slice(0,7); }
 const ym = mEl ? mEl.value : '';
 const dvs = rowsToObj('DICH_VU');
 const nhomOf = ten => { const d = dvs.find(x=>String(x.TEN_DV).trim()===String(ten).trim()); return (d && String(d.NHOM||'').trim()) || ''; };
@@ -705,7 +705,7 @@ var hd = document.querySelector("header");
 if (hd) hd.insertAdjacentElement("afterend", board);
 var OPS = null;
 function obj(t){ var d = OPS && OPS[t]; if(!d) return []; return d.rows.map(function(r){ var o={}; d.header.forEach(function(h,i){ o[String(h).trim()]=r[i]; }); return o; }); }
-function tdy(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function tdy(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}); }
 function nm(ma){ var b = obj("BENH_NHAN").find(function(x){return x.MA_BN===ma;}); return b?b.HO_TEN:ma; }
 function pn(ma){ return "<b style=\"cursor:pointer;\" onclick=\"PKProfile.open('"+ma+"')\" title=\"Mở hồ sơ bệnh nhân\">"+nm(ma)+"</b>"; }
 window.renderOps = function(){

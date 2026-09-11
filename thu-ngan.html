@@ -379,9 +379,9 @@ let token=null, me=null, DB={}, ver=-1, pollTimer=null, selPay=null;
 
 const $ = id => document.getElementById(id);
 const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
-const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const todayStr = () => new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}) /* ngày THEO GIỜ VIỆT NAM — máy ở múi giờ nào cũng thấy đúng ngày phòng khám */;
 const sameDay = v => String(v).slice(0,10) === todayStr();
-const nowTime = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); };
+const nowTime = () => new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour12:false}) /* giờ Việt Nam */;
 function fmtT(v){ // hiện HH:mm từ 'HH:mm:ss' hoặc chuỗi ISO của Sheets
 if (v==null || v==='') return '';
 const s = String(v);
@@ -451,7 +451,7 @@ window.addEventListener('load', () => {
 try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){}; }catch(e){}
 const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
 setTimeout(()=>clearInterval(t), 10000);
-$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric', timeZone:'Asia/Ho_Chi_Minh'});
 tryResume();
 });
 function tryResume(){

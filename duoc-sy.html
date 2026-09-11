@@ -333,7 +333,7 @@ const ALLOWED   = ['Quản lý','Dược sỹ'];
 let token=null, me=null, DB={}, ver=-1, pollTimer=null;
 const $ = id => document.getElementById(id);
 const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
-const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const todayStr = () => new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}) /* ngày THEO GIỜ VIỆT NAM — máy ở múi giờ nào cũng thấy đúng ngày phòng khám */;
 function toast(m){const t=$('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3600);}
 const strip = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
 
@@ -380,7 +380,7 @@ function gisInit(){
 window.addEventListener('load', () => {
   const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
   setTimeout(()=>clearInterval(t), 10000);
-  $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+  $('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric', timeZone:'Asia/Ho_Chi_Minh'});
   document.querySelectorAll('#mainTabs .ttab[data-g]').forEach(b=>b.addEventListener('click',()=>showGroup(b.dataset.g)));
   showGroup('gToa');
   tryResume();
@@ -448,7 +448,7 @@ function nextId(prefix, pad, table, col){
 
 /* ================== TOA THUỐC ================== */
 const sameDay = v => String(v).slice(0,10) === todayStr();
-const nowTime = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); };
+const nowTime = () => new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour12:false}) /* giờ Việt Nam */;
 const hhmm = v => { const m=String(v||'').match(/^(\d{1,2}):(\d{2})/); return m ? (m[1].padStart(2,'0')+':'+m[2]) : ''; };
 function bnTen(ma){ const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===ma); return b ? b.HO_TEN : ma; }
 let toaOpen = null;

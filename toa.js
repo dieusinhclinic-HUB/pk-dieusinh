@@ -43,8 +43,8 @@ var ctx = null, THUOCS = [], TON = {}, DANG_SOAN = {}, DD_HIST = {};
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function obj(D,t){ var d=D&&D[t]; if(!d) return []; return d.rows.map(function(r){ var o={}; d.header.forEach(function(h,i){ o[String(h).trim()]=r[i]; }); return o; }); }
-function nowT(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); }
-function tdy(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function nowT(){ return new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour12:false}); }
+function tdy(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}); }
 function numLieu(s){ // "1" / "0.5" / "1/2" / "1 viên" -> số
   s = String(s||'').trim();
   var m = s.match(/^(\d+)\s*\/\s*(\d+)/); if (m) return Number(m[1])/Number(m[2]);

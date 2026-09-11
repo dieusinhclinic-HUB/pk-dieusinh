@@ -85,7 +85,7 @@ function hhmm(v){
   if (!isNaN(d)) return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   return '';
 }
-function tdy(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function tdy(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}); }
 function obj(D,t){
   var d = D && D[t]; if(!d) return [];
   return d.rows.map(function(r){ var o={}; d.header.forEach(function(h,i){ o[String(h).trim()]=r[i]; }); return o; });

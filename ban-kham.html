@@ -206,9 +206,9 @@ let examNote='';
 
 const $ = id => document.getElementById(id);
 const fmtD = n => (Number(n)||0).toLocaleString('vi-VN') + ' đ';
-const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const todayStr = () => new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}) /* ngày THEO GIỜ VIỆT NAM — máy ở múi giờ nào cũng thấy đúng ngày phòng khám */;
 const sameDay = v => String(v).slice(0,10) === todayStr();
-const nowTime = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); };
+const nowTime = () => new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour12:false}) /* giờ Việt Nam */;
 function fmtT(v){
 if (v==null || v==='') return '';
 const s = String(v);
@@ -266,7 +266,7 @@ window.addEventListener('load', () => {
 try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){}; }catch(e){}
 const t = setInterval(()=>{ if (window.google && google.accounts){ clearInterval(t); gisInit(); } }, 200);
 setTimeout(()=>clearInterval(t), 10000);
-$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+$('hdDate').textContent = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric', timeZone:'Asia/Ho_Chi_Minh'});
 tryResume();
 });
 function tryResume(){
@@ -454,7 +454,7 @@ return m || 15;
 }
 /* hẹn sắp tới hôm nay của 1 bác sĩ (để biết còn đủ giờ nhận ca mới không) */
 function nextHenCua(tenBS){
-const now = new Date(); const nowM = now.getHours()*60 + now.getMinutes();
+const _t = new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour12:false}).split(':'); const nowM = Number(_t[0])*60 + Number(_t[1]);
 const hs = rowsToObj('LICH_HEN')
 .filter(h=>sameDay(h.NGAY_HEN) && String(h.TRANG_THAI||'').trim()==='Đã hẹn' && String(h.BS_PHU_TRACH||'').trim()===String(tenBS||'').trim())
 .map(h=>{ const t = fmtT(h.GIO_HEN)||''; const p = t.split(':'); return {m:(Number(p[0])||0)*60+(Number(p[1])||0), t}; })
