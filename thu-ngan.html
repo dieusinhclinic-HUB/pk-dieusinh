@@ -934,7 +934,7 @@ const gia = Number(d.DON_GIA)||0;
 const cd = isSaDv(d) ? (saBs || bs) : bs;               // dòng siêu âm mang tên BS ra y lệnh
 const gc = isSaDv(d) ? (saBs ? ('Chỉ định của '+saBs+' — LT tiếp nhận') : 'LT tiếp nhận (BS dặn trước)') : '';
 return { MA_LUOT:'L'+String(base+i).padStart(5,'0'), NGAY:todayStr(), MA_BN:rcBN, TEN_DV:d.TEN_DV,
-BS_THUC_HIEN:'', BS_CHI_DINH:cd, DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:gc, ANH_KET_QUA:'',
+BS_THUC_HIEN: isSaDv(d) ? (($('rcBsSa')&&$('rcBsSa').value)||'') : '', BS_CHI_DINH:cd, DON_GIA:gia, SO_LUONG:1, THANH_TIEN:gia, GHI_CHU:gc, ANH_KET_QUA:'',
 MA_CHO:maCho, TRANG_THAI_DV:'Chỉ định', NGUOI_XAC_NHAN:'', GIO_XAC_NHAN:'' };
 }).filter(Boolean);
 const calls = skRows.map(r=>api('append', {table:'SO_KHAM', row:r}).catch(e=>({ok:false, error:String(e&&e.message||e)})));

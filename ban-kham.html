@@ -427,15 +427,29 @@ function bsDangBan(ten){ return queueToday().some(x=>x.TRANG_THAI==='Đang khám
 /* dịch vụ chờ mà PHÒNG MÌNH phục vụ được — null = BN ghim BS khác (đang trống, nhường cho BS đó) */
 function myRoomPend(r){
 const s = pendSplit(r);
-const mine = isSaBS(myBS()) ? s.sa : s.kh;
-const yc = ycOfRoom(r);
 r.__thay = '';
-if (yc && yc !== myBS()){
-if (!bsDangBan(yc)) return null;           // BS được yêu cầu đang TRỐNG → để BS đó gọi
-r.__thay = yc;                              // BS được yêu cầu đang BẬN → gợi ý mình nhận thay
+const me = myBS();
+if (isSaBS(me)){
+/* phòng SA: từng dòng có thể ghim BS THỰC HIỆN riêng (BS chỉ định chọn) — ưu tiên hơn yêu cầu chung của lượt */
+const ycR = String(r.BS_YEU_CAU_SA||'').trim();
+const out = []; let thayFrom = '';
+for (const l of s.sa){
+const th = String(l.BS_THUC_HIEN||'').trim();
+if (th === me){ out.push(l); continue; }
+if (th){ if (bsDangBan(th)){ out.push(l); thayFrom = thayFrom || th; } continue; }  // ghim BS khác đang TRỐNG → để BS đó
+if (!ycR || ycR === me){ out.push(l); continue; }
+if (bsDangBan(ycR)){ out.push(l); thayFrom = thayFrom || ycR; }
 }
-if (isSaBS(myBS())) return mine;
-return mine;
+if (!out.length) return s.sa.length ? null : [];
+if (thayFrom && !out.some(l=>String(l.BS_THUC_HIEN||'').trim()===me)) r.__thay = thayFrom;
+return out;
+}
+const yc = String(r.BS_YEU_CAU||'').trim();
+if (yc && yc !== me){
+if (!bsDangBan(yc)) return null;
+r.__thay = yc;
+}
+return s.kh;
 }
 /* BN đủ điều kiện vào phòng mình: có việc cho phòng mình, hoặc đơn trống (khám thường cổ điển) */
 function eligibleMine(r){
@@ -565,8 +579,9 @@ return;
 /* chọn BN đầu hàng; nếu BN yêu cầu BS khác (đang bận) thì HỎI trước — từ chối thì xét người kế tiếp */
 let r = null;
 for (const cand of mine){
-const yc = ycOfRoom(cand);
-if (yc && yc !== myBS()){
+myRoomPend(cand); /* cập nhật cờ __thay (gồm cả ghim BS theo từng dịch vụ) */
+const yc = cand.__thay;
+if (yc){
 if (!confirm('Số '+(cand.STT||'')+' — '+bn(cand.MA_BN).HO_TEN+' YÊU CẦU '+yc+' (đang bận).\n\nOK = mình nhận thay ngay · Cancel = để dành cho '+yc+', xét người kế tiếp')) continue;
 }
 r = cand; break;
@@ -695,7 +710,7 @@ ${tkActive ? '' : `<div style="display:flex;gap:8px;align-items:center;flex-wrap
 
 /* ---- 2 · DỊCH VỤ & CHỈ ĐỊNH ---- */
 const linesHtml =
-pendLines.map(l=>{ const dX = rowsToObj('DICH_VU').find(x=>String(x.TEN_DV).trim()===String(l.TEN_DV).trim()); const laXn = !!(dX && String(dX.NHOM||'').trim()==='Xét nghiệm'); return `<div class="oline pending"><span class="dv"> ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">${laXn?'(XN gửi lab — vẫn tính tiền · ✓ khi đã lấy mẫu)':'(chỉ định — chưa thực hiện)'}</span></span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`;}).join('')
+pendLines.map(l=>{ const dX = rowsToObj('DICH_VU').find(x=>String(x.TEN_DV).trim()===String(l.TEN_DV).trim()); const laXn = !!(dX && String(dX.NHOM||'').trim()==='Xét nghiệm'); const laSa = isSaTen(l.TEN_DV, dX&&dX.NHOM); const saSel = laSa ? ` <select onchange="setLineTH('${l.MA_LUOT}', this.value)" onclick="event.stopPropagation()" style="font-size:11px;border:1px solid var(--hair);border-radius:7px;padding:2px 5px;" title="Bác sĩ THỰC HIỆN siêu âm này"><option value="">TH: phòng SA nào trống</option>${saBSList().map(t=>`<option${String(l.BS_THUC_HIEN||'').trim()===t?' selected':''}>${t}</option>`).join('')}</select>` : ''; return `<div class="oline pending"><span class="dv"> ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">${laXn?'(XN gửi lab — vẫn tính tiền · ✓ khi đã lấy mẫu)':'(chỉ định — chưa thực hiện)'}</span>${saSel}</span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`;}).join('')
 + doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div class="kqbox">'+(String(l.KET_QUA||'').trim()?(' '+l.KET_QUA):' Tệp kết quả đính kèm')+kqFileChips(l)+'</div>'):''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${l.MA_LUOT}')">✎ KQ</button><button class="x" title="Bỏ dịch vụ này (không tính tiền)" onclick="cancelLine('${l.MA_LUOT}')">✕</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="kq_${l.MA_LUOT}"></div>`).join('')
 + lines.map((l,i)=>`<div class="oline"><span class="dv">${l.dv.TEN_DV}${l.qty>1?' ×'+l.qty:''} <span style="font-size:11px;color:var(--ink3);">(mới thêm — sẽ ghi khi hoàn tất)</span></span><span class="num">${fmtD(l.gia*l.qty)}</span><button class="x" onclick="delLine(${i})">✕</button></div>`).join('');
 const cardDV = `<div class="card">
@@ -711,8 +726,7 @@ ${linesHtml || '<div class="empty">Chưa có dịch vụ — tìm và thêm bên
  oninput="dvSuggest()" onkeydown="dvKey(event)" onfocus="dvSuggest()" onblur="setTimeout(dvHide,180)" value="${dvQuery.replace(/"/g,'&quot;')}">
 <div class="dvsug" id="dvSug"></div>
 </div>
-<div class="quicklbl"> Hay dùng</div>
-<div class="dvchips">${topDVs(6).map(d=>`<button class="dvchip" onclick="addLine('${d.MA_DV}')">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></button>`).join('')}</div>
+
 </div></div>`;
 
 /* ---- 3 · TOA THUỐC ---- */
@@ -853,11 +867,17 @@ else toast('⚠ '+(j.error||'lỗi'));
 function delLine(i){ lines.splice(i,1); renderWorkspace(); }
 
 /* xác nhận / hủy từng dòng chỉ định */
+function saBSList(){ return rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có' && stripVN(b.CHUYEN_KHOA||'').indexOf('sieu am')!==-1).map(b=>String(b.TEN_BS).trim()); }
+async function setLineTH(maLuot, ten){
+const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{BS_THUC_HIEN: ten}});
+if (j.ok){ ver=j.v; toast(ten?('✓ Siêu âm này sẽ do <b>'+ten+'</b> thực hiện'):'✓ Bỏ chỉ định người thực hiện — phòng SA nào trống sẽ làm'); loadAll(true); }
+else toast('⚠ '+(j.error||'lỗi'));
+}
 async function confirmLine(maLuot){
 const l = rowsToObj('SO_KHAM').find(x=>x.MA_LUOT===maLuot); if(!l) return;
 const j = await api('update', {table:'SO_KHAM', keyCol:'MA_LUOT', keyVal:maLuot, row:{
 TRANG_THAI_DV:'Hoàn thành', NGUOI_XAC_NHAN: me?me.email:'', GIO_XAC_NHAN: nowTime(),
-BS_THUC_HIEN: String(l.BS_THUC_HIEN||'').trim() || myBS() }});
+BS_THUC_HIEN: (function(){ const dC = rowsToObj('DICH_VU').find(x=>String(x.TEN_DV).trim()===String(l.TEN_DV).trim()); const cungPhong = isSaTen(l.TEN_DV, dC&&dC.NHOM) === isSaBS(myBS()); return cungPhong ? myBS() : (String(l.BS_THUC_HIEN||'').trim() || myBS()); })() }});
 if (j.ok){ ver=j.v; toast('✓ Đã xác nhận: <b>'+l.TEN_DV+'</b> — nhập kết quả bên dưới'); await loadAll(true); kqEdit(maLuot); }
 else toast('⚠ ' + (j.error||'lỗi'));
 }
