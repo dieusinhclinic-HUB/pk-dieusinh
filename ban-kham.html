@@ -835,11 +835,6 @@ else if (e.key==='Enter'){ e.preventDefault(); dvPick(m[Math.max(dvSel,0)].MA_DV
 else if (e.key==='Escape'){ dvHide(); }
 }
 function dvPick(ma){ dvQuery=''; dvSel=-1; addLine(ma); const el=$('dvSearch'); if (el){ el.value=''; el.focus(); } dvHide(); }
-function topDVs(n){
-const cnt = {};
-rowsToObj('SO_KHAM').forEach(l=>{ const t=String(l.TEN_DV||'').trim(); if(t) cnt[t]=(cnt[t]||0)+1; });
-return dvAll().slice().sort((a,b)=>(cnt[b.TEN_DV]||0)-(cnt[a.TEN_DV]||0)).slice(0, n||6);
-}
 
 async function addLine(maDV){
 const d = rowsToObj('DICH_VU').find(x=>x.MA_DV===maDV); if(!d) return;

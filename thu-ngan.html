@@ -763,11 +763,6 @@ return { ten, busy, waiting, label: ten + (busy? ' —  đang khám' : ' —  đ
 /* ---- tìm dịch vụ trong modal tiếp nhận (giống bàn khám) ---- */
 let rcSel = [], rcDvSelIdx = -1;
 function dvAll(){ return rowsToObj('DICH_VU').filter(d=>String(d.CON_AP_DUNG||'').trim()!=='Không'); }
-function topDVs(n){
-const cnt = {};
-rowsToObj('SO_KHAM').forEach(l=>{ const t=String(l.TEN_DV||'').trim(); if(t) cnt[t]=(cnt[t]||0)+1; });
-return dvAll().slice().sort((a,b)=>(cnt[b.TEN_DV]||0)-(cnt[a.TEN_DV]||0)).slice(0, n||6);
-}
 function rcDvMatches(){
 const el = $('rcDvSearch'); if (!el) return [];
 const q = stripVN(el.value).trim();
@@ -874,9 +869,6 @@ ${rcHen ? `<div class="rcHen"> <b>Check-in từ lịch hẹn</b> ${rcHen.GIO_HEN
  oninput="rcDvSuggest()" onkeydown="rcDvKey(event)" onfocus="rcDvSuggest()" onblur="setTimeout(()=>{const b=$('rcDvSug'); if(b) b.style.display='none';},180)">
 <div id="rcDvSug" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--brand3);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 12px 28px rgba(10,82,64,.14);z-index:70;max-height:250px;overflow:auto;display:none;"></div>
 </div>
-<div class="rcGroup" style="margin-top:9px;"><div class="gname"> Hay dùng</div><div class="rcChips">
-${topDVs(6).map(d=>`<button type="button" class="rcChip" onclick="rcDvPick('${d.MA_DV}')">${d.TEN_DV} · <span class="num">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></button>`).join('')}
-</div></div>
 <div style="font-size:11.5px;color:var(--ink3);margin:6px 0 12px;">Chưa rõ bệnh nhân cần gì? Bỏ trống — bác sĩ sẽ chỉ định trong lúc khám.</div>
 <div class="sect-label">Bác sĩ khám</div>
 <select id="rcBs" style="width:100%;">
