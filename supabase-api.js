@@ -214,6 +214,34 @@ window.SB_API = async function(action, extra){
   }, 1500);
 })();
 
+/* ==== TÊN NHÂN VIÊN: email/nick → HỌ TÊN (bảng NGUOI_DUNG) — dùng trên phiếu in & mọi màn hình ==== */
+var PK_NV_TEN = {};
+(function(){
+  var tries = 0;
+  var t = setInterval(async function(){
+    try{
+      tries++;
+      if (tries > 60){ clearInterval(t); return; }
+      if (!(await hasSession())) return;
+      var q = await sb.from('NGUOI_DUNG').select('EMAIL,HO_TEN');
+      if (q.error || !q.data || !q.data.length) return;
+      clearInterval(t);
+      q.data.forEach(function(r){
+        var ten = String(r.HO_TEN||'').trim(); if (!ten) return;
+        var em = String(r.EMAIL||'').trim().toLowerCase(); if (!em) return;
+        PK_NV_TEN[em] = ten;
+        PK_NV_TEN[em.split('@')[0]] = ten;
+      });
+    }catch(e){}
+  }, 1500);
+})();
+/* Trả về HỌ TÊN nếu tra được từ email/nick; nếu không, trả phần trước @ như cũ */
+function pkTenNV(v){
+  var s = String(v||'').trim(); if (!s) return '';
+  var k = s.toLowerCase();
+  return PK_NV_TEN[k] || PK_NV_TEN[k.split('@')[0]] || s.split('@')[0];
+}
+
 /* ==== CHUYỂN MÀN HÌNH — dropdown theo VAI TRÒ (giao diện duy nhất của hệ thống) ==== */
 (function(){
   if (window.top !== window) return;

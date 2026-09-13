@@ -612,7 +612,7 @@ const flags = [];
 pays.forEach(p=>{
 const cl = Number(p.CON_LAI)||0;
 const note = String(p.GHI_CHU||'');
-if (cl>0) flags.push({cls:'crit', html:` <b>Thu thiếu ${fmtD(cl)}</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})${p.THU_NGAN?(' · thu ngân: '+String(p.THU_NGAN).split('@')[0]):''}${note?('<br><i>'+note+'</i>'):''}`});
+if (cl>0) flags.push({cls:'crit', html:` <b>Thu thiếu ${fmtD(cl)}</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})${p.THU_NGAN?(' · thu ngân: '+pkTenNV(p.THU_NGAN)):''}${note?('<br><i>'+note+'</i>'):''}`});
 else if (/Giảm/i.test(note)) flags.push({cls:'warn', html:` <b>Giảm giá</b> — ${p.MA_BN} (${dstr(p.NGAY)}, ${p.MA_TT})<br><i>${note}</i>`});
 });
 /* thiết bị đến hạn bảo trì / hết bảo hành */

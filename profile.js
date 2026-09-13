@@ -194,7 +194,7 @@ function render(maBN, D){
       var st = String(l.TRANG_THAI_DV||'').trim();
       var stH = st==='Hủy' ? '<span class="lcancel">✕ hủy</span>'
         : st==='Chỉ định' ? (pkpLaXn(l.TEN_DV) ? '<span class="lpend">gửi lab — chưa lấy mẫu (vẫn tính tiền)</span>' : '<span class="lpend"> chưa thực hiện</span>')
-        : '<span class="lok">✓' + (l.GIO_XAC_NHAN?(' '+hhmm(l.GIO_XAC_NHAN)):'') + (l.NGUOI_XAC_NHAN?(' · '+esc(String(l.NGUOI_XAC_NHAN).split('@')[0])):'') + '</span>';
+        : '<span class="lok">✓' + (l.GIO_XAC_NHAN?(' '+hhmm(l.GIO_XAC_NHAN)):'') + (l.NGUOI_XAC_NHAN?(' · '+esc(typeof pkTenNV==='function'?pkTenNV(l.NGUOI_XAC_NHAN):String(l.NGUOI_XAC_NHAN).split('@')[0])):'') + '</span>';
       var kq = String(l.KET_QUA||'').trim();
       var files = String(l.ANH_KET_QUA||'').split('|').filter(Boolean);
       var chips = files.length ? ('<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' + files.map(function(p){

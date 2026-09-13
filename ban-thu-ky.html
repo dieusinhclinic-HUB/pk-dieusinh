@@ -699,7 +699,7 @@ function pcToday(){ return rowsToObj('PHAN_CONG').filter(p=>sameDay(p.NGAY)); }
 function myPC(){ const e = me?me.email.toLowerCase():''; return pcToday().find(p=>String(p.EMAIL_TK||'').toLowerCase()===e); }
 function myBSList(){ const p = myPC(); return p ? String(p.DS_BS||'').split('|').filter(Boolean) : []; }
 function bsOwner(ten){ const p = pcToday().find(x=>String(x.DS_BS||'').split('|').indexOf(ten)!==-1); return p ? p.EMAIL_TK : null; }
-function tkName(email){ return String(email||'').split('@')[0]; }
+function tkName(email){ return pkTenNV(email); }
 async function pcToggle(ten){
 const meEmail = me?me.email:'';
 const owner = bsOwner(ten);
@@ -776,7 +776,7 @@ ${b.TIEN_SU?('<div style="background:var(--crit-soft);color:var(--crit);border-r
 ${r.GHI_CHU?('<div style="background:#e7f0fd;border:1px solid #b8d2f5;border-radius:10px;padding:8px 11px;font-size:12.5px;color:#2456a8;margin-bottom:4px;"> '+r.GHI_CHU+'</div>'):''}
 <div class="sect-label"> Dịch vụ lượt khám — đồng bộ trực tiếp với màn bác sĩ</div>
 ${pend.map(l=>`<div class="histrow" style="background:#fffdf3;border-radius:8px;padding:7px 8px;"><span style="flex:1;"> ${l.TEN_DV} <span style="font-size:11px;color:#8a6205;">(chỉ định — chưa thực hiện)</span></span><button class="qbtn" style="background:var(--good-soft);color:#0a7a0a;" onclick="dkConfirm('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn" style="background:var(--crit-soft);color:var(--crit);" onclick="dkCancel('${l.MA_LUOT}')">✕ Không làm</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="dkq_${l.MA_LUOT}"></div>`).join('')}
-${done.map(l=>`<div class="histrow"><span style="flex:1;">${l.TEN_DV}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div style="margin-top:3px;background:#eef4fd;border-left:3px solid #2456a8;border-radius:0 8px 8px 0;padding:4px 8px;font-size:12px;color:#1c3f7a;">'+(String(l.KET_QUA||'').trim()?(' '+l.KET_QUA):' Tệp kết quả')+kqFileChips(l)+'</div>'):''}</span><span style="font-size:11px;color:var(--good);font-weight:700;">✓ ${l.NGUOI_XAC_NHAN?String(l.NGUOI_XAC_NHAN).split('@')[0]:'đã ghi'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" onclick="kqEdit('${l.MA_LUOT}','dkq_')">✎ KQ</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="dkq_${l.MA_LUOT}"></div>`).join('')}
+${done.map(l=>`<div class="histrow"><span style="flex:1;">${l.TEN_DV}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div style="margin-top:3px;background:#eef4fd;border-left:3px solid #2456a8;border-radius:0 8px 8px 0;padding:4px 8px;font-size:12px;color:#1c3f7a;">'+(String(l.KET_QUA||'').trim()?(' '+l.KET_QUA):' Tệp kết quả')+kqFileChips(l)+'</div>'):''}</span><span style="font-size:11px;color:var(--good);font-weight:700;">✓ ${l.NGUOI_XAC_NHAN?pkTenNV(l.NGUOI_XAC_NHAN):'đã ghi'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" onclick="kqEdit('${l.MA_LUOT}','dkq_')">✎ KQ</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="dkq_${l.MA_LUOT}"></div>`).join('')}
 ${lines.length?'':'<div class="empty">Chưa có dịch vụ cho lượt khám này.</div>'}
 <div class="sect-label"> Toa thuốc</div>
 ${toas.map(t=>{

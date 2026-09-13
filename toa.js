@@ -249,7 +249,7 @@ window.PKToa = {
       document.getElementById('tkBody').innerHTML =
         '<div class="tkNote">⚠ An toàn kê toa: nhập <b>liều/lần · lần/ngày · số ngày</b> cho TỪNG thuốc — hệ thống không tự điền liều. Số lượng tự nhân, sửa tay được.</div>' +
         bsChon +
-        (o.bsKe ? ('<div style="margin-bottom:11px;font-size:13px;">Bác sĩ kê: <b>'+esc(o.bsKe)+'</b>'+(o.nguoiNhap&&o.nguoiNhap!==o.bsKe?(' · người nhập: '+esc(String(o.nguoiNhap).split('@')[0])):'')+'</div>') : '') +
+        (o.bsKe ? ('<div style="margin-bottom:11px;font-size:13px;">Bác sĩ kê: <b>'+esc(o.bsKe)+'</b>'+(o.nguoiNhap&&o.nguoiNhap!==o.bsKe?(' · người nhập: '+esc(pkTenNV(o.nguoiNhap))):'')+'</div>') : '') +
         '<div id="tkRows"></div>' +
         '<button class="tkBtn" id="tkAdd"> Thêm thuốc</button>' +
         '<div style="margin-top:11px;"><label style="font-size:10px;color:var(--ink3,#8a9187);font-weight:800;text-transform:uppercase;">Lời dặn chung</label><br><input id="tkGc" style="width:100%;font-size:13px;border:1.5px solid var(--hair,#e1e0d9);border-radius:8px;padding:7px 9px;" placeholder="vd: uống đủ nước, tái khám nếu sốt…"></div>';
@@ -338,7 +338,7 @@ window.PKToa = {
           (l.THOI_DIEM?(' — '+esc(l.THOI_DIEM)):'') + '.</span></li>';
       }).join('') + '</ol>' +
       (toa.GHI_CHU?('<div class="loidan"><b><u>Lời dặn:</u></b> '+esc(toa.GHI_CHU)+' <i>Đơn có giá trị lấy thuốc trong 05 ngày kể từ ngày kê.</i></div>'):'<div class="loidan"><i>Đơn có giá trị lấy thuốc trong 05 ngày kể từ ngày kê.</i></div>') +
-      '<div class="bot"><div style="font-size:11px;color:#333;">Khám lại xin mang theo đơn này.<br>Người nhập: '+esc(String(toa.NGUOI_NHAP||'').split('@')[0])+'</div>' +
+      '<div class="bot"><div style="font-size:11px;color:#333;">Khám lại xin mang theo đơn này.<br>Người nhập: '+esc(pkTenNV(toa.NGUOI_NHAP||''))+'</div>' +
       '<div class="sig"><div class="date">Ngày '+esc(dvn)+'</div><div class="role">Bác sĩ kê đơn</div><div class="name">'+esc(toa.BS_KE||'')+'</div></div></div>' +
       '</div><scr'+'ipt>window.print();</scr'+'ipt></body></html>');
     w.document.close();

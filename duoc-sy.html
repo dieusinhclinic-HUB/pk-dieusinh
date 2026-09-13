@@ -549,7 +549,7 @@ async function toaXongPhat(maToa){
   const lines = rowsToObj('TOA_CT').filter(c=>c.MA_TOA===maToa);
   if (!lines.length || !lines.every(l=>String(l.DA_PHAT)==='x')){ toast('⚠ Tick đủ từng dòng trước khi xác nhận phát'); return; }
   let base = parseInt(nextId('K',5,'KHO_GD','MA_GD').slice(1),10);
-  const who = me?me.email.split('@')[0]:'';
+  const who = me?(me.ho_ten||pkTenNV(me.email)):'';
   /* combo → trừ kho TỪNG thành phần; thuốc thường → trừ chính nó */
   const ghiKho = [];
   let comboThieuTP = 0;
@@ -594,11 +594,11 @@ function renderToaHx(){
       <b style="color:#5b2fa0;"> ${t.MA_TOA}</b>
       <span style="font-weight:700;">${bnTen(t.MA_BN)}</span>
       <span style="color:#8a9187;font-size:12px;">${lines.length} thuốc · kê: ${t.BS_KE||'—'}</span>
-      <span style="margin-left:auto;color:#0a7a0a;font-size:12px;font-weight:700;">✓ phát ${hxT(t.GIO_PHAT)||''} — ${t.NGUOI_PHAT?String(t.NGUOI_PHAT).split('@')[0]:''}</span>
+      <span style="margin-left:auto;color:#0a7a0a;font-size:12px;font-weight:700;">✓ phát ${hxT(t.GIO_PHAT)||''} — ${t.NGUOI_PHAT?pkTenNV(t.NGUOI_PHAT):''}</span>
     </summary>
     <div style="padding:4px 14px 10px;border-top:1px dashed #eee;">
       ${lines.map(c=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed #f0efe9;font-size:12.5px;"><span style="flex:1;">${c.TEN_THUOC}</span><span style="color:#8a9187;">${c.LIEU_LAN?(c.LIEU_LAN+' × '+c.LAN_NGAY+' lần/ngày × '+c.SO_NGAY+' ngày'):''}</span><b class="num">SL phát: ${c.SL_PHAT||c.SO_LUONG||0}</b></div>`).join('')}
-      <div style="margin-top:8px;font-size:12px;color:#8a9187;">Soạn: ${t.NGUOI_SOAN?String(t.NGUOI_SOAN).split('@')[0]:'—'} ${hxT(t.GIO_SOAN)||''} · Phát: ${t.NGUOI_PHAT?String(t.NGUOI_PHAT).split('@')[0]:'—'} ${hxT(t.GIO_PHAT)||''}
+      <div style="margin-top:8px;font-size:12px;color:#8a9187;">Soạn: ${t.NGUOI_SOAN?pkTenNV(t.NGUOI_SOAN):'—'} ${hxT(t.GIO_SOAN)||''} · Phát: ${t.NGUOI_PHAT?pkTenNV(t.NGUOI_PHAT):'—'} ${hxT(t.GIO_PHAT)||''}
       <button class="qbtn" style="margin-left:10px;" onclick="PKToa.printToa('${t.MA_TOA}')"> In lại toa</button></div>
     </div></details>`;
   });
@@ -687,7 +687,7 @@ async function saveVg(){
   try{
     const row = { MA_GD: nextId('VG',5,'VT_GD','MA_GD'), NGAY: todayStr(), MA_VT: ma, LOAI: loai,
       SO_LUONG: qty, LO: $('vgLo').value.trim(), HSD: $('vgHsd').value||'',
-      GHI_CHU: (noteGhi + ' — bởi ' + (me?me.email.split('@')[0]:'')).trim() };
+      GHI_CHU: (noteGhi + ' — bởi ' + (me?(me.ho_ten||pkTenNV(me.email)):'')).trim() };
     const j = await api('append', {table:'VT_GD', row});
     if (j.ok){
       ver = j.v;
@@ -715,7 +715,7 @@ async function thuocAdd(){
     DVT: $('tNewDvt').value.trim(), NHOM: $('tNewNhom').value.trim(),
     GIA_VON: Number($('tNewVon').value)||0, GIA_BAN: Number($('tNewGia').value)||0,
     TON_TOI_THIEU: Number($('tNewMin').value)||0, CON_AP_DUNG:'Có',
-    GHI_CHU: 'Thêm '+todayStr()+' bởi '+(me?me.email.split('@')[0]:''), MA_VACH:'' };
+    GHI_CHU: 'Thêm '+todayStr()+' bởi '+(me?(me.ho_ten||pkTenNV(me.email)):''), MA_VACH:'' };
   const j = await api('append', {table:'THUOC', row});
   if (j.ok){
     ver = j.v;
@@ -828,7 +828,7 @@ async function tbLogAdd(ma, loai, noiDung, chiPhi, silent){
   chiPhi = chiPhi != null ? chiPhi : (Number($('tblc_'+ma) ? $('tblc_'+ma).value : 0)||0);
   if (!noiDung){ toast('⚠ Nhập nội dung ghi chép'); return false; }
   const row = { MA_LOG: nextId('TL',5,'TB_LOG','MA_LOG'), MA_TB: ma, NGAY: todayStr(), LOAI: loai,
-    NOI_DUNG: noiDung, CHI_PHI: chiPhi, NGUOI: me?me.email.split('@')[0]:'' };
+    NOI_DUNG: noiDung, CHI_PHI: chiPhi, NGUOI: me?(me.ho_ten||pkTenNV(me.email)):'' };
   const j = await api('append', {table:'TB_LOG', row});
   if (j.ok){ ver=j.v; if(!silent) toast('✓ Đã ghi nhật ký: <b>'+loai+'</b>'); await loadAll(true); const h=$('tbp_'+ma); if(h){h.innerHTML='';} tbPanel(ma); return true; }
   toast('⚠ '+(j.error||'lỗi')); return false;
@@ -1059,7 +1059,7 @@ async function scanConfirm(){
     let baseV = parseInt(nextId('VG',5,'VT_GD','MA_GD').slice(2),10);
     let baseK = parseInt(nextId('K',5,'KHO_GD','MA_GD').slice(1),10);
     for (const [key,it] of items){
-      const note = 'Quét mã vạch — bởi ' + (me?me.email.split('@')[0]:'');
+      const note = 'Quét mã vạch — bởi ' + (me?(me.ho_ten||pkTenNV(me.email)):'');
       let j;
       if (it.type==='VT'){
         j = await api('append', {table:'VT_GD', row:{MA_GD:'VG'+String(baseV++).padStart(5,'0'), NGAY:todayStr(), MA_VT:it.ma, LOAI:scanDir, SO_LUONG:it.qty, LO:'', HSD:'', GHI_CHU:note}});
@@ -1160,7 +1160,7 @@ async function saveGd(){
   try{
     const row = { MA_GD: nextId('K',5,'KHO_GD','MA_GD'), NGAY: todayStr(), MA_THUOC: ma, LOAI: loaiGhi,
       SO_LUONG: qty, LO: $('gdLo').value.trim(), HSD: $('gdHsd').value||'',
-      GHI_CHU: (noteGhi + ' — bởi ' + (me?me.email.split('@')[0]:'')).trim() };
+      GHI_CHU: (noteGhi + ' — bởi ' + (me?(me.ho_ten||pkTenNV(me.email)):'')).trim() };
     const j = await api('append', {table:'KHO_GD', row});
     if (j.ok){
       ver = j.v;

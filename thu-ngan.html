@@ -1172,7 +1172,7 @@ const total = payTotal();
 $('payBox').innerHTML = `
 <div style="font-weight:800;font-size:15px;margin-bottom:2px;cursor:pointer;" onclick="openProfile(selPay.maBN)">${bnName(selPay.maBN)} <span class="num" style="color:var(--ink3);font-weight:600;font-size:12px;">${selPay.maBN}</span></div>
 <div class="sect-label" style="display:flex;align-items:center;gap:8px;">Dịch vụ đã thực hiện <button class="qbtn" style="text-transform:none;letter-spacing:0;" onclick="openSvc(selPay.maBN)"> Thêm DV</button></div>
-${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.__xnCho?` <span style="background:#fdf3dc;color:#8a6205;border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:700;">gửi lab — chưa lấy mẫu</span> <button class="qbtn" style="color:#0a7a0a;padding:2px 8px;font-size:11px;" onclick="tnXnDone('${l.MA_LUOT}')">✓ đã lấy mẫu</button>`:(l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+String(l.NGUOI_XAC_NHAN).split('@')[0]+'</span>'):'')}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join('')+(selPay.lines.some(l=>l.__xnCho)?'<div style="font-size:11px;color:var(--ink3);margin:2px 0 6px;">XN gửi lab ngoài vẫn TÍNH TIỀN. Bấm ✓ khi đã lấy mẫu — nếu quên, hệ thống tự đánh dấu lúc thu tiền.</div>':''):'<div class="empty">⚠ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
+${selPay.lines.length?selPay.lines.map(l=>`<div class="payline"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${l.__xnCho?` <span style="background:#fdf3dc;color:#8a6205;border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:700;">gửi lab — chưa lấy mẫu</span> <button class="qbtn" style="color:#0a7a0a;padding:2px 8px;font-size:11px;" onclick="tnXnDone('${l.MA_LUOT}')">✓ đã lấy mẫu</button>`:(l.NGUOI_XAC_NHAN?(' <span style="font-size:10.5px;color:var(--good);">✓ '+pkTenNV(l.NGUOI_XAC_NHAN)+'</span>'):'')}</span><span class="num">${fmtD(l.THANH_TIEN)}</span></div>`).join('')+(selPay.lines.some(l=>l.__xnCho)?'<div style="font-size:11px;color:var(--ink3);margin:2px 0 6px;">XN gửi lab ngoài vẫn TÍNH TIỀN. Bấm ✓ khi đã lấy mẫu — nếu quên, hệ thống tự đánh dấu lúc thu tiền.</div>':''):'<div class="empty">⚠ Chưa có dịch vụ nào được xác nhận thực hiện cho lượt khám này.</div>'}
 ${selPay.pending.length?`<div class="shortnote" style="display:block;"> Còn <b>${selPay.pending.length}</b> dịch vụ chỉ định chưa xác nhận thực hiện — chưa tính tiền:<br>${selPay.pending.map(l=>'· '+l.TEN_DV).join('<br>')}<br><span style="font-size:11px;">Khám / siêu âm / thủ thuật: bác sĩ xác nhận tại Bàn khám, hoặc hủy nếu không làm.</span></div>`:''}
 ${(selPay.drugs&&selPay.drugs.length)?`<div class="sect-label">Thuốc theo toa (đã soạn)</div>${selPay.drugs.map(d=>`<div class="payline"><span class="dv"> ${d.ten} ×${d.sl}</span><span class="num">${fmtD(d.tien)}</span></div>`).join('')}`:''}
 ${(selPay.waitingToas&&selPay.waitingToas.length)?`<div class="shortnote" style="display:block;"> Toa ${selPay.waitingToas.join(', ')} đang chờ Dược sỹ soạn — CHƯA tính tiền thuốc. Chờ soạn xong rồi thu, hoặc thu trước phần dịch vụ.</div>`:''}
@@ -1342,7 +1342,7 @@ ${final?`<tr class="tot"><td colspan="4" class="lbl">Hình thức</td><td class=
 ${BANK_INFO?`<div class="pay"><div class="qr">QR<br>chuyển khoản</div><div class="inf">${BANK_INFO}<br>Nội dung CK: <b>${maBN} ${row?row.MA_TT:''}</b></div></div>`:''}
 <div class="sig">
 <div class="box"><div class="role">Khách hàng</div><div class="hint">(ký, ghi rõ họ tên)</div></div>
-<div class="box"><div class="role">Thu ngân</div><div class="hint">(ký, ghi rõ họ tên)</div><div class="name">${me?me.email.split('@')[0]:''}</div></div>
+<div class="box"><div class="role">Thu ngân</div><div class="hint">(ký, ghi rõ họ tên)</div><div class="name">${me?(me.ho_ten||pkTenNV(me.email)):''}</div></div>
 </div>
 <div class="ft">Cảm ơn Quý khách — chúc mẹ tròn con vuông! <br>Phiếu in từ hệ thống PK Diệu Sinh${row?(' · mã tra cứu '+row.MA_TT):''} · in lúc ${now.toLocaleString('vi-VN')}</div>
 </div>
@@ -1422,7 +1422,7 @@ if (!items.length){ toast('⚠ Chọn dịch vụ trước'); return; }
 const btn = $('svcSaveBtn');
 if (btn.disabled) return;
 btn.disabled = true; btn.textContent = 'Đang lưu…';
-const who = 'Thêm tại quầy bởi ' + (me?me.email.split('@')[0]:'');
+const who = 'Thêm tại quầy bởi ' + (me?(me.ho_ten||pkTenNV(me.email)):'');
 // gắn vào đơn đang mở của BN hôm nay (nếu có) — dòng thêm tại quầy coi như đã thực hiện
 const order = queueToday().find(x=>x.MA_BN===svcBN && !['Đã thu','Hủy'].includes(String(x.TRANG_THAI).trim()));
 const base = parseInt(nextId('L',5,'SO_KHAM','MA_LUOT').slice(1), 10);
