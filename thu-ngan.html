@@ -1161,7 +1161,7 @@ const all = orderLines(maCho, r.MA_BN);
 const db2 = drugBill(maCho);
 /* XN gửi lab ngoài: TÍNH TIỀN ngay cả khi chưa bấm lấy mẫu — phòng khám là bên chỉ định */
 all.forEach(l=>{ l.__xnCho = (!lineDone(l) && String(l.TRANG_THAI_DV||'').trim()!=='Hủy' && isXnLine(l)); });
-let payLines = all.filter(l=>lineDone(l)||l.__xnCho);
+let payLines = all.filter(l=>(lineDone(l)||l.__xnCho) && !String(l.MA_TT||'').trim());
 let pending  = all.filter(l=>!lineDone(l) && !l.__xnCho);
 if (boSung){ payLines = payLines.filter(l=>unpaidLine(l, r)); }
 selPay = { maCho, maBN:r.MA_BN, boSung, lines: payLines, pending,

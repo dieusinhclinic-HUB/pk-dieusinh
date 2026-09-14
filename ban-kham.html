@@ -562,9 +562,10 @@ html += dones.length ? dones.map(r=>`
 <div class="stt num">${r.STT||'–'}</div>
 <div style="flex:1;"><div class="nm"><span class="pn" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span></div>
 <div class="meta num">${r.MA_BN}${r.BS_KHAM?' · '+r.BS_KHAM:''}${r.GIO_XONG?' · xong '+fmtT(r.GIO_XONG):''}</div></div>
+<button class="qbtn" title="Mở lại ca để kê toa quên / thêm chỉ định / sửa ghi chú" onclick="openPatient('${r.MA_CHO}')">↺ Mở lại ca</button>
 </div>`).join('') : '<div class="empty">— trống —</div>';
 html += '<div class="sect-label"> Đã thanh toán ('+paids.length+')</div>';
-html += paids.length ? ('<div class="empty" style="color:var(--ink2);">'+paids.map(r=>`<span class="pn" style="cursor:pointer;font-weight:700;" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span>${r.GIO_THU?' ('+fmtT(r.GIO_THU)+')':''}`).join(' · ')+'</div>') : '<div class="empty">— trống —</div>';
+html += paids.length ? ('<div class="empty" style="color:var(--ink2);">'+paids.map(r=>`<span class="pn" style="cursor:pointer;font-weight:700;" onclick="PKProfile.open('${r.MA_BN}')">${bn(r.MA_BN).HO_TEN}</span>${r.GIO_THU?' ('+fmtT(r.GIO_THU)+')':''} <button class="qbtn" style="padding:1px 7px;font-size:11px;" title="Mở lại ca (đã thu tiền — phần thêm sẽ thanh toán bổ sung)" onclick="openPatient('${r.MA_CHO}')">↺</button>`).join(' · ')+'</div>') : '<div class="empty">— trống —</div>';
 $('queueBox').innerHTML = html;
 $('qCount').textContent = q.filter(r=>r.TRANG_THAI!=='Hủy').length + ' lượt';
 }
@@ -942,17 +943,23 @@ const ord0 = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
 const hp = handoffPick(!isSaBS(myBS()), ord0);
 if (hp && confirm('Xong phần của phòng mình — còn: '+pendOther.map(l=>l.TEN_DV).join(', ')+'.\n\n'+hp.bs+' đang trống ('+hp.ly+').\nOK = CHUYỂN THẲNG sang phòng '+hp.bs+' ngay (máy đọc loa) · Cancel = đưa vào hàng chờ')) handTo = hp;
 }
+const ordNow = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
+const daThuRoi = String(ordNow.TRANG_THAI||'').trim()==='Đã thu';
+/* ca ĐÃ THU TIỀN mở lại: giữ nguyên Đã thu (trừ khi còn việc phòng khác thì vẫn chuyển tiếp);
+   phần phát sinh sẽ hiện nút TT BỔ SUNG bên thu ngân */
 const patch = handTo
 ? {TRANG_THAI:'Đang khám', BS_KHAM:handTo.bs, GIO_GOI: nowTime()}
 : backToQueue
 ? {TRANG_THAI:'Chờ khám', BS_KHAM:'', GIO_GOI:''}
-: {TRANG_THAI:'Xong khám', GIO_XONG: nowTime()};
+: (daThuRoi ? {} : {TRANG_THAI:'Xong khám', GIO_XONG: nowTime()});
 if (!lines.length && examNote){
 const order = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
 patch.GHI_CHU = (String(order.GHI_CHU||'').trim() ? (order.GHI_CHU + ' · ') : '') + 'BS ghi: ' + examNote;
 }
+if (Object.keys(patch).length){
 const j2 = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:cur.maCho, row:patch});
 if (j2.ok) ver = j2.v;
+}
 if (handTo){
 const ord2 = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
 chime();
@@ -961,6 +968,8 @@ toast('→ <b>'+bn(cur.maBN).HO_TEN+'</b> chuyển thẳng sang phòng <b>'+hand
 } else if (backToQueue){
 const ord2 = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
 toast('↩ <b>'+bn(cur.maBN).HO_TEN+'</b> quay lại hàng chờ (giữ số <b>'+(ord2.STT||'')+'</b>) — còn: '+pendOther.map(l=>l.TEN_DV).join(', '));
+} else if (daThuRoi){
+toast('✓ Đã lưu bổ sung cho <b>'+bn(cur.maBN).HO_TEN+'</b> — phần phát sinh (nếu tính tiền) sẽ hiện nút TT BỔ SUNG bên thu ngân');
 } else {
 toast('✓ Hoàn tất khám — <b>'+bn(cur.maBN).HO_TEN+'</b> đã chuyển sang thu ngân');
 }
