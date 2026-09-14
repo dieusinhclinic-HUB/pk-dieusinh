@@ -241,6 +241,7 @@ function pkTenNV(v){
   var k = s.toLowerCase();
   return PK_NV_TEN[k] || PK_NV_TEN[k.split('@')[0]] || s.split('@')[0];
 }
+window.pkTenNV = pkTenNV; // QUAN TRỌNG: file này nằm trong IIFE — phải xuất ra window cho các trang dùng
 
 /* ==== CHUYỂN MÀN HÌNH — dropdown theo VAI TRÒ (giao diện duy nhất của hệ thống) ==== */
 (function(){
