@@ -795,7 +795,7 @@ function dvItemOpts(){
   if (dvNhomSel === 'Xét nghiệm'){
     const subs = {};
     list.forEach(d=>{ const g = dvSubOf(d) || 'Thường dùng'; (subs[g]=subs[g]||[]).push(d); });
-    const order = ['Thường dùng','Huyết học','Đông máu','Sinh hoá','Miễn dịch','Viêm','Sốt xuất huyết','Nước tiểu','Tuyến giáp','Nội tiết','Xương khớp – Tim Mạch','Dấu ấn ung thư','Tiền sản'];
+    const order = ['Thường dùng','Combo XN','Huyết học','Đông máu','Sinh hoá','Miễn dịch','Viêm','Sốt xuất huyết','Nước tiểu','Tuyến giáp','Nội tiết','Xương khớp – Tim Mạch','Dấu ấn ung thư','Tiền sản'];
     Object.keys(subs).sort((a,b)=>{ const ia=order.indexOf(a), ib=order.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); })
       .forEach(g=>{ html += '<optgroup label="'+g+'">' + subs[g].map(opt).join('') + '</optgroup>'; });
   } else {

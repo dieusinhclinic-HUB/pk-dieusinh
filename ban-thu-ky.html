@@ -397,7 +397,7 @@ let html = '<option value="">— Chọn dịch vụ ('+list.length+') —</optio
 if (g === 'Xét nghiệm'){
   const subs = {};
   list.forEach(d=>{ const m = String(d.GHI_CHU||'').match(/Bảng giá 2026 — (.+)$/); const k = m ? m[1].trim() : 'Thường dùng'; (subs[k]=subs[k]||[]).push(d); });
-  const order = ['Thường dùng','Huyết học','Đông máu','Sinh hoá','Miễn dịch','Viêm','Sốt xuất huyết','Nước tiểu','Tuyến giáp','Nội tiết','Xương khớp – Tim Mạch','Dấu ấn ung thư','Tiền sản'];
+  const order = ['Thường dùng','Combo XN','Huyết học','Đông máu','Sinh hoá','Miễn dịch','Viêm','Sốt xuất huyết','Nước tiểu','Tuyến giáp','Nội tiết','Xương khớp – Tim Mạch','Dấu ấn ung thư','Tiền sản'];
   Object.keys(subs).sort((a,b)=>{ const ia=order.indexOf(a), ib=order.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); })
     .forEach(k=>{ html += '<optgroup label="'+k+'">' + subs[k].map(opt).join('') + '</optgroup>'; });
 } else html += list.map(opt).join('');
