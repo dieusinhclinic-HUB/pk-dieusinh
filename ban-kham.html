@@ -712,7 +712,7 @@ ${tkActive ? '' : `<div style="display:flex;gap:8px;align-items:center;flex-wrap
 
 /* ---- 2 · DỊCH VỤ & CHỈ ĐỊNH ---- */
 const linesHtml =
-pendLines.map(l=>{ const dX = rowsToObj('DICH_VU').find(x=>String(x.TEN_DV).trim()===String(l.TEN_DV).trim()); const laXn = !!(dX && String(dX.NHOM||'').trim()==='Xét nghiệm'); const laSa = isSaTen(l.TEN_DV, dX&&dX.NHOM); const saSel = laSa ? ` <select onchange="setLineTH('${l.MA_LUOT}', this.value)" onclick="event.stopPropagation()" style="font-size:11px;border:1px solid var(--hair);border-radius:7px;padding:2px 5px;" title="Bác sĩ THỰC HIỆN siêu âm này"><option value="">TH: phòng SA nào trống</option>${saBSList().map(t=>`<option${String(l.BS_THUC_HIEN||'').trim()===t?' selected':''}>${t}</option>`).join('')}</select>` : ''; return `<div class="oline pending"><span class="dv"> ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">${laXn?'(XN gửi lab — vẫn tính tiền · ✓ khi đã lấy mẫu)':'(chỉ định — chưa thực hiện)'}</span>${saSel}</span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`;}).join('')
+pendLines.map(l=>{ const dX = rowsToObj('DICH_VU').find(x=>String(x.TEN_DV).trim()===String(l.TEN_DV).trim()); const laXn = !!(dX && String(dX.NHOM||'').trim()==='Xét nghiệm'); const laSa = isSaTen(l.TEN_DV, dX&&dX.NHOM); const saSel = laSa ? ` <select onchange="setLineTH('${l.MA_LUOT}', this.value)" onclick="event.stopPropagation()" style="font-size:11px;border:1px solid var(--hair);border-radius:7px;padding:2px 5px;" title="Bác sĩ THỰC HIỆN siêu âm này"><option value="">TH: phòng SA nào trống</option>${saBSList().map(t=>`<option${String(l.BS_THUC_HIEN||'').trim()===t?' selected':''}>${t}</option>`).join('')}</select>` : ''; return `<div class="oline pending"><span class="dv"> ${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''} <span style="font-size:11px;color:#8a6205;">${laXn?(xnTaiPK(l.TEN_DV)?'(XN làm tại PK — bấm ✓ rồi nhập kết quả)':'(XN gửi lab — vẫn tính tiền · ✓ khi đã lấy mẫu)'):'(chỉ định — chưa thực hiện)'}</span>${saSel}</span><span class="num">${fmtD(l.THANH_TIEN)}</span><button class="qbtn ok" onclick="confirmLine('${l.MA_LUOT}')">✓ Hoàn thành</button><button class="qbtn crit" onclick="cancelLine('${l.MA_LUOT}')">✕ Không làm</button></div>`;}).join('')
 + doneLines.map(l=>`<div class="oline done"><span class="dv">${l.TEN_DV}${Number(l.SO_LUONG)>1?' ×'+l.SO_LUONG:''}${(String(l.KET_QUA||'').trim()||String(l.ANH_KET_QUA||'').trim())?('<div class="kqbox">'+(String(l.KET_QUA||'').trim()?(' '+l.KET_QUA):' Tệp kết quả đính kèm')+kqFileChips(l)+'</div>'):''}</span><span class="who">✓ ${l.NGUOI_XAC_NHAN?pkTenNV(l.NGUOI_XAC_NHAN):'đã ghi sổ'}${l.GIO_XAC_NHAN?(' '+fmtT(l.GIO_XAC_NHAN)):''}</span><button class="qbtn" title="Nhập / sửa kết quả" onclick="kqEdit('${l.MA_LUOT}')">✎ KQ</button><button class="x" title="Bỏ dịch vụ này (không tính tiền)" onclick="cancelLine('${l.MA_LUOT}')">✕</button><span class="num">${fmtD(l.THANH_TIEN)}</span></div><div id="kq_${l.MA_LUOT}"></div>`).join('')
 + lines.map((l,i)=>`<div class="oline"><span class="dv">${l.dv.TEN_DV}${l.qty>1?' ×'+l.qty:''} <span style="font-size:11px;color:var(--ink3);">(mới thêm — sẽ ghi khi hoàn tất)</span></span><span class="num">${fmtD(l.gia*l.qty)}</span><button class="x" onclick="delLine(${i})">✕</button></div>`).join('');
 const cardDV = `<div class="card">
@@ -817,6 +817,12 @@ function dvPaint(m){
 const box = $('dvSug'); if (!box) return;
 if (!m.length){ box.style.display='none'; box.innerHTML=''; return; }
 box.innerHTML = m.map((d,i)=>`<div class="it${i===dvSel?' sel':''}" onmousedown="dvPick('${d.MA_DV}')"><span style="flex:1;">${d.TEN_DV}</span><span class="g">${d.NHOM||''}</span><span class="num" style="font-weight:700;">${(Number(d.DON_GIA)||0).toLocaleString('vi-VN')}</span></div>`).join('');
+/* iPad/tablet: thẻ .card có overflow:hidden nên hộp gợi ý bị CẮT — chuyển sang position:fixed theo vị trí ô tìm */
+const inp = $('dvSearch');
+if (inp){ const rc = inp.getBoundingClientRect();
+box.style.position='fixed'; box.style.top=(rc.bottom-2)+'px'; box.style.left=rc.left+'px';
+box.style.width=rc.width+'px'; box.style.right='auto'; box.style.zIndex='999';
+box.style.maxHeight=Math.max(160, window.innerHeight-rc.bottom-14)+'px'; box.style.borderTop='1.5px solid var(--brand3)'; box.style.borderRadius='0 0 12px 12px'; }
 box.style.display='block';
 }
 function dvSuggest(){
@@ -828,6 +834,12 @@ if (dvSel < 0 && m.length) dvSel = 0;
 dvPaint(m);
 }
 function dvHide(){ const box=$('dvSug'); if (box) box.style.display='none'; }
+/* XN LÀM TẠI PHÒNG KHÁM (nhóm con Nước tiểu, trừ cấy gửi MEDIC): không phải gửi lab ngoài */
+function xnTaiPK(ten){
+const d = rowsToObj('DICH_VU').find(x=>String(x.TEN_DV).trim()===String(ten).trim()); if (!d) return false;
+const m = String(d.GHI_CHU||'').match(/Bảng giá 2026 — (.+)$/);
+return !!(m && m[1].trim()==='Nước tiểu' && !/cấy/i.test(String(d.TEN_DV)));
+}
 function dvKey(e){
 const m = dvMatches(); if (!m.length) return;
 if (e.key==='ArrowDown'){ dvSel=(dvSel+1)%m.length; dvPaint(m); e.preventDefault(); }
@@ -904,12 +916,14 @@ const pendMine  = isSaBS(myBS()) ? pendSa : pendKh;
 const pendOther = isSaBS(myBS()) ? pendKh : pendSa;
 if (!lines.length && !doneCount){ if(!confirm('Chưa có dịch vụ nào được xác nhận cho lượt khám này. Vẫn kết thúc?')) return; }
 /* XN gửi lab ngoài hay bị quên: hỏi ngay lúc kết thúc — OK là đánh dấu hoàn thành luôn */
-const pendXn = pendMine.filter(l=>{ const d = dvs0.find(x=>x.TEN_DV===l.TEN_DV); return d && String(d.NHOM||'').trim()==='Xét nghiệm'; });
+const pendXn = pendMine.filter(l=>{ const d = dvs0.find(x=>x.TEN_DV===l.TEN_DV); return d && String(d.NHOM||'').trim()==='Xét nghiệm' && !xnTaiPK(l.TEN_DV); });
+const pendXnPK = pendMine.filter(l=>{ const d = dvs0.find(x=>x.TEN_DV===l.TEN_DV); return d && String(d.NHOM||'').trim()==='Xét nghiệm' && xnTaiPK(l.TEN_DV); });
+if (pendXnPK.length && !confirm('Còn '+pendXnPK.length+' XN LÀM TẠI PHÒNG KHÁM chưa có kết quả ('+pendXnPK.map(l=>l.TEN_DV).join(', ')+').\n\nOK = vẫn kết thúc (bấm ✓ + nhập KQ sau bằng nút ↺ Mở lại ca) · Cancel = ở lại nhập ngay')) return;
 let xnAutoDone = [];
 if (pendXn.length && confirm('Còn '+pendXn.length+' XÉT NGHIỆM chưa đánh dấu ('+pendXn.map(l=>l.TEN_DV).join(', ')+') — thường là gửi lab ngoài.\n\nĐã lấy mẫu xong chưa?\nOK = đánh dấu HOÀN THÀNH luôn (tính tiền được) · Cancel = để lại chưa làm')){
 xnAutoDone = pendXn;
 }
-const pendMineLeft = pendMine.filter(l=>xnAutoDone.indexOf(l)===-1);
+const pendMineLeft = pendMine.filter(l=>xnAutoDone.indexOf(l)===-1 && pendXnPK.indexOf(l)===-1);
 if (pendMineLeft.length){ if(!confirm('Còn '+pendMineLeft.length+' dịch vụ CỦA PHÒNG MÌNH chưa xác nhận ('+pendMineLeft.map(l=>l.TEN_DV).join(', ')+') — sẽ không tính tiền nếu để nguyên. Vẫn kết thúc phần của mình?')) return; }
 $('loading').classList.add('on');
 /* đánh dấu các XN đã lấy mẫu */

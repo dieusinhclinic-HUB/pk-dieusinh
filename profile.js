@@ -86,6 +86,7 @@ function hhmm(v){
   return '';
 }
 var PKP_DVS = [];
+function pkpXnTaiPK(ten){ var d=(PKP_DVS||[]).find(function(x){return String(x.TEN_DV).trim()===String(ten).trim();}); if(!d) return false; var mm=String(d.GHI_CHU||'').match(/Bảng giá 2026 — (.+)$/); return !!(mm && mm[1].trim()==='Nước tiểu' && !/cấy/i.test(String(d.TEN_DV))); }
 function pkpLaXn(ten){ try{ var d=PKP_DVS.find(function(x){return String(x.TEN_DV).trim()===String(ten).trim();}); return !!(d && String(d.NHOM||'').trim()==='Xét nghiệm'); }catch(e){ return false; } }
 function tdy(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Ho_Chi_Minh'}); }
 function obj(D,t){
@@ -193,7 +194,7 @@ function render(maBN, D){
     body += v.lines.map(function(l){
       var st = String(l.TRANG_THAI_DV||'').trim();
       var stH = st==='Hủy' ? '<span class="lcancel">✕ hủy</span>'
-        : st==='Chỉ định' ? (pkpLaXn(l.TEN_DV) ? '<span class="lpend">gửi lab — chưa lấy mẫu (vẫn tính tiền)</span>' : '<span class="lpend"> chưa thực hiện</span>')
+        : st==='Chỉ định' ? (pkpLaXn(l.TEN_DV) ? '<span class="lpend">'+(pkpXnTaiPK(l.TEN_DV)?'làm tại PK — chưa có kết quả (vẫn tính tiền)':'gửi lab — chưa lấy mẫu (vẫn tính tiền)')+'</span>' : '<span class="lpend"> chưa thực hiện</span>')
         : '<span class="lok">✓' + (l.GIO_XAC_NHAN?(' '+hhmm(l.GIO_XAC_NHAN)):'') + (l.NGUOI_XAC_NHAN?(' · '+esc(typeof pkTenNV==='function'?pkTenNV(l.NGUOI_XAC_NHAN):String(l.NGUOI_XAC_NHAN).split('@')[0])):'') + '</span>';
       var kq = String(l.KET_QUA||'').trim();
       var files = String(l.ANH_KET_QUA||'').split('|').filter(Boolean);
