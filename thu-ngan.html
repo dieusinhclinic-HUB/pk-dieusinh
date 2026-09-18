@@ -266,9 +266,9 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div><label>Năm sinh / ngày sinh</label><input id="nbNs" placeholder="VD: 1992 hoặc 15/03/1992"></div>
 <div class="full"><label>Địa chỉ</label><input id="nbDc"></div>
 <div class="full"><label>Ghi chú</label><input id="nbGc"></div>
-<div class="full" style="font-size:12px;color:var(--ink2);">Sau khi lưu, hồ sơ sẽ mở sang bước Tiếp nhận (chọn dịch vụ &amp; bác sĩ).</div>
+<div class="full" style="font-size:12px;color:var(--ink2);">Chọn <b>Lưu &amp; tiếp nhận</b> để vào hàng chờ khám ngay, hoặc <b>Chỉ lưu hồ sơ</b> nếu bệnh nhân chưa khám hôm nay (đăng ký trước, mua thuốc, hỏi thông tin…).</div>
 </div></div>
-<div class="mf"><button class="btn btn-brand" onclick="saveNewBN()">✓ Lưu &amp; tiếp nhận</button></div>
+<div class="mf"><button class="btn btn-soft" onclick="saveNewBN(true)"> Chỉ lưu hồ sơ</button><button class="btn btn-brand" onclick="saveNewBN()">✓ Lưu &amp; tiếp nhận</button></div>
 </div></div>
 
 <!-- ===== modal: tiếp nhận ===== -->
@@ -1110,14 +1110,21 @@ function openProfile(maBN){ PKProfile.open(maBN); }
 
 /* ================== BN MỚI ================== */
 function openNewBN(){ ['nbTen','nbSdt','nbNs','nbDc','nbGc'].forEach(i=>$(i).value=''); show('newOvl'); const t=$('gsInput').value.trim(); if(t && !/\d/.test(t)) $('nbTen').value=t; }
-async function saveNewBN(){
+async function saveNewBN(onlyProfile){
 const ten = $('nbTen').value.trim();
 if (!ten){ toast('⚠ Nhập họ tên'); return; }
 const ma = nextId('BN',4,'BENH_NHAN','MA_BN');
 const row = { MA_BN:ma, HO_TEN:ten, NGAY_SINH:$('nbNs').value.trim(), GIOI_TINH:'Nữ', SDT:$('nbSdt').value.trim(), DIA_CHI:$('nbDc').value.trim(), TIEN_SU:'', GHI_CHU:$('nbGc').value.trim(), NGAY_LAP: todayStr() };
 const j = await api('append', {table:'BENH_NHAN', row});
-if (j.ok){ ver=j.v; hide('newOvl'); toast('✓ Đã tạo hồ sơ <b>'+ten+'</b> ('+ma+')'); await loadAll(true); openReception(ma); }
-else toast('⚠ ' + (j.error||'lỗi'));
+if (!j.ok){ toast('⚠ ' + (j.error||'lỗi')); return; }
+ver=j.v; hide('newOvl'); await loadAll(true);
+if (onlyProfile){
+toast('✓ Đã lưu hồ sơ <b>'+ten+'</b> ('+ma+') — CHƯA vào hàng chờ. Khi bệnh nhân đến khám: tìm tên rồi bấm Tiếp nhận.');
+if (window.PKProfile) PKProfile.open(ma);
+} else {
+toast('✓ Đã tạo hồ sơ <b>'+ten+'</b> ('+ma+')');
+openReception(ma);
+}
 }
 
 /* ================== THANH TOÁN ================== */
