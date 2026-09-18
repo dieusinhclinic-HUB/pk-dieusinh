@@ -114,7 +114,11 @@ function addRow(){
     '</div>';
   div.querySelector('.tThuoc').innerHTML = thuocOpts();
   /* Thời điểm dùng: CHỌN thay vì gõ (góp ý BS Thủy) — chọn "Khác…" mới hiện ô tự ghi */
-  var TD_OPTS = ['','Sáng','Tối','Sáng & tối','Sáng, trưa, tối','Sau ăn','Sáng sau ăn','Tối sau ăn','Sáng & tối, sau ăn','Trước ăn 30 phút','Trước khi ngủ','Tối, trước khi ngủ','Khi đau','Khác (tự ghi)…'];
+  var TD_OPTS = ['',
+    'Sau ăn 30 phút','Trước ăn 30 phút','Sau ăn','Trước ăn','Trước ăn 60 phút','Trong bữa ăn','Xa bữa ăn (lúc đói)',
+    'Sáng','Trưa','Tối','Sáng & tối','Sáng, trưa, tối',
+    'Sáng sau ăn','Tối sau ăn','Sáng & tối, sau ăn','Sáng trước ăn 30 phút','Tối sau ăn 30 phút',
+    'Trước khi ngủ','Tối, trước khi ngủ','Khi đau','Khi sốt','Khi ra huyết','Khác (tự ghi)…'];
   /* Đường dùng: chọn từ danh sách; đổi thuốc → gợi ý lại (chỉ khi ô còn trống hoặc đang là gợi ý máy) */
   var ddSel = div.querySelector('.tDdSel'), ddInp = div.querySelector('.tDd'), ddAuto = '';
   ddSel.innerHTML = '<option value="">— chọn —</option>' + DD_OPTS.map(function(o){ return '<option value="'+o+'">'+o+'</option>'; }).join('');
