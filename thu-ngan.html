@@ -261,9 +261,10 @@ header.bar .sub{font-size:12px;opacity:.85;}
 <div class="ovl" id="newOvl"><div class="modal" style="width:min(540px,100%);">
 <div class="mh"><h3> Bệnh nhân mới</h3><button class="mclose" onclick="hide('newOvl')">✕</button></div>
 <div class="mb"><div class="fgrid">
-<div class="full"><label>Họ tên *</label><input id="nbTen"></div>
-<div><label>Số điện thoại</label><input id="nbSdt"></div>
+<div class="full"><label>Họ tên *</label><input id="nbTen" oninput="nbDupTimer()" autocomplete="off"></div>
+<div><label>Số điện thoại</label><input id="nbSdt" oninput="nbDupTimer()" autocomplete="off"></div>
 <div><label>Năm sinh / ngày sinh</label><input id="nbNs" placeholder="VD: 1992 hoặc 15/03/1992"></div>
+<div class="full" id="nbDupBox" style="display:none;background:#fdf0ee;border:1.5px solid #e8b6ae;border-radius:10px;padding:8px 10px;"></div>
 <div class="full"><label>Địa chỉ</label><input id="nbDc"></div>
 <div class="full"><label>Ghi chú</label><input id="nbGc"></div>
 <div class="full" style="font-size:12px;color:var(--ink2);">Chọn <b>Lưu &amp; tiếp nhận</b> để vào hàng chờ khám ngay, hoặc <b>Chỉ lưu hồ sơ</b> nếu bệnh nhân chưa khám hôm nay (đăng ký trước, mua thuốc, hỏi thông tin…).</div>
@@ -1109,10 +1110,58 @@ document.addEventListener('click', e => { if (!e.target.closest('.toolbar')) $('
 function openProfile(maBN){ PKProfile.open(maBN); }
 
 /* ================== BN MỚI ================== */
-function openNewBN(){ ['nbTen','nbSdt','nbNs','nbDc','nbGc'].forEach(i=>$(i).value=''); show('newOvl'); const t=$('gsInput').value.trim(); if(t && !/\d/.test(t)) $('nbTen').value=t; }
+function openNewBN(){ ['nbTen','nbSdt','nbNs','nbDc','nbGc'].forEach(i=>$(i).value=''); const db=$('nbDupBox'); if(db){db.style.display='none';db.innerHTML='';} show('newOvl'); const t=$('gsInput').value.trim(); if(t && !/\d/.test(t)){ $('nbTen').value=t; nbDupTimer(); } }
+/* ==== CHỐNG TRÙNG HỒ SƠ ==== */
+function normVN2(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'d').toLowerCase().replace(/\s+/g,' ').trim(); }
+function nbFindDups(){
+const ten = normVN2($('nbTen').value), sdt = String($('nbSdt').value||'').replace(/\D/g,'');
+if (ten.length < 5 && sdt.length < 9) return [];
+return rowsToObj('BENH_NHAN').filter(b=>{
+const bn = normVN2(b.HO_TEN), bs = String(b.SDT||'').replace(/\D/g,'');
+const nameHit = ten.length>=5 && (bn===ten || (ten.length>=9 && (bn.indexOf(ten)!==-1 || ten.indexOf(bn)!==-1 && bn.length>=9)));
+const sdtHit = sdt.length>=9 && bs===sdt;
+return nameHit || sdtHit;
+}).slice(0,5);
+}
+let nbDupT = null;
+function nbDupTimer(){ clearTimeout(nbDupT); nbDupT = setTimeout(nbDupCheck, 350); }
+function nbDupCheck(){
+const box = $('nbDupBox'); if (!box) return;
+const m = nbFindDups();
+if (!m.length){ box.style.display='none'; box.innerHTML=''; return; }
+box.style.display='block';
+box.innerHTML = '<div style="font-weight:800;color:#a33325;font-size:12.5px;margin-bottom:6px;">⚠ Có thể bệnh nhân ĐÃ CÓ hồ sơ — kiểm tra trước khi tạo mới:</div>'
++ m.map(b=>`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:5px 0;border-top:1px dashed #e8b6ae;">
+<div style="flex:1;min-width:150px;"><b>${b.HO_TEN}</b> <span class="num" style="color:var(--ink3);font-size:11px;">${b.MA_BN}</span><div style="font-size:11.5px;color:var(--ink2);">${b.NGAY_SINH?('NS: '+b.NGAY_SINH+' · '):''}${b.SDT?('SĐT: '+b.SDT):'<i>chưa có SĐT</i>'}</div></div>
+<button type="button" class="qbtn" onclick="openProfile('${b.MA_BN}')"> Xem</button>
+<button type="button" class="qbtn ok" onclick="nbUseBN('${b.MA_BN}')">✓ Dùng hồ sơ này</button>
+</div>`).join('')
++ '<div style="font-size:11px;color:var(--ink3);margin-top:5px;">"Dùng hồ sơ này" = KHÔNG tạo mới — thông tin mới nhập (SĐT, năm sinh, địa chỉ) sẽ tự BỔ SUNG vào chỗ còn trống của hồ sơ cũ, rồi chuyển sang Tiếp nhận.</div>';
+}
+async function nbUseBN(ma){
+const b = rowsToObj('BENH_NHAN').find(x=>x.MA_BN===ma); if (!b) return;
+const upd = {};
+const ns=$('nbNs').value.trim(), sdt=$('nbSdt').value.trim(), dc=$('nbDc').value.trim(), gc=$('nbGc').value.trim();
+if (ns && !String(b.NGAY_SINH||'').trim()) upd.NGAY_SINH = ns;
+if (sdt && !String(b.SDT||'').trim()) upd.SDT = sdt;
+if (dc && !String(b.DIA_CHI||'').trim()) upd.DIA_CHI = dc;
+if (gc) upd.GHI_CHU = (String(b.GHI_CHU||'').trim() ? (b.GHI_CHU+' · ') : '') + gc;
+if (Object.keys(upd).length){
+const j = await api('update', {table:'BENH_NHAN', keyCol:'MA_BN', keyVal:ma, row:upd});
+if (j.ok){ ver=j.v; toast('✓ Đã bổ sung thông tin còn thiếu vào hồ sơ <b>'+b.HO_TEN+'</b> ('+ma+')'); }
+else { toast('⚠ '+(j.error||'lỗi')); }
+} else toast('✓ Dùng hồ sơ có sẵn <b>'+b.HO_TEN+'</b> ('+ma+')');
+hide('newOvl');
+await loadAll(true);
+openReception(ma);
+}
 async function saveNewBN(onlyProfile){
 const ten = $('nbTen').value.trim();
 if (!ten){ toast('⚠ Nhập họ tên'); return; }
+/* chặn trùng: trùng TÊN (không dấu) hoặc trùng SĐT → hỏi lại trước khi tạo */
+const dups = nbFindDups();
+const exact = dups.filter(b=>normVN2(b.HO_TEN)===normVN2(ten) || (String($('nbSdt').value||'').replace(/\D/g,'').length>=9 && String(b.SDT||'').replace(/\D/g,'')===String($('nbSdt').value||'').replace(/\D/g,'')));
+if (exact.length && !confirm('⚠ ĐÃ CÓ '+exact.length+' hồ sơ trùng tên/SĐT:\n'+exact.map(b=>'· '+b.HO_TEN+' ('+b.MA_BN+')'+(b.NGAY_SINH?' — NS '+b.NGAY_SINH:'')+(b.SDT?' — '+b.SDT:'')).join('\n')+'\n\nNếu là CÙNG MỘT NGƯỜI: bấm Cancel rồi chọn "✓ Dùng hồ sơ này" trong khung đỏ.\nOK = vẫn tạo hồ sơ MỚI (người khác trùng tên).')) return;
 const ma = nextId('BN',4,'BENH_NHAN','MA_BN');
 const row = { MA_BN:ma, HO_TEN:ten, NGAY_SINH:$('nbNs').value.trim(), GIOI_TINH:'Nữ', SDT:$('nbSdt').value.trim(), DIA_CHI:$('nbDc').value.trim(), TIEN_SU:'', GHI_CHU:$('nbGc').value.trim(), NGAY_LAP: todayStr() };
 const j = await api('append', {table:'BENH_NHAN', row});
