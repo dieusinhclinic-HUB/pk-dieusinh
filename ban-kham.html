@@ -670,7 +670,7 @@ const toas = rowsToObj('TOA_THUOC').filter(t=>String(t.MA_CHO||'')===cur.maCho &
 
 /* ---- 1 · BỆNH NHÂN ---- */
 const cardBN = `<div class="card">
-<div class="hd"><h2> Bệnh nhân</h2><div class="spacer"></div><button class="qbtn" onclick="PKProfile.open('${b.MA_BN}')"> Mở bệnh án</button></div>
+<div class="hd"><h2> Bệnh nhân</h2><div class="spacer"></div><button class="qbtn" title="Ca này của bác sĩ khác? Chuyển sang đúng BS" onclick="bkDoiBS()">⇄ Đổi BS</button><button class="qbtn" onclick="PKProfile.open('${b.MA_BN}')"> Mở bệnh án</button></div>
 <div class="bd">
 <div class="pt-head">
 <div style="flex:1;">
@@ -903,6 +903,27 @@ if (j.ok){ ver=j.v; toast('✓ Đã hủy dịch vụ: '+l.TEN_DV); loadAll(true
 else toast('⚠ ' + (j.error||'lỗi'));
 }
 
+/* ==== chuyển ca đang khám sang BS khác (gọi nhầm / chọn nhầm) ==== */
+async function bkDoiBS(){
+if (!cur) return;
+if (lines.length){ toast('⚠ Đang có dịch vụ chưa lưu — Hoàn tất khám hoặc bỏ chọn trước khi chuyển ca.'); return; }
+const ds = rowsToObj('BAC_SI').filter(x=>String(x.DANG_LAM_VIEC||'').trim()==='Có').map(x=>String(x.TEN_BS).trim()).filter(t=>t!==myBS());
+if (!ds.length){ toast('⚠ Không có bác sĩ khác đang làm việc'); return; }
+const pick = prompt('Chuyển ca cho bác sĩ nào?\n'+ds.map((t,i)=>(i+1)+'. '+t).join('\n')+'\n\nNhập SỐ (1-'+ds.length+'):');
+if (pick===null) return;
+const ten = ds[parseInt(pick,10)-1];
+if (!ten){ toast('⚠ Số không hợp lệ'); return; }
+const ord = queueToday().find(x=>x.MA_CHO===cur.maCho) || {};
+const gc = (String(ord.GHI_CHU||'').trim() ? (ord.GHI_CHU+' · ') : '') + 'Chuyển ca từ '+myBS()+' sang '+ten;
+const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:cur.maCho, row:{BS_KHAM:ten, GHI_CHU:gc}});
+if (!j.ok){ toast('⚠ '+(j.error||'lỗi')); return; }
+ver = j.v;
+const pend = rowsToObj('SO_KHAM').filter(l=>String(l.MA_CHO||'')===cur.maCho && String(l.TRANG_THAI_DV||'').trim()==='Chỉ định' && String(l.BS_CHI_DINH||'').trim()===myBS());
+await Promise.all(pend.map(l=>api('update',{table:'SO_KHAM',keyCol:'MA_LUOT',keyVal:l.MA_LUOT,row:{BS_CHI_DINH:ten}}).catch(e=>({ok:false}))));
+toast('✓ Đã chuyển <b>'+bn(cur.maBN).HO_TEN+'</b> sang phòng <b>'+ten+'</b>');
+cur=null; lines=[]; examNote='';
+loadAll(true);
+}
 async function finishExam(){
 if (!cur) return;
 const oLines = orderLines(cur.maCho, cur.maBN);

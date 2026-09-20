@@ -572,11 +572,12 @@ rows.forEach(r => {
 const svcBtn = `<button class="qbtn" title="Thêm dịch vụ" onclick="openSvc('${r.MA_BN}')"> DV</button>`;
 let extraBtn = '';
 if (g.key==='Đã thu'){ const ex0 = extraBill(r); if (ex0.lines.length || ex0.drugs.length) extraBtn = `<button class="qbtn pay" title="Dịch vụ/thuốc phát sinh sau khi đã thu" onclick="selectPay('${r.MA_CHO}')">＋ TT bổ sung</button>`; }
+const doiBsBtn = (g.key==='Chờ khám'||g.key==='Đang khám') ? `<button class="qbtn" title="Đổi bác sĩ (chọn nhầm BS)" onclick="tnDoiBS('${r.MA_CHO}')">⇄ BS</button>` : '';
 const liQ = (g.key==='Chờ khám') ? legInfo(r) : null;
 const acts = (
 g.key==='Chờ khám' ? ((liQ && !liQ.pend.filter(l=>!isXnLine(l)).length && (liQ.done.length||liQ.pend.length)) ? `<button class="qbtn pay" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Đủ DV — thanh toán</button>` : `<button class="qbtn call" onclick="callBN('${r.MA_CHO}')"> Gọi</button>`) + `<button class="qbtn" onclick="togglePriority('${r.MA_CHO}')">${String(r.UU_TIEN||'').trim()==='Có'?'↩ Bỏ ưu tiên':' Ưu tiên'}</button><button class="qbtn crit" onclick="openCancel('${r.MA_CHO}')">✕ Hủy</button>` :
 g.key==='Đang khám' ? `<button class="qbtn" onclick="setStatus('${r.MA_CHO}','Xong khám')">✓ Hoàn tất khám</button>` :
-g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')"> Thanh toán</button>` : '') + extraBtn + svcBtn;
+g.key==='Xong khám' ? `<button class="qbtn pay" onclick="selectPay('${r.MA_CHO}')"> Thanh toán</button>` : '') + doiBsBtn + extraBtn + svcBtn;
 const dvTxt = dvNames(r);
 html += `<div class="qrow ${g.cls}${String(r.UU_TIEN||'').trim()==='Có'&&g.key==='Chờ khám'?' prio':''}">
 <div class="stt num">${r.STT||'–'}</div>
@@ -945,6 +946,45 @@ toast('✓ Đã tiếp nhận <b>'+bnName(rcBN)+'</b> — số thứ tự <b>'+s
 rcBN=null; rcHen=null;
 loadAll(true);
 } finally { btn.disabled=false; btn.textContent='✓ Tiếp nhận vào hàng chờ'; }
+}
+
+/* ==== ĐỔI BÁC SĨ cho lượt khám (chọn nhầm BS) ==== */
+function tnDoiBS(maCho){
+const r = queueToday().find(x=>x.MA_CHO===maCho); if (!r) return;
+const cho = String(r.TRANG_THAI).trim()==='Chờ khám';
+const curBs = cho ? String(r.BS_YEU_CAU||'').trim() : String(r.BS_KHAM||'').trim();
+const ds = rowsToObj('BAC_SI').filter(b=>String(b.DANG_LAM_VIEC||'').trim()==='Có').map(b=>String(b.TEN_BS).trim());
+let old = document.getElementById('doiBsOvl'); if (old) old.remove();
+const ovl = document.createElement('div');
+ovl.id = 'doiBsOvl';
+ovl.style.cssText = 'position:fixed;inset:0;background:rgba(10,30,24,.45);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;';
+ovl.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:16px 18px;box-shadow:0 24px 60px rgba(0,0,0,.25);">
+<div style="font-weight:800;font-size:15px;margin-bottom:2px;">⇄ Đổi bác sĩ — ${bnName(r.MA_BN)}</div>
+<div style="font-size:12px;color:var(--ink2);margin-bottom:10px;">${cho?'Đang CHỜ KHÁM':'Đang KHÁM'}${curBs?(' · hiện tại: <b>'+curBs+'</b>'):' · chưa gán bác sĩ'}</div>
+${ds.map(t=>`<button class="qbtn" style="display:block;width:100%;text-align:left;margin:4px 0;padding:9px 12px;font-size:13.5px;${t===curBs?'opacity:.45;pointer-events:none;':''}" onclick="tnDoiBSGo('${maCho}','${t.replace(/'/g,"\\'")}')">${t}${t===curBs?' (hiện tại)':''}</button>`).join('')}
+${cho?`<button class="qbtn" style="display:block;width:100%;text-align:left;margin:4px 0;padding:9px 12px;font-size:13.5px;" onclick="tnDoiBSGo('${maCho}','')"> Bác sĩ nào cũng được</button>`:''}
+<button class="btn btn-soft" style="width:100%;margin-top:8px;" onclick="document.getElementById('doiBsOvl').remove()">Đóng</button>
+</div>`;
+ovl.onclick = e=>{ if (e.target===ovl) ovl.remove(); };
+document.body.appendChild(ovl);
+}
+async function tnDoiBSGo(maCho, ten){
+const r = queueToday().find(x=>x.MA_CHO===maCho); if (!r) return;
+const cho = String(r.TRANG_THAI).trim()==='Chờ khám';
+const oldBs = cho ? String(r.BS_YEU_CAU||'').trim() : String(r.BS_KHAM||'').trim();
+const row = cho ? {BS_YEU_CAU: ten} : {BS_KHAM: ten};
+row.GHI_CHU = (String(r.GHI_CHU||'').trim() ? (r.GHI_CHU+' · ') : '') + 'Đổi BS'+(oldBs?(' từ '+oldBs):'')+(ten?(' sang '+ten):' (bỏ chỉ định)')+' — '+(me?(me.ho_ten||pkTenNV(me.email)):'');
+const j = await api('update', {table:'HANG_CHO', keyCol:'MA_CHO', keyVal:maCho, row});
+const el = document.getElementById('doiBsOvl'); if (el) el.remove();
+if (!j.ok){ toast('⚠ '+(j.error||'lỗi')); return; }
+ver = j.v;
+/* dòng chỉ định do BS cũ đứng tên mà CHƯA thực hiện → chuyển người ra y lệnh sang BS mới */
+if (oldBs && ten){
+const pend = rowsToObj('SO_KHAM').filter(l=>String(l.MA_CHO||'')===maCho && String(l.TRANG_THAI_DV||'').trim()==='Chỉ định' && String(l.BS_CHI_DINH||'').trim()===oldBs);
+await Promise.all(pend.map(l=>api('update',{table:'SO_KHAM',keyCol:'MA_LUOT',keyVal:l.MA_LUOT,row:{BS_CHI_DINH:ten}}).catch(e=>({ok:false}))));
+}
+toast('✓ Đã đổi bác sĩ cho <b>'+bnName(r.MA_BN)+'</b>'+(ten?(' → <b>'+ten+'</b>'):' — bác sĩ nào cũng được'));
+loadAll(true);
 }
 
 /* ================== HẸN HÔM NAY ================== */
