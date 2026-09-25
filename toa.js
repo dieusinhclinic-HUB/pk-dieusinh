@@ -159,11 +159,14 @@ function addRow(){
     var isCombo = t0 && String(t0.NHOM||'').trim()==='Combo';
     var ton = TON[ma]||0, giu = DANG_SOAN[ma]||0, khaDung = ton-giu;
     var tonEl = div.querySelector('.tkTon');
-    if (isCombo){ tonEl.textContent = 'Bộ combo — kho trừ theo từng thuốc bên trong'; tonEl.className='tkTon'; }
+    if (isCombo){ tonEl.textContent = '⚠ Bộ combo: SL luôn = 1 BỘ (giá trọn gói ' + (Number(t0.GIA_BAN)||0).toLocaleString('vi-VN') + 'đ) — đang chờ danh sách thuốc bên trong để hiện từng loại'; tonEl.className='tkTon thieu'; }
     else if (ma){ tonEl.textContent = 'Tồn: '+ton+(giu?(' · đang soạn: '+giu):'')+' · khả dụng: '+khaDung; }
     else tonEl.textContent = '';
-    var sl = Math.ceil(numLieu(div.querySelector('.tLieu').value) * (Number(div.querySelector('.tLan').value)||0) * (Number(div.querySelector('.tNgay').value)||0));
-    if (document.activeElement !== div.querySelector('.tSl')) div.querySelector('.tSl').value = sl||'';
+    var slEl = div.querySelector('.tSl');
+    if (isCombo){ slEl.value = 1; slEl.readOnly = true; slEl.style.background = '#f3f0e8'; slEl.title = 'Combo luôn tính 1 BỘ trọn gói — không nhân theo viên'; }
+    else { slEl.readOnly = false; slEl.style.background = ''; slEl.title = ''; }
+    var sl = isCombo ? 1 : Math.ceil(numLieu(div.querySelector('.tLieu').value) * (Number(div.querySelector('.tLan').value)||0) * (Number(div.querySelector('.tNgay').value)||0));
+    if (isCombo || document.activeElement !== slEl) slEl.value = sl||(isCombo?1:'');
     var need = Number(div.querySelector('.tSl').value)||0;
     if (!isCombo){
       tonEl.className = 'tkTon' + (ma && need>khaDung ? ' thieu' : '');
