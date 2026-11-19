@@ -116,7 +116,7 @@ function addRow(){
   /* Thời điểm dùng: CHỌN thay vì gõ (góp ý BS Thủy) — chọn "Khác…" mới hiện ô tự ghi */
   var TD_OPTS = ['',
     'Sau ăn 30 phút','Trước ăn 30 phút','Sau ăn','Trước ăn','Trước ăn 60 phút','Trong bữa ăn','Xa bữa ăn (lúc đói)',
-    'Sáng','Trưa','Tối','Sáng & tối','Sáng, trưa, tối',
+    'Sáng','Trưa','Chiều','Tối','Sáng & chiều','Sáng & tối','Sáng, trưa, chiều','Sáng, trưa, tối',
     'Sáng sau ăn','Tối sau ăn','Sáng & tối, sau ăn','Sáng trước ăn 30 phút','Tối sau ăn 30 phút',
     'Trước khi ngủ','Tối, trước khi ngủ','Khi đau','Khi sốt','Khi ra huyết','Khác (tự ghi)…'];
   /* Đường dùng: chọn từ danh sách; đổi thuốc → gợi ý lại (chỉ khi ô còn trống hoặc đang là gợi ý máy) */
